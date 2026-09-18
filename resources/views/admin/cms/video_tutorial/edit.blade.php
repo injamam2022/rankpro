@@ -1,0 +1,91 @@
+@extends('layouts.backend')
+
+
+@section('css_after')
+<style>
+    .custom-label {
+        margin-top: 0.5rem;
+        margin-bottom: -0.75rem;
+        display: block;
+    }
+</style>
+@endsection
+
+@section('content')
+
+    <div class="container-xl px-5">
+        <div class="d-flex mt-10 mb-4 align-items-center">
+            <h1 class="page-header mb-0">Edit How To Use Video</h1>
+        </div>
+        <div class="row gx-5">
+            <div class="col-lg-12">
+                <form action="{{route('admin.video_tutorial.update')}}" method="post"  enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="id" value="{{$banner->id}}">
+                    @csrf
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="page_id">Page Name <span class="text-danger">*</span></label>
+                            <div class="form-select" name="page_id" id="page_id">
+                                {{$banner->page_name}}
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
+                            <input class="form-control" id="name" type="text" name="name" placeholder=""  value="{{$banner->name}}" />
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="video_link">Video Link</label>
+                            <input class="form-control" id="video_link" type="text" name="video_link" placeholder=""  value="{{$banner->video_link}}" />
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="exampleFormControlInput">Status</label>
+                            <div class="form-control" style="display:flex;">
+                                <div class="form-check">
+                                    <input class="form-check-input" id="status_active" type="radio" name="status" @if($banner->status == 1) checked  @endif value="1" />
+                                    <label class="form-check-label" for="status_active">Active</label>
+                                </div>
+                                <div class="form-check" style="margin-left: 15px;">
+                                    <input class="form-check-input" id="status_inactive" type="radio" name="status" @if($banner->status == 0) checked  @endif value="0" />
+                                    <label class="form-check-label" for="status_inactive">Inactive</label>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-12 mt-5 text-center">
+                            <a href="javascript:void(0);" onclick="history.go(-1);" class="btn btn-secondary cancelButton" type="button">Cancel</a>
+                            <button class="btn btn-primary" type="submit">Submit</button>
+                        </div>
+                        <div class="mb-5">
+                            &nbsp;
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+
+@section('js_after')
+<script>
+    // function previewImage(event) {
+    //     var reader = new FileReader();
+    //     reader.onload = function () {
+    //         var output = document.getElementById('image-preview');
+    //         output.src = reader.result;
+    //         output.style.display = 'block';
+    //     }
+    //     reader.readAsDataURL(event.target.files[0]);
+    // }
+
+    @foreach($languages as $language)
+        ClassicEditor
+            .create(document.querySelector('#editor<?=$language->id?>'))
+            .catch(error => {
+                console.error('Error initializing CKEditor for language <?=$language->id?>:', error);
+            });
+    @endforeach
+</script>
+@endsection

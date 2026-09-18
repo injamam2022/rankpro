@@ -1,0 +1,805 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="css/bootstrap.min.css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet"> 
+
+	<title>Shikkha Home</title>
+
+  <!-- <link rel="shortcut icon" href="img/fav-icon.png" /> -->
+  <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+  <!--===============================================================================================-->
+    <link href="vendor/font-awesome/css/font-awesome.css" rel="stylesheet">
+  <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+  <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/animsition/css/animsition.min.css">
+  <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+  <!--===============================================================================================-->	
+    <link rel="stylesheet" type="text/css" href="vendor/daterangepicker/daterangepicker.css">
+  <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="css/util.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/modalanimate.css">
+  <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="css/jquery.bxslider.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+<script type="text/javascript" src="http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=iGLEp8Bl7FgcaEHWsO0JJ1CCGmYMfgIQ9OdGMg7haUt50_MrSg1vrRGX3gYXg0CTYe7T8liZwV7p6kyFi9xUajBJp0XDfTmvg0y3zDV1PgOA3BlN-C0-iOzzn-0I8LNcuhYIzvoAt_MO0hptzkVy6UPFVWJbClzT5fOlE7wG7c8avmlxbbDPFJglC0nbF3Pxo4eRHXBfGLULBbJrku5AiuCxTmh3gZ_oIyNY91P6u-E" charset="UTF-8"></script></head>
+
+<body id="body">
+
+  <!--==========================
+    Header
+  ============================-->
+  <header id="mainheader">
+    <div class="container">
+      <div id="logo" class="pull-left">
+        <a href="home.html" class="scrollto" id="logo">
+          <img src="img/logo.png" class="img-fluid"/>
+        </a>
+      </div>
+
+      <nav id="nav-menu-container">
+        <div class="topNav">
+          <div class="signup">
+            <img src="img/login_singup_icon.png">
+            <a href="#" data-effect="myFade" data-id="modal-container" class="button">Log In</a> |
+            <a href="#" data-effect="myFade" data-id="signupcontainer" class="button">Signup</a>
+          </div>
+          <div class="socialLink">
+            <a href="#"><img src="img/fb.png"></a>
+            <a href="#"><img src="img/yt.png"></a>
+            <a href="#"><img src="img/tw.png"></a>
+          </div>
+        </div>
+
+        <ul class="nav-menu">
+          <li><a href="home.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="blog.html">BLOG</a></li>
+          <li><a href="news.html">NEWS</a></li>
+          <li class="menu-active"><a href="contact.html">CONTACT US</a></li>
+        </ul>
+      </nav><!-- #nav-menu-container -->
+    </div>
+  </header><!-- #mainheader -->
+
+
+  <!--==========================
+    Intro Section
+  ============================-->
+  <section id="intro" class="mainBanner">
+    <div class="container text-center">
+      <h1 class="bannerHeading">Contact</h1>
+    </div>
+  </section><!-- #intro -->
+
+  <main id="main">
+    <!--==========================
+        Contact Section
+      ============================-->
+    <section id="about" class="wow fadeInUp">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-12 content">
+              <h2 class="text-center buleText">Let's Talk</h2>
+              <p class="text-center mb-5 contactText">
+                We help business, organizations and individuals from 
+                around the world bring their projects to life. 
+                <br>We'd love to help you too!
+              </p>
+              
+  
+            </div>
+          </div>
+  
+        </div>
+  
+        <div class="container">
+          <div class="form">
+            <div id="sendmessage">Your message has been sent. Thank you!</div>
+            <div id="errormessage"></div>
+            <form action="action/contact.php" method="post" role="form" class="contactForm">
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" data-rule="minlen:4" data-msg="This field is mandatory" />
+                  <div class="validation"></div>
+                </div>
+                <div class="form-group col-md-4">
+                  <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" data-rule="email" data-msg="This field is mandatory" />
+                  <div class="validation"></div>
+                </div>
+                <div class="form-group col-md-4">
+                  <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" data-rule="minlen:4" data-msg="This field is mandatory" />
+                  <div class="validation"></div>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <textarea class="form-control" name="message" rows="5" data-rule="required" data-msg="This field is mandatory" placeholder="Message"></textarea>
+                <div class="validation"></div>
+              </div>
+              <div class="text-center"><button class="morebutton" type="submit">Submit</button></div>
+            </form>
+          </div>
+        </div>
+  
+    </section><!-- #about -->
+  
+  
+      
+      <section id="contact" class="wow fadeInUp">
+        <div class="container">
+          <div class="section-header text-center">
+            <h2 class="text-center orengeText">Contact Us</h2>
+            <p class="contactText"><strong>Address:</strong> M-20 1A/8 ,Sector V, College More, Bidhan, Tower,  8th Floor Kolkata - 700001</p>
+            <p class="contactText"><strong>Phone No:</strong> +91 98365 96358 / +91 90358 90357</p>
+            <p class="contactText"><strong>Email:</strong> info-mer@myexamreview.com</p>
+          </div>
+        </div>
+        
+      
+      </section><!-- #contact -->
+
+  </main>
+
+  
+  <footer id="mainfooter">
+    <div class="container pt-3 pl-3 pr-3">
+      <div class="row">
+        <div class="col-sm-4">
+          <h4>Menu</h4>
+          <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-4">
+          <h4>QUICK LINKS</h4>
+          <ul>
+            <li><a href="faq.html">FAQ</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms and Conditions</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-4">
+          <h4>CONTACT</h4>
+          <div class="resfooter">
+           <i class="fa fa-map-marker" aria-hidden="true"></i>
+          <span>Address:</span> M-20 1A/8 ,Sector V, College More, Bidhan 
+          Tower,  8th Floor Kolkata - 700001
+          <br>
+          </div>
+          <div class="resfooter"><i class="fa fa-volume-control-phone" aria-hidden="true"></i>
+            <span>Phone No:</span> +91 98365 96358 / +91 90358 90357
+          <br></div>
+          <div class="resfooter"><i class="fa fa-location-arrow" aria-hidden="true"></i>
+            <span>Email:</span>  info-mer@myexamreview.com</div>
+        </div>
+      </div>
+    </div>
+    <div class="lastfooter text-center">&copy; Copyright 2020 shiksha.  All Rights Reserved. |   <a href="http://zabingo.com/">zabingo.com</a></div>
+  </footer><!-- #footer -->
+
+  <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+  <!-- sign part 1 -->
+  <div id="signupcontainer" class="modalStyle">
+      <div class="modal-background">
+        <div class="login_card registration_card">
+          <div class="card modal">
+            <div class="card-header">
+              <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+            </div>
+            <div class="card-body">
+              <div class="card-title">Registration</div>
+              <div class="numberLevel text-center">
+                <!-- <img src="img/numberLevel.png" class="img-fluid" alt=""> -->
+                <div class="numberBullet">
+                  <a href="#" class="currentTab">1</a>
+                  <a href="#">2</a>
+                  <a href="#">3</a>
+                  <a href="#">4</a>
+                </div>
+              </div>
+              <form class="validHint" action="/action_page.php">
+                <div class="form-group" data-validate="Mobile No is reauired">
+                  <label for="number">Mobile No</label>
+                  <input type="number" class="form-control" id="pNumber" min="0" name="pNumber">
+                  <span class="animatedSpan">Enter Mobile No</span>
+                </div>
+                <div class="text-center">
+                  <a href="#" data-effect="myFade" data-id="signupcontainer2" class="btn btn-img mt-0 button"><img src="img/submitBtn.png" class="img-fluid" alt=""></a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+  <!-- sign part 2 -->
+  <div id="signupcontainer2" class="modalStyle">
+    <div class="modal-background">
+      <div class="login_card registration_card registration_card2">
+        <div class="card modal">
+          <div class="card-header">
+            <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+          </div>
+          <div class="card-body">
+            <div class="card-title">Registration</div>
+            <div class="numberLevel text-center">
+              <!-- <img src="img/numberLevel2.png" class="img-fluid" alt=""> -->
+              <div class="numberBullet">
+                <a href="#">1</a>
+                <a href="#" class="currentTab">2</a>
+                <a href="#">3</a>
+                <a href="#">4</a>
+              </div>
+            </div>
+            <form class="validHint" action="/action_page.php">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group" data-validate="Student First Name is reauired">
+                    <!--<label for="text"> First Name</label>-->
+                    <input type="text" class="form-control" id="studentName" name="studentName">
+                    <span class="animatedSpan">Enter Student First Name</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group" data-validate="Student Last Name is reauired">
+                    <!--<label for="text"> Last Name</label>-->
+                    <input type="text" class="form-control" id="studentName" name="studentName">
+                    <span class="animatedSpan">Enter Student Last Name</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group" data-validate="Parent Name is reauired">
+                    <!--<label for="text">Parent Name</label>-->
+                    <input type="text" class="form-control" id="parentName" placeholder="Enter Parent Name" name="studentName">
+                    <span class="animatedSpan">Enter Parent Name</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <div class="customRadio">
+                      <label class="relationBtn" style="padding-left:0">Relation</label>
+                      <label class="relationBtn d-inline-block">Father
+                        <input type="radio" checked="checked" name="relation">
+                        <span class="checkmark"></span>
+                      </label>
+                      <label class="relationBtn d-inline-block">Mother
+                        <input type="radio" name="relation">
+                        <span class="checkmark"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <!--<label for="number">Student Mobile.</label>-->
+                    <input type="number" class="form-control" id="sPNumber" min="0" name="sPNumber">
+                    <span class="animatedSpan">Enter Student Mobile</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <!--<label for="number">Parent Mobile.</label>-->
+                    <input type="number" class="form-control" id="pPNumber" min="0" name="sPNumber">
+                    <span class="animatedSpan">Enter Parent Mobile </span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <!--<label for="email">Email Id.</label>-->
+                    <input type="email" class="form-control" id="email1"  name="email1">
+                    <span class="animatedSpan">Enter Email Id</span>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center">
+                <a href="#" data-effect="myFade" data-id="signupcontainer3" class="btn btn-next mt-0 button">Next</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- sign part 3 -->
+  <div id="signupcontainer3" class="modalStyle">
+    <div class="modal-background">
+      <div class="login_card registration_card registration_card3">
+        <div class="card modal">
+          <div class="card-header">
+            <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+          </div>
+          <div class="card-body">
+            <div class="card-title">Registration</div>
+            <div class="numberLevel text-center" style="margin-bottom: 20px;">
+              <!-- <img src="img/numberLevel3.png" class="img-fluid" alt=""> -->
+              <div class="numberBullet">
+                <a href="#">1</a>
+                <a href="#">2</a>
+                <a href="#" class="currentTab">3</a>
+                <a href="#">4</a>
+              </div>
+            </div>
+            <div class="registration_heading mb-2">Package</div>
+            <div class="packages">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="card packages_card" data-value="Premium">
+                    <div class="card-header">Premium</div>
+                    <div class="card-body">
+                      <div class="packages_cardDetails">Details</div>
+                      <div class="packages_cardcontain">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas lobortis in urna.</div>
+
+                      <div class="packages_cardDetails mt-4">Price</div>
+                      <div class="packages_cardPrice">Rs. 11234/-</div>
+
+                      <div class="promoSection packages_cardcontain">
+                        <div class="applyPromo">
+                          <div class="applyPromoText">Have any Promo Code?</div>
+                          <div class="applyPromoLink"><a href="#" title="">apply now</a></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card packages_card" data-value="Non-Premium">
+                    <div class="card-header">Non-Premium</div>
+                    <div class="card-body">
+                      <div class="packages_cardDetails">Details</div>
+                      <div class="packages_cardcontain">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas lobortis in urna.</div>
+
+                      <div class="packages_cardDetails mt-4">Price</div>
+                      <div class="packages_cardPrice">Rs. 11234/-</div>
+
+                      <div class="promoSection packages_cardcontain">
+                        <div class="applyPromo">
+                          <div class="applyPromoText">Have any Promo Code?</div>
+                          <div class="applyPromoLink"><a href="#" title="">apply now</a></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="text-center">
+              <input class="packageValue" type="hidden">
+              <a href="#" data-effect="myFade" data-id="signupcontainer4" class="btn btn-next mt-0 button">Next</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- sign part 4 -->
+  <div id="signupcontainer4" class="modalStyle">
+    <div class="modal-background">
+      <div class="login_card registration_card">
+        <div class="card modal">
+          <div class="card-header">
+            <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+          </div>
+          <div class="card-body">
+            <div class="card-title">Registration</div>
+            <div class="numberLevel text-center">
+              <!-- <img src="img/numberLevel4.png" class="img-fluid" alt=""> -->
+              <div class="numberBullet">
+                <a href="#">1</a>
+                <a href="#">2</a>
+                <a href="#">3</a>
+                <a href="#" class="currentTab">4</a>
+              </div>
+            </div>
+            <form action="/action_page.php" class="validHint">
+              <div class="form-group" style="margin: 60px 0px 70px;">
+                <label for="psd">Promo Code</label>
+                <input type="password" class="form-control" id="pCode" name="pCode">
+                <span class="animatedSpan">Enter Promo Code</span>
+              </div>
+              <div class="text-center">
+                <a href="#" data-effect="myFade" data-id="signupcontainer5" class="btn btn-next mt-0 w-100 button">Submit</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- sign part 5 -->
+  <div id="signupcontainer5" class="modalStyle">
+    <div class="modal-background">
+      <div class="login_card frgt_password reset_password">
+        <div class="card modal">
+          <div class="card-header">
+            <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+          </div>
+          <div class="card-body">
+            <div class="card-title" style="line-height: 35px;margin-bottom: 15px;">location registration</div>
+            <form action="/action_page.php" class="validHint">
+              <div class="form-group">
+                <label for="city">City</label>
+                <select class="form-control" id="city" name="city">
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="dist">Dist</label>
+                <select class="form-control" id="dist" name="dist">
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="address">Address</label>
+                <textarea class="form-control" rows="2" id="address" name="address" style="height: auto;"></textarea>
+              </div>
+              <div class="form-group my-5">
+                <label for="text">Employee Ref.</label>
+                <input type="text" class="form-control" id="eRef" name="eRef">
+                <span class="animatedSpan">Enter Employee Ref. Id</span>
+              </div>
+              <div class="text-center">
+                <a href="#" class="btn btn-next w-100">Next</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- login modal -->
+  <div class="modalStyle" id="modal-container">
+    <div class="modal-background">
+      <div class="login_card ">
+        <div class="card modal">
+          <div class="card-header">
+            <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+          </div>
+          <div class="card-body">
+            <div class="card-title">Login</div>
+            <form class="validHint" action="/action_page.php">
+              <div class="form-group" data-validate="Mobile No is reauired">
+                <!-- <label for="number">Mobile No</label> -->
+                <input type="number" class="form-control" id="pNumber" min="0" data-attr="" name="pNumber">
+                <span class="animatedSpan">Enter Mobile No</span>
+              </div>
+              <div class="form-group" data-validate="Password is required">
+                <!-- <label for="pwd">Password</label> -->
+                <input type="password" class="form-control" id="pwd" placeholder="" name="pswd">
+                <span class="animatedSpan">Enter Password</span>
+                <ul class="list-unstyled mb-0 belowInput">
+                  <li class="d-inline-block">
+                    <a href="#" data-effect="myFade" data-id="signupcontainer" class="button" title="">Registration</a>
+                  </li>
+                  <li class="d-inline-block">
+                    <a href="#" data-effect="myFade" data-id="forgotPass" class="button" title="">Forgot Password</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-img"><img src="img/submitBtn.png" class="img-fluid" alt=""></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- forgotPass -->
+  <div id="forgotPass" class="modalStyle">
+    <div class="modal-background">
+      <div class="login_card frgt_password">
+        <div class="card modal">
+          <div class="card-header">
+            <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+          </div>
+          <div class="card-body">
+            <div class="card-title" style="line-height: 35px;">Forgot password</div>
+            <form action="/action_page.php" class="validHint">
+              <div class="form-group">
+                <label for="number">Mobile No</label>
+                <input type="number" class="form-control" id="pNumber" min="0" name="pNumber">
+                <span class="animatedSpan">Enter Mobile No</span>
+              </div>
+              <div class="text-center">
+                <a href="reset-password.html" class="btn btn-next mt-0 w-100">Submit</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--===============================================================================================-->
+  <script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+  <!-- <script src="js/jquery-3.2.1.slim.min.js"></script> -->
+  <!--===============================================================================================-->
+  <script src="vendor/animsition/js/animsition.min.js"></script>
+  <!--===============================================================================================-->
+  <script src="vendor/bootstrap/js/popper.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+  <!--===============================================================================================-->
+  <script src="vendor/daterangepicker/moment.min.js"></script>
+  <!--===============================================================================================-->
+  <script src="vendor/easing/easing.min.js"></script>
+  <script src="vendor/wow/wow.min.js"></script>
+  <script src="vendor/sticky/sticky.js"></script>
+  <script src="js/jquery.bxslider.js"></script>
+  <script src="js/modalAnimate.js"></script>
+
+
+    <script>
+      $(document).off('click', '.button')
+      $(document).on('click', '.button', function(event){
+        var attackModal = $(this).attr('data-id');
+        var myDataEffect = $(this).attr('data-effect');
+
+        if(attackModal == 'signupcontainer2') {
+          //alert('Send Value to next page');
+        }
+        if(attackModal == 'signupcontainer3') {
+          //alert('do your action');
+        }
+
+        $('body').removeClass('modal-active');
+        $(".modalStyle").addClass('out');
+
+        event.preventDefault();
+        $(this).modalAnimate({
+          effect: myDataEffect,
+          autoEffect:true
+        });
+      });
+
+
+      $(document).ready(function() {
+        $(".gallery").bxSlider({
+          slideWidth: 291,
+          minSlides: 1,
+          maxSlides: 3,
+          slideMargin: 25,
+          controls: true,
+          pager: false,
+          infiniteLoop: true,
+          auto: true,
+          moveSlides: 1
+        });
+        $(".testimonial").bxSlider({
+          slideWidth: 291,
+          minSlides: 1,
+          maxSlides: 3,
+          slideMargin: 25,
+          controls: true,
+          pager: false,
+          infiniteLoop: true,
+          auto: true,
+          moveSlides: 1
+        });
+
+        $('.validHint input[type=number], .validHint input[type=password], .validHint input[type=email]').click(function() {
+            $(this).parent().children('.animatedSpan').addClass('imActiveFeild');
+        });
+        $('.validHint input[type=number], .validHint input[type=password], .validHint input[type=text], .validHint input[type=email]').focus(function() {
+            $(this).parent().children('.animatedSpan').addClass('imActiveFeild');
+        });
+
+        $(document).on('mouseup', function(e)  {
+          $("span.imActiveFeild").each(function() {
+              var currInput = $(this).parents().children('input');
+              if (!currInput.is(e.target) && currInput.has(e.target).length === 0) {
+                  if($(this).parents('.form-group').children('input').val() == '' ) {
+                    $(this).removeClass('imActiveFeild');
+                  }
+              }
+            });
+          });
+
+
+        $("input").each(function() {
+              if($(this).val() != '' ) {
+                $(this).parents('.form-group').children('span').addClass('imActiveFeild');
+              }
+          });
+
+        var winHeight = $(window).height();
+        $('.card-body').css('max-height', winHeight - 170);
+
+        $(document).mouseup(function(e)  {
+          var container = $("div.card");
+          if (!container.is(e.target) && container.has(e.target).length === 0) {
+            $(".modalStyle").addClass('out');
+            $('body').removeClass('modal-active');
+          }
+        });
+
+
+        $('.card.packages_card').click(function() {
+          $('.card.packages_card').removeClass('selectPackage');
+          var currPackVal = $(this).attr('data-value');
+          $('.packageValue').val(currPackVal);
+          $(this).addClass('selectPackage');
+        });
+
+
+         /*===== Focus input */
+    $('.form-control').each(function(){
+        $(this).on('blur', function(){
+            if($(this).val().trim() != "") {
+                $(this).addClass('has-val');
+            }
+            else {
+                $(this).removeClass('has-val');
+            }
+        })    
+    })
+  
+  
+    /*==========Validate */
+    var input = $('.validHint .form-control');
+
+    $('.validHint').on('submit',function(){
+        var check = true;
+        for(var i=0; i<input.length; i++) {
+            if(validate(input[i]) == false){
+                showValidate(input[i]);
+                check=false;
+            }
+        }
+        return check;
+    });
+
+    $('.validHint .form-control').each(function(){
+        $(this).focus(function(){
+           hideValidate(this);
+        });
+    });
+
+    function validate (input) {
+        if($(input).attr('type') == 'email' || $(input).attr('name') == 'email') {
+            if($(input).val().trim().match(/^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{1,5}|[0-9]{1,3})(\]?)$/) == null) {
+                return false;
+            }
+        }
+        else {
+            if($(input).val().trim() == ''){
+                return false;
+            }
+        }
+    }
+
+    function showValidate(input) {
+        var thisAlert = $(input).parent();
+        $(thisAlert).addClass('alert-validate');
+    }
+
+    function hideValidate(input) {
+        var thisAlert = $(input).parent();
+        $(thisAlert).removeClass('alert-validate');
+    }
+    
+
+
+    // page Scricpt
+    $(window).scroll(function () {
+    if ($(this).scrollTop() > 100) {
+      $('.back-to-top').fadeIn('slow');
+    } else {
+      $('.back-to-top').fadeOut('slow');
+    }
+  });
+    $('.back-to-top').click(function () {
+    $('html, body').animate({
+      scrollTop: 0
+    }, 1500, 'easeInOutExpo');
+    return false;
+  });
+
+  // Stick the header at top on scroll
+    $("#mainheader").sticky({
+    topSpacing: 0,
+    zIndex: '50'
+  });
+
+
+
+  // Initiate the wowjs animation library
+  new WOW().init();
+
+  // Mobile Navigation
+  if ($('#nav-menu-container').length) {
+    var $mobile_nav = $('#nav-menu-container').clone().prop({
+      id: 'mobile-nav'
+    });
+    $mobile_nav.find('> ul').attr({
+      'class': '',
+      'id': ''
+    });
+    $('body').append($mobile_nav);
+    $('body').prepend('<button type="button" id="mobile-nav-toggle"><i class="fa fa-bars"></i></button>');
+    $('body').append('<div id="mobile-body-overly"></div>');
+    $('#mobile-nav').find('.menu-has-children').prepend('<i class="fa fa-chevron-down"></i>');
+
+    $(document).on('click', '.menu-has-children i', function (e) {
+      $(this).next().toggleClass('menu-item-active');
+      $(this).nextAll('ul').eq(0).slideToggle();
+      $(this).toggleClass("fa-chevron-up fa-chevron-down");
+    });
+
+    $(document).on('click', '#mobile-nav-toggle', function (e) {
+      $('body').toggleClass('mobile-nav-active');
+      $('#mobile-nav-toggle i').toggleClass('fa-times fa-bars');
+      $('#mobile-body-overly').toggle();
+    });
+
+    $(document).click(function (e) {
+      var container = $("#mobile-nav, #mobile-nav-toggle");
+      if (!container.is(e.target) && container.has(e.target).length === 0) {
+        if ($('body').hasClass('mobile-nav-active')) {
+          $('body').removeClass('mobile-nav-active');
+          $('#mobile-nav-toggle i').toggleClass('fa-times fa-bars');
+          $('#mobile-body-overly').fadeOut();
+        }
+      }
+    });
+  } else if ($("#mobile-nav, #mobile-nav-toggle").length) {
+    $("#mobile-nav, #mobile-nav-toggle").hide();
+  }
+
+  // Smooth scroll for the menu and links with .scrollto classes
+  $('.nav-menu a, #mobile-nav a, .scrollto').on('click', function () {
+    if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
+      var target = $(this.hash);
+      if (target.length) {
+        var top_space = 0;
+
+        if ($('#mainheader').length) {
+          top_space = $('#mainheader').outerHeight();
+
+          if (!$('#mainheader').hasClass('header-fixed')) {
+            top_space = top_space - 20;
+          }
+        }
+
+        $('html, body').animate({
+          scrollTop: target.offset().top - top_space
+        }, 1500, 'easeInOutExpo');
+
+        if ($(this).parents('.nav-menu').length) {
+          $('.nav-menu .menu-active').removeClass('menu-active');
+          $(this).closest('li').addClass('menu-active');
+        }
+
+        if ($('body').hasClass('mobile-nav-active')) {
+          $('body').removeClass('mobile-nav-active');
+          $('#mobile-nav-toggle i').toggleClass('fa-times fa-bars');
+          $('#mobile-body-overly').fadeOut();
+        }
+        return false;
+      }
+    }
+  });
+
+
+
+      });
+      //document.getElementById("mainBody").style.minHeight = window.innerHeight + "px";
+    </script>
+</body>
+</html>

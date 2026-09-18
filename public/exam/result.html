@@ -1,0 +1,442 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="css/bootstrap.min.css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
+
+	<title>Shikkha</title>
+
+    <link rel="shortcut icon" href="img/fav-icon.png" />
+
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/modalanimate.css">
+
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="stylesheet" type="text/css" href="css/all.css" />
+
+
+    <!-- <link rel="stylesheet" type="text/css" href="css/jquery.bxslider.css" /> -->
+</head>
+
+<body id="mainBody" style="background: none;padding: 0px;">
+  <header id="header" class="">
+    <div class="container-fluid">
+      <div class="mainHeader">
+        <div class="logo logoLeft" id="logoContain">
+          <a href="#" title="">
+            <img src="img/logo.png" class="img-fluid" alt="" id="mainLogo">
+          </a>
+        </div>
+        <div class="logoTitle">
+          <div class="logoTitlePosition">
+            <div class="logoTitle1 registration_heading">JEE Test</div>
+            <a href="#" data-effect="myFade" data-id="retest" class="logoTitle2 button">Re-Attempt Test</a>
+          </div>
+        </div>
+        <div class="avtar_demo">
+          <a href="#" title="">
+            <div class="avtar_profile" id="avtarProfile">
+              <img src="img/avtar_demo.png" class="img-fluid" alt="">
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header><!-- /header -->
+
+  <section id="resultBody">
+    <div class="container-fluid">
+      <div class="resultBodySection">
+        <div class="resultTime">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="resultTimeText">Total Time: <span>180min</span></div>
+            </div>
+            <div class="col-md-6">
+              <div class="resultTimeText text-right">Total Marks: <span>99</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="performanceAnswer">
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" data-toggle="tab" href="#performance">Performance</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="tab" href="#answer">Answer</a>
+            </li>
+          </ul>
+
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <div id="performance" class="tab-pane active">
+              <div class="performanceBody">
+                <div class="resultTime pt-3">
+                  <div class="row mb-4">
+                    <div class="col-sm-6">
+                      <div class="performanceScore">
+                        <div class="performanceScoreTitle mr-3">Score</div>
+                        <div class="performanceScoreResult">
+                          <div class="performanceScoreMarks marksCenter">40 <span class="performanceScoreTitle ml-3">8%</span></div>
+                          <div class="performanceScoreTitle" style="font-weight: 300;margin-top: -10px;">out of 300</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-6">
+                      <div class="performanceScore performanceTime">
+                        <div class="performanceScoreTitle mr-3">Time Taken</div>
+                        <div class="performanceScoreResult">
+                          <div class="performanceScoreMarks marksCenter">1:20 <span class="performanceScoreTitle">Hrs</span></div>
+                          <div class="performanceScoreTitle" style="font-weight: 300;margin-top: -10px;">out of 180min</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="progressTitle">
+                    <div class="progressTitle1">Question</div>
+                    <div class="progressTitle2"><span style="color: #213399">Blue</span> % Correct</div>
+                    <div class="progressTitle3"><span style="color: #ff0000">Red</span> % Incorrect</div>
+                  </div>
+                  <div class="progress">
+                    <div class="progress-bar bg-currect" style="width:25%"></div>
+                    <div class="progress-bar bg-incurrect" style="width:20%"></div>
+                  </div>
+                  <div class="progressResult">
+                    <div class="progressResult1">Currect 25</div>
+                    <div class="progressResult2">Incurrect 20</div>
+                    <div class="progressResult3">Left 55</div>
+                    <div class="progressResult4">Total Question 100</div>
+                  </div>
+                </div>
+
+                <div class="tableScroll">
+                  <div class="questionScore table-responsive-md">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Score</th>
+                          <th>Question</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <div class="scoreSection">
+                              <div class="performanceScoreTitle">Chemistry 15/30</div>
+                              <div class="progress scoreBar">
+                                <div class="progress-bar bg-score" style="width:50%"></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="questionSection">
+                              <div class="progress">
+                                <div class="progress-bar bg-currect" style="width:17%"></div>
+                                <div class="progress-bar bg-incurrect" style="width:32%"></div>
+                              </div>
+                              <div class="progressResult">
+                                <div class="progressResult1">Currect 05</div>
+                                <div class="progressResult2">Incurrect 10</div>
+                                <div class="progressResult3">Left 15</div>
+                                <div class="progressResult4">Total Question 30</div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <div class="scoreSection">
+                              <div class="performanceScoreTitle">Physics 10/15</div>
+                              <div class="progress scoreBar">
+                                <div class="progress-bar bg-score" style="width:66.66%"></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="questionSection">
+                              <div class="progress">
+                                <div class="progress-bar bg-currect" style="width:53.33%"></div>
+                                <div class="progress-bar bg-incurrect" style="width:13.33%"></div>
+                              </div>
+                              <div class="progressResult">
+                                <div class="progressResult1">Currect 08</div>
+                                <div class="progressResult2">Incurrect 02</div>
+                                <div class="progressResult3">Left 05</div>
+                                <div class="progressResult4">Total Question 15</div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <div class="scoreSection">
+                              <div class="performanceScoreTitle">Chemistry 15/30</div>
+                              <div class="progress scoreBar">
+                                <div class="progress-bar bg-score" style="width:15%"></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="questionSection">
+                              <div class="progress">
+                                <div class="progress-bar bg-currect" style="width:17%"></div>
+                                <div class="progress-bar bg-incurrect" style="width:32%"></div>
+                              </div>
+                              <div class="progressResult">
+                                <div class="progressResult1">Currect 05</div>
+                                <div class="progressResult2">Incurrect 10</div>
+                                <div class="progressResult3">Left 15</div>
+                                <div class="progressResult4">Total Question 30</div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="answer" class="tab-pane fade">
+              <div class="answerBody">
+                <div class="answerBodyTitle performanceScoreTitle">Chmestry</div>
+
+                <div class="answerBodyQuestion">
+                  <div class="questionOnly">
+                    <div class="performanceScoreTitle my-1">Q1</div>
+                    <div class="performanceScoreTitle">(a) What electronic transition in He+ ion would have the same wavelength as the first Lyman line of H-atom? <br>
+                    (b) Which electronic transition in Li2+ ion would have same wavelength as 3rd transition in Lyman series of H-atom?</div>
+                    <div class="optionsDiv">
+                     <div class="row">
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">1) SQPRT
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">2) SPRTQ
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">3) RSPQT
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">4) QPRST
+                        </label>
+                       </div>
+                     </div>
+                   </div>
+                   <div class="resultInfo">
+                     <div class="row">
+                       <div class="col-sm-6">
+                         <ul class="resultInfoLeft list-unstyled mb-0 performanceScoreTitle">
+                           <li class="d-inline-block" style="font-weight: 300;">Your Answer (2)</li>
+                           <li class="d-inline-block mx-4">|</li>
+                           <li class="d-inline-block">Correct Answer (4)</li>
+                         </ul>
+                       </div>
+                       <div class="col-sm-6">
+                         <div class="solutionPdf">
+                           <a href="#" title="" class="performanceScoreTitle"><span>View Solution</span> <img src="img/pdf.png" class="img-fluid" alt=""></a>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                  </div>
+                  <div class="questionOnly">
+                    <div class="performanceScoreTitle my-1">Q1</div>
+                    <div class="performanceScoreTitle">(a) What electronic transition in He+ ion would have the same wavelength as the first Lyman line of H-atom? <br>
+                    (b) Which electronic transition in Li2+ ion would have same wavelength as 3rd transition in Lyman series of H-atom?</div>
+                    <div class="optionsDiv">
+                     <div class="row">
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">1) SQPRT
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">2) SPRTQ
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">3) RSPQT
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">4) QPRST
+                        </label>
+                       </div>
+                     </div>
+                   </div>
+                   <div class="resultInfo">
+                     <div class="row">
+                       <div class="col-sm-6">
+                         <ul class="resultInfoLeft list-unstyled mb-0 performanceScoreTitle">
+                           <li class="d-inline-block" style="font-weight: 300;">Your Answer (2)</li>
+                           <li class="d-inline-block mx-4">|</li>
+                           <li class="d-inline-block">Correct Answer (4)</li>
+                         </ul>
+                       </div>
+                       <div class="col-sm-6">
+                         <div class="solutionPdf">
+                           <a href="#" title="" class="performanceScoreTitle"><span>View Solution</span> <img src="img/pdf.png" class="img-fluid" alt=""></a>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                  </div>
+
+                  <div class="questionOnly">
+                    <div class="performanceScoreTitle my-1">Q1</div>
+                    <div class="performanceScoreTitle">(a) What electronic transition in He+ ion would have the same wavelength as the first Lyman line of H-atom? <br>
+                    (b) Which electronic transition in Li2+ ion would have same wavelength as 3rd transition in Lyman series of H-atom?</div>
+                    <div class="optionsDiv">
+                     <div class="row">
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">1) SQPRT
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">2) SPRTQ
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">3) RSPQT
+                        </label>
+                       </div>
+                       <div class="col-lg-6 col-md-6">
+                        <label class="labelcontainer">4) QPRST
+                        </label>
+                       </div>
+                     </div>
+                   </div>
+                   <div class="resultInfo">
+                     <div class="row">
+                       <div class="col-sm-6">
+                         <ul class="resultInfoLeft list-unstyled mb-0 performanceScoreTitle">
+                           <li class="d-inline-block" style="font-weight: 300;">Your Answer (2)</li>
+                           <li class="d-inline-block mx-4">|</li>
+                           <li class="d-inline-block">Correct Answer (4)</li>
+                         </ul>
+                       </div>
+                       <div class="col-sm-6">
+                         <div class="solutionPdf">
+                           <a href="#" title="" class="performanceScoreTitle"><span>View Solution</span> <img src="img/pdf.png" class="img-fluid" alt=""></a>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="container-fluid">
+      <ul class="bottom-footer list-unstyled mb-0">
+        <li class="d-inline-block">&copy; Copyright <span id="footerYear"></span> shiksha. All Rights Reserved.</li>
+        <li class="d-inline-block mx-4">|</li>
+        <li class="d-inline-block">Developed by <a href="http://zabingo.com/" class="text-white" target="_blank">Zabingo Softwares (www.zabingo.com)</a></li>
+      </ul>
+    </div>
+  </footer>
+
+
+  <div id="retest" class="modalStyle">
+    <div class="modal-background">
+      <div class="login_card retest">
+        <div class="card modal">
+          <div class="card-header greenHeader">
+            JEE Class Test - Instructions
+          </div>
+          <div class="card-body whiteBody">
+            <div class="subHeadder">
+              <div class="timeScore">
+                <span>Score</span>  <span class="orengeText">200</span>
+                <br>Negative Mark 5
+              </div>
+              <div class="timeScore">
+                <span>Total Time </span>  <span class="orengeText">180min</span>
+              </div>
+            </div>
+
+            <ul>
+              <li>  Questions may have negative marks, be careful while attempting a question.</li>
+              <li> Keep an eye on timer, you need to finish it before time ends if there is time limit.</li>
+              <li> Questions can be multiple choice or single choice, need to answer appropriately.</li>
+              <li> Time is calculated once you start the test, if you leave in middle that time will
+       be considered as well. </li>
+            </ul>
+
+            <a href="" class="orengeButton">Start Test</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+	  <script src="js/jquery.min.js"></script>
+  	<script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <script src="js/modalAnimate.js"></script>
+
+    <script>
+      $(document).off('click', '.button')
+      $(document).on('click', '.button', function(event){
+        var attackModal = $(this).attr('data-id');
+        var myDataEffect = $(this).attr('data-effect');
+
+        if(attackModal == 'signupcontainer2') {
+          //alert('Send Value to next page');
+        }
+        if(attackModal == 'signupcontainer3') {
+          //alert('do your action');
+        }
+
+        $('body').removeClass('modal-active');
+        $(".modalStyle").addClass('out');
+
+        event.preventDefault();
+        $(this).modalAnimate({
+          effect: myDataEffect,
+          autoEffect:true
+        });
+      });
+
+
+      $(document).mouseup(function(e)  {
+          var container = $("div.card");
+          if (!container.is(e.target) && container.has(e.target).length === 0) {
+            $(".modalStyle").addClass('out');
+            $('body').removeClass('modal-active');
+          }
+        });
+
+      var d = new Date();
+      var n = d.getFullYear();
+      document.getElementById("footerYear").innerHTML = n;
+    </script>
+
+    <script>
+     window.onscroll = function() {scrollFunction()};
+
+      function scrollFunction() {
+        if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
+          document.getElementById("footer").style.marginBottom = "0px";
+        } else {
+          document.getElementById("footer").style.marginBottom = "-72px";
+        }
+      }
+      </script>
+</body>
+</html>

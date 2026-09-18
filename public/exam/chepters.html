@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="css/bootstrap.min.css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet"> 
+
+  <title>Shikkha</title>
+
+    <link rel="shortcut icon" href="img/fav-icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="stylesheet" type="text/css" href="css/all.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="css/jquery.bxslider.css" /> -->
+</head>
+
+<body id="mainBody" style="background: none;padding: 0px;">
+  <header id="header" class="">
+    <div class="container-fluid">
+      <div class="mainHeader">
+        <div class="logo logoLeft" id="logoContain">
+          <a href="#" title="">
+            <img src="img/logo.png" class="img-fluid" alt="" id="mainLogo">
+          </a>
+        </div>
+        <div class="avtar_demo">
+          <a href="#" title="">
+            <div class="avtar_profile" id="avtarProfile">
+              <img src="img/avtar_demo.png" class="img-fluid" alt="">
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header><!-- /header -->
+
+  <section id="resultBody">
+    <div class="container-fluid">
+      <div class="resultBodySection cheptersBodySection">
+        <div class="cheptersBodyTitle">JEE Class Test - Instructions</div>
+        <form action="/action_page.php" class="chepterForm">
+          <div class="chepRadio">
+            <div class="optionsDiv">
+              <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                  <label class="labelcontainer">Complete Exam
+                    <input type="radio" name="radio">
+                    <span class="checkmark"></span>
+                  </label>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                  <label class="labelcontainer">Select Chapters
+                    <input type="radio" name="radio">
+                    <span class="checkmark"></span>
+                  </label>
+               </div>
+              </div>
+            </div>
+          </div>    
+          <div class="form-group py-4" style="border-bottom: 1px solid rgba(74,74,74,0.3);">
+            <label for="sel1">Subject</label>
+            <select class="form-control" id="sel1" name="sellist1">
+              <option>Maths</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+            </select>
+          </div>
+
+          <div class="customCheckTitle">Chapter</div>
+          <div class="customCheckBox">
+            <label class="customCheck">Chapter 1
+              <input type="checkbox" checked="checked">
+              <span class="checkmark"></span>
+            </label>
+            <label class="customCheck">Chapter 2
+              <input type="checkbox">
+              <span class="checkmark"></span>
+            </label>
+            <label class="customCheck">Chapter 3
+              <input type="checkbox" checked="checked">
+              <span class="checkmark"></span>
+            </label>
+            <label class="customCheck">Chapter 4
+              <input type="checkbox" checked="checked">
+              <span class="checkmark"></span>
+            </label>
+            <label class="customCheck">Chapter 5
+              <input type="checkbox">
+              <span class="checkmark"></span>
+            </label>
+          </div>
+          <div class="customCheckBtn">
+            <a href="#" class="btn btn-done" role="button">DONE</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="container-fluid">
+      <ul class="bottom-footer list-unstyled mb-0">
+        <li class="d-inline-block">&copy; Copyright <span id="footerYear"></span> shiksha. All Rights Reserved.</li>
+        <li class="d-inline-block mx-4">|</li>
+        <li class="d-inline-block">Developed by <a href="http://zabingo.com/" class="text-white" target="_blank">Zabingo Softwares (www.zabingo.com)</a></li>
+      </ul>
+    </div>
+  </footer>
+     
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <!-- <script src="js/jquery.bxslider.js"></script> -->
+    <!-- <script src="js/youtube-embed.js"></script> -->
+
+    <script>
+      var d = new Date();
+      var n = d.getFullYear();
+      document.getElementById("footerYear").innerHTML = n;
+    </script>
+
+    <script>
+      // document.getElementById("mainBody").style.minHeight = window.innerHeight + "px";
+      document.getElementById("menuButton").style.height = "118px";
+    </script>
+
+    <script>
+      // When the user scrolls down 80px from the top of the document, resize the navbar's padding and the logo's font size
+      window.onscroll = function() {scrollFunction()};
+
+      function scrollFunction() {
+        if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
+          // document.getElementById("mainLogo").style.width = "80px";
+          // document.getElementById("avtarProfile").style.width = "40px";
+          // document.getElementById("avtarProfile").style.height = "40px";
+          // document.getElementById("menuButton").style.height = "91px";
+          // document.getElementById("menuPosition").style.marginTop = "-30px";
+          // document.getElementById("dashboardMenu").style.marginTop = "89px";
+          // document.getElementById("menuButtonSize").style.height = "25px";
+          // document.getElementById("menuButtonSize").style.width = "25px";
+          document.getElementById("footer").style.marginBottom = "0px";
+          // document.getElementById("logoContain").style.marginLeft = "40px";
+        } else {
+          // document.getElementById("mainLogo").style.width = "113px";
+          // document.getElementById("avtarProfile").style.width = "50px";
+          // document.getElementById("avtarProfile").style.height = "50px";
+          // document.getElementById("menuButton").style.height = "118px";
+          // document.getElementById("menuPosition").style.marginTop = "0px";
+          // document.getElementById("dashboardMenu").style.marginTop = "117px";
+          // document.getElementById("menuButtonSize").style.height = "30px";
+          // document.getElementById("menuButtonSize").style.width = "30px";
+          document.getElementById("footer").style.marginBottom = "-72px";
+          // document.getElementById("logoContain").style.marginLeft = "50px";
+        }
+      }
+      </script>
+
+      <!-- <script>
+        var prevScrollpos = window.pageYOffset;
+        window.onscroll = function() {
+        var currentScrollPos = window.pageYOffset;
+          if (prevScrollpos > currentScrollPos) {
+            document.getElementById("footer").style.bottom = "0";
+          } else {
+            document.getElementById("footer").style.bottom = "-60px";
+          }
+          prevScrollpos = currentScrollPos;
+        }
+      </script> -->
+</body>
+</html>

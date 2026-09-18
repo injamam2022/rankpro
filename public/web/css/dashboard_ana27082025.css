@@ -1,0 +1,735 @@
+body {
+  /* background-color: #2bb673; */
+}
+a {
+  text-decoration: none;
+}
+#dashboard .container-fluid {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.dashboardAll {
+  display: flex;
+  padding: 20px 20px 20px 0px;
+}
+.dashboardLeft {
+  width: 312px;
+}
+.dashboardRight {
+  width: calc(100% - 312px);
+}
+.dashboardRightBody {
+  background-color: #f4f6fa;
+  height: calc(100vh - 40px);
+  border-radius: 30px;
+  padding: 30px;
+  overflow-y: auto;
+}
+.dashboardMenuPL {
+  padding-left: 40px;
+}
+.dashboardName {
+  color: #000;
+  font-size: 18px;
+  /* font-weight: 600; */
+  line-height: 24px;
+  padding-left: 10px;
+  width: calc(100% - 72px);
+}
+.dashboardAvatar {
+  width: 73px;
+  height: 73px;
+  border-radius: 50%;
+  overflow: hidden;
+  -webkit-box-shadow: 0px 12px 18px 0px rgba(0,0,0,0.4);
+  -moz-box-shadow: 0px 12px 18px 0px rgba(0,0,0,0.4);
+  box-shadow: 0px 12px 18px 0px rgba(0,0,0,0.4);
+}
+.dashboardAvatar img {
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+  height: 100%;
+}
+.dashboardAvatarBlock {
+  position: relative;
+  background-color: #f4f6fa;
+  display: flex;
+  align-items: baseline;
+  align-items: end;
+  align-items: flex-end;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-right: 45px;
+  margin: 18px 0px 16px;
+}
+.dashboardCheck {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+}
+.dashboardMenu li {
+  margin-bottom: 18px;
+}
+.dashboardMenu li a {
+  border-radius: 30px 0px 0px 30px;
+  background: linear-gradient(to right, transparent 50%, rgba(53, 97, 255, 0.2) 50%);
+  background-size: 200% 100%;
+  background-position: left bottom;
+  transition: all .3s ease-in-out;
+  
+  padding: 14px 0px 14px 28px;
+  font-size: 16px;
+  color: #000;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: all .3s ease-in-out;
+}
+.dashboardMenu li a:hover,
+.dashboardMenu li a.active {
+  color: #3561ff;
+  background-position: right bottom;
+}
+.dashboardMenu li.active a:hover {
+  background-position: left bottom;
+}
+.dashboardMenu .active a {
+  background-color: rgba(53, 97, 255, 0.2);
+  
+  color: #3561ff;
+  font-weight: 600;
+}
+.dashboardMenu li a img.dashboardMenu_ic {
+  margin-right: 16px;
+  width: 25px;
+}
+.dashboardMenuMain {
+  /* height: calc(100vh - 420px); */
+  height: calc(100vh - 251px);
+  overflow-y: auto;
+  /* padding-bottom: 60px; */
+}
+.dashboardTitle {
+  font-size: 36px;
+  color: #000;
+  line-height: 38px;
+}
+.dashboardTitle span {
+  font-weight: 600;
+  color: #3561ff;
+}
+.dashboardEmail {
+  font-size: 21px;
+  color: #f20b81;
+  margin-top: 6px;
+  word-break: break-all;
+  line-height: 24px;
+}
+.dashboardBlock {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 30px;
+  position: relative;
+}
+.dashboardText {
+  font-size: 16px;
+  color: #000;
+  margin-top: 8px;
+}
+.dashboardTopicTitle {
+  font-size: 16px;
+  color: #fff;
+  font-weight: 600;
+}
+.dashboardTopicDate {
+  font-size: 14px;
+  color: #000;
+  font-weight: 500;
+  margin: 5px 0px 10px;
+}
+.dashboardTopicPer {
+  font-size: 30px;
+  color: #fff;
+}
+.dashboardTopicAll {
+  background: linear-gradient(58deg, rgba(53, 97, 254, 0.8) 0%, rgba(243, 11, 129, 0.8) 100%);
+  border-radius: 20px;
+  padding: 18px 9px 12px;
+}
+.dashboardTopic-col {
+  width: 20%;
+  padding: 0px 7px;
+}
+.dashboardTopic {
+  margin: 30px -7px 0px;
+  display: flex;
+}
+.leaderBoard .dashboardAvatar {
+  width: 71px;
+  height: 71px;
+  box-shadow: none;
+  margin-bottom: 2px;
+}
+.leaderBoard .dashboardTopicAll {
+  padding: 8px 8px 0px;
+  background: linear-gradient(-132deg,rgba(53, 97, 254, 0.8) 45%, rgba(243, 11, 129, 0.8) 85%);
+}
+.leaderBoard .dashboardTopic {
+  margin: 10px -7px 0px;
+}
+.leaderBoard .dashboardTopicTitle {
+  line-height: 20px;
+  height: 40px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderBoard .dashboardTopicDate {
+  margin: 9px 0px 0px;
+  line-height: 18px;
+  color: #fff;
+}
+.leaderBoard .dashboardTopicDate span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.leaderBoard .dashboardText {
+  margin-top: 16px;
+}
+.examTab {
+  padding-bottom: 15px;
+}
+.examTab,
+.examTab.nav-tabs .nav-link,
+.examTab.nav-tabs .nav-item.show .nav-link, 
+.examTab.nav-tabs .nav-link.active,
+.examTab.nav-tabs .nav-link:focus, 
+.examTab.nav-tabs .nav-link:hover {
+  border: none;
+}
+.examTab.nav-tabs .nav-link {
+  font-size: 26px;
+  color: #000;
+  font-weight: 300;
+  padding: 5px;
+  width: 100%;
+  height: 60px;
+  background-color: #fff;
+  border-radius: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all .3s;
+}
+.examTab.nav-tabs .nav-item {
+  width: 49%;
+}
+.examTab.nav-tabs .nav-item:first-child {
+  margin-right: 1%;
+}
+.examTab.nav-tabs .nav-item:last-child {
+  margin-left: 1%;
+}
+.examTab.nav-tabs .nav-link.active {
+  background-color: #f20b81;
+  color: #fff;
+  font-weight: 600;
+  transition: all .3s;
+}
+ul.examScheduleUl li {
+  font-size: 18px;
+  color: #000;
+  font-weight: 300;
+  padding: 10px 22px;
+}
+ul.examScheduleUl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #cfcfcf;
+  border-radius: 16px;
+  height: 100%;
+}
+.examSchedule-l-col {
+  width: calc(100% - 161px);
+  padding: 0px 7px;
+}
+.examSchedule-r-col {
+  width: 161px;
+  padding: 0px 7px;
+}
+.examSchedule {
+  margin: 0px -7px 10px;
+  display: flex;
+}
+.examBlock .examSchedule:last-child {
+  margin-bottom: 0px;
+}
+.examSchedule-r-col ul.examScheduleUl:last-child li.notReleasedDate {
+  background-color: #f4f6fa;
+}
+.examSchedule-r-col ul.examScheduleUl:last-child li {
+  font-size: 16px;
+  padding: 12px 5px;
+  width: 100%;
+  border-radius: 16px;
+  background-color: #eaefff;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.examSchedule-l-col .examScheduleUl.releasedExam {
+  background-color: #eaefff;
+}
+.dashboardRightBody [class*="col-"] {
+  margin-bottom: 30px;
+}
+.upcomingSchedule.onlineSchedule ul.examScheduleUl li:first-child span {
+  color: #3561ff;
+  font-weight: 600;
+}
+.upcomingSchedule.onlineSchedule.offlineSchedule ul.examScheduleUl li:first-child span {
+  color: #f20b81;
+}
+.upcomingSchedule.onlineSchedule ul.examScheduleUl {
+  background-color: #dee1fa;
+}
+.upcomingSchedule.onlineSchedule.offlineSchedule ul.examScheduleUl {
+  background-color: #fee6f2;
+}
+.upcomingSchedule.onlineSchedule .examSchedule-r-col ul.examScheduleUl:last-child li {
+  font-weight: 600;
+  background: none;
+}
+.upcomingSchedule.onlineSchedule .examSchedule-l-col {
+  widows: calc(100% - 200px);
+}
+.upcomingSchedule.onlineSchedule .examSchedule-r-col {
+  width: 200px;
+}
+.tabHeightAdj {
+  height: 74px;
+}
+.logo.dashboardMenuPL {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.dashboardBlock.examBlock {
+  max-height: 434px;
+  overflow-y: auto;
+}
+.resultOmrTitle {
+  font-size: 57px;
+  text-align: center;
+  color: #000;
+}
+.resultOmrText {
+  font-size: 22px;
+  color: #000;
+  text-align: center;
+  margin: -12px 0px 8px;
+}
+.resultOmrSubject {
+  font-size: 36px;
+  color: #000;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.omrSheetDetailsTitle {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  color: #000;
+  background: #fbb5d9;
+  padding: 9px 2px;
+  border-bottom: 1px solid #000;
+}
+.omrSheetIdInfo {
+  display: flex;
+}
+.omrSheetId_candidate {
+  width: 70%;
+  border: 1px solid #000;
+}
+.omrSheetId_test {
+  width: calc(30% - 8px);
+  margin-left: 8px;
+  border: 1px solid #000;
+}
+.answer-bubbles {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 5px;
+}
+.bubble {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #000;
+  display: flex;
+  font-size: 16px;
+  justify-content: center;
+}
+.omrSheetIdField {
+  padding: 8px 10px;
+}
+.omrSheetIdField .bubble.candidateId_fill,
+.omrSheetIdField .bubble.candidateId_fill_red,
+.omrSheetIdField .bubble.candidateId_fill_blue,
+.omrSheetIdField .bubble.candidateId_fill_green,
+.omrSheetIdField .bubble.candidateId_fill_g {
+  cursor: pointer;
+}
+.answerFillBox {
+  border-right: 1px solid #000;
+  height: 40px;
+  width: 33.333333%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 500;
+}
+.answerFillBoxAll {
+  border: 1px solid #000;
+  display: flex;
+  justify-content: space-between;
+}
+.answerFillBoxAll .answerFillBox:last-child {
+  border-right: none;
+}
+.omrSheetId_candidate .answerFillBox {
+  width: 12.5%;
+}
+.omrSheetId_batch {
+  width: 100%;
+  margin-top: 12px;
+}
+.omrSheetId_batch .omrSheetIdField {
+  min-height: 73px;
+}
+.omrSheetId_batchText {
+  font-size: 14px;
+  color: #000;
+}
+.candidateId_fill {
+  background: #000;
+  color: #000;
+}
+.candidateId_fill_red {
+  background: #ff0101;
+  color: #ff0101;
+}
+.candidateId_fill_green {
+  background: #2eb573;
+  color: #2eb573;
+}
+.candidateId_fill_blue {
+  background: #2e318b;
+  color: #2e318b;
+}
+.candidateId_fill_g {
+  background: #2bb673;
+  color: #2bb673;
+}
+.candidateId_fill_r {
+  background: #ff0000;
+  color: #ff0000;
+}
+.omrSheet_ruleText {
+  font-weight: 600;
+  font-size: 18px;
+  writing-mode: sideways-lr !important;
+  writing-mode: tb;
+  border: 1px solid #000;
+  display: flex;
+  /* height: 100%; */
+  width: 46px;
+  justify-content: center;
+  align-items: center;
+  margin-right: -9px;
+}
+.omrSheet_ans {
+  width: calc(100% - 37px);
+  display: flex;
+}
+.omrSheet_ans .omrSheetIdInfo {
+  width: 25%;
+}
+.omrSheet_ans .omrSheetId_test {
+  margin-right: -1px;
+  width: 30%;
+}
+.omrSheet_ansAll {
+  display: flex;
+  height: 100%;
+}
+.bubble.bubble_count {
+  border: none;
+}
+.omrSheet_ans .omrSheetIdField {
+  padding: 2px;
+}
+.examVideoClose_ic {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  cursor: pointer;
+}
+.omrBack_ic {
+  position: absolute;
+  left: 20px;
+  top: 30px;
+}
+.dashboardRightBody.resultOmrBody [class*="col-"] {
+  margin-bottom: 0px;
+}
+.dashboardLogo_ph {
+  display: none;
+}
+#saPanel,
+#ciPanel,
+#hwPanel {
+  display: none;
+}
+.dashboardBlockTopMargin {
+    margin-top: 30px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (min-width:1200px) {
+  
+}
+
+@media (max-width:1850px) {
+  .dashboardTopic-col {
+    width: 138px;
+  }
+  .dashboardTopic {
+    width: 691px;
+  }
+  .dashboardScroll {
+    overflow-x: auto;
+  }
+  ul.examScheduleUl li {
+    font-size: 16px;
+  }
+}
+
+@media (max-width:1699px) {
+  .resultOmrBody .resultOmr-col {
+    width: 100%;
+    max-width: 100%;
+  }
+  .examTab.nav-tabs .nav-link {
+    font-size: 24px;
+  }
+  ul.examScheduleUl li:last-child {
+    text-align: right;
+  }
+  .dashboardRightBody.dashboardRightBodyColAdj [class*="col-"] {
+    width: 100%;
+    max-width: 100%;
+  }
+  .tabHeightAdj {
+    display: none;
+  }
+}
+
+@media (max-width:1499px) {
+  .dashboardRightBody.resultOmrBody [class*="col-"] {
+    width: 100%;
+    max-width: 100%;
+  }
+  .omrSheet_ansAll {
+    margin-top: 12px;
+  }
+  .dashboardRightBody.resultOmrBody .dashboardBlock {
+      width: 750px;
+  }
+  .omrSheetDetailsTitle {
+      font-size: 16px;
+  }
+}
+
+@media (max-width:1199px) {
+  .omrSheet_scroll {
+    overflow-x: auto;
+  }
+  .omrSheet_scroll .omrSheet_ansAll {
+    width: 767px;
+  }
+  .dashboardRightBody.resultOmrBody .dashboardBlock {
+      width: 100%;
+  }
+}
+
+@media (max-width:991px) {
+  .dashboardPh .dashboardLogo_dx,
+  .dashboardPh .dashboardName,
+  .dashboardPh .dashboardCheck,
+  .dashboardPh .dashboardMenu li a span {
+    display: none;
+  }
+  .dashboardPh .dashboardLogo_ph {
+    display: block;
+  }
+  .dashboardPh .dashboardMenuPL {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .dashboardPh .dashboardAvatarBlock.dashboardMenuPL {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .dashboardPh .dashboardLeft {
+    width: 92px;
+  }
+  .dashboardPh .dashboardRight {
+    width: calc(100% - 92px);
+  }
+  .dashboardPh .dashboardMenu li a {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .dashboardPh .dashboardMenu li a img.dashboardMenu_ic {
+    margin-right: 0px;
+  }
+  .dashboardPh .dashboardMenu li a {
+    justify-content: center;
+    border-radius: 30px;
+  }
+  .dashboardPh .dashboardMenu li {
+    width: 52px;
+    /*height: 52px;*/
+  }
+  .dashboardPh .dashboardAvatar {
+    width: 72px;
+    height: 72px;
+  }
+  .examTab,
+  .examSchedule,
+  ul.examScheduleUl {
+    display: block;
+  }
+  .examTab.nav-tabs .nav-item,
+  .examSchedule-l-col,
+  .examSchedule-r-col,
+  .upcomingSchedule.onlineSchedule .examSchedule-r-col {
+    width: 100%;
+  }
+  .examSchedule-r-col {
+    margin-top: -1px;
+  }
+  .examTab.nav-tabs .nav-item:first-child {
+    margin-right: 0px;
+    margin-bottom: 10px;
+  }
+  ul.examScheduleUl li,
+  ul.examScheduleUl li:last-child {
+    text-align: center;
+  }
+  ul.examScheduleUl {
+    border-radius: 16px 16px 0px 0px;
+  }
+  .examSchedule-r-col ul.examScheduleUl,
+  .examSchedule-r-col ul.examScheduleUl:last-child li {
+    border-radius: 0px 0px 16px 16px;
+  }
+  .resultOmrTitle {
+    font-size: 48px;
+  }
+  .dashboardPh .dashboardMenuPL.dashboardSubMenu {
+      padding: 0px;
+  }
+}
+
+@media (max-width:767px) {
+  .dashboardTitle {
+    font-size: 30px;
+  }
+  .dashboardEmail {
+    font-size: 18px;
+  }
+   .resultOmrTitle {
+    font-size: 42px;
+    margin: 30px 0px 15px;
+    line-height: 46px;
+  }
+}
+
+@media (max-width:575px) {
+  .dashboardTitle {
+    font-size: 26px;
+    line-height: 30px;
+  }
+  .dashboardEmail {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .examTab.nav-tabs .nav-link {
+    font-size: 22px;
+    height: 52px;
+  }
+  .omrSheetIdInfo_scroll .omrSheetIdInfo {
+    width: 363px;
+  }
+  .omrSheetIdInfo_scroll {
+      overflow-x: auto;
+  }
+}
+
+@media (max-width:489px) {
+  .examTab.nav-tabs .nav-link {
+    font-size: 20px;
+  }
+  .resultOmrTitle {
+    font-size: 36px;
+    line-height: 38px;
+  }
+}
+
+@media(max-width:413px) {
+   .dashboardTitle {
+    font-size: 20px;
+    line-height: normal;
+  }
+  .examTab.nav-tabs .nav-link {
+    font-size: 14px;
+    text-align: center;
+    word-break: break-word;
+    padding: 5px 10px;
+    line-height: 18px;
+  }
+   .resultOmrTitle {
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .resultOmrText {
+    font-size: 16px;
+  }
+  .resultOmrSubject {
+    font-size: 24px;
+  }
+}

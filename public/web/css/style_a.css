@@ -1,0 +1,375 @@
+@charset "utf-8";
+/* CSS Document */
+html {
+  scroll-behavior: smooth !important;
+  overflow-x: hidden;
+}
+/* body {
+	overflow-x: hidden;
+	font-family: "Poppins", serif;
+	font-weight: 400;
+} */
+select {
+	-webkit-appearance: none;
+    -moz-appearance: none;
+    /* background: url('../img/select-notch.png') right 4% center no-repeat !important; */
+}
+input[type="number"] {
+	-moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+a, .btn, button {
+	outline: none !important;
+	outline: 0 !important;
+}
+a:hover {
+	text-decoration: none;
+}
+.btn {
+	outline: none !important;
+}
+.btn:focus, .btn:not(:disabled):not(.disabled).active:focus, .btn:not(:disabled):not(.disabled):active:focus, .show > .btn.dropdown-toggle:focus, .form-control:focus {
+	box-shadow: none !important;
+}
+.text-left {
+  text-align: left !important;
+}
+.topbannerA {
+  margin-top: 72px;
+}
+.rankarstopmarginA {
+  margin-top: 150px;
+  margin-bottom: 150px;
+}
+#testseriesDetails {
+	margin: 170px 0px 150px;
+}
+.offlineTestHeading {
+	font-size: 20px;
+	color: #fff;
+	background: #072d7b;
+	font-weight: 600;
+  max-width: fit-content;
+  max-width: max-content;
+  padding: 5px 26px;
+  border-radius: 30px;
+}
+.offlineTestTitle {
+	font-size: 30px;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: #f20b81;
+  margin: 10px 0px 5px;
+}
+.offlineTestText {
+	color: #000;
+	font-size: 20px;
+	margin-bottom: 35px;
+}
+.subjectsTitle {
+	font-size: 20px;
+	color: #000;
+	font-weight: 700;
+	margin-bottom: 7px;
+}
+.subjectsText {
+	font-size: 22px;
+  color: #000;
+}
+.quickBlock {
+	background: #fef3f9;
+	padding: 30px;
+  border-radius: 8px;
+  margin-top: 30px;
+}
+.quickText {
+	font-size: 16px;
+	color: #000;
+	margin-bottom: 12px;
+}
+.quickText span {
+	color: #3561ff;
+	font-weight: 700;
+}
+.quickBlockUl li.quickText {
+	padding-left: 20px;
+	background: url('../images/li_notch.png') no-repeat left top 9px;
+	margin-bottom: 10px;
+}
+.feesHeading {
+	background: #082d7c;
+	padding: 30px 25px;
+	display: flex;
+  justify-content: space-between;
+}
+.feesTitle {
+	font-size: 28px;
+	color: #fff;
+	font-weight: 700;
+	line-height: 32px;
+	padding-right: 15px;
+}
+.feesPriceValue {
+	color: #fff;
+	font-size: 20px;
+	font-weight: 700;
+}
+.feesPriceValue span {
+	font-size: 16px;
+	font-weight: 400;
+	text-decoration: line-through;
+}
+.feesPriceTax {
+	font-size: 16px;
+	font-weight: 400;
+	color: #fff;
+}
+.feesBelowBlock {
+	padding: 30px 25px;
+}
+.feesBelowBlock form .form-check-label .form-check-input {
+	width: 18px;
+	height: 18px;
+	margin-right: 12px;
+	border: 1px solid rgb(0, 0, 0);
+}
+.feesBelowBlock form .form-check-label .form-check-input:focus {
+	box-shadow: none;
+}
+.feesBelowBlock form .form-check-label .form-check-input:checked[type="radio"] {
+	background: #fff;
+	position: relative;
+}
+.feesBelowBlock form .form-check-label .form-check-input:checked[type="radio"]::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background: #000;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -6px;
+  margin-left: -6px;
+}
+.feesBelowBlock form .form-check-non-inline {
+	margin-top: 10px;
+}
+.feesInfo {
+	font-size: 14px;
+	margin: 15px 0px 30px;
+}
+.btn-buyNow {
+	background: #3561ff;
+  font-size: 18px;
+  height: 48px;
+  width: 100%;
+  border-radius: 30px;
+  color: #fff !important;
+  font-weight: 600;
+}
+.testseriesBoxShadow {
+	-webkit-box-shadow: 0px 0px 10px 4px rgba(0,0,0,0.1);
+  -moz-box-shadow: 0px 0px 10px 4px rgba(0,0,0,0.1);
+  box-shadow: 0px 0px 10px 4px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.checkOutTitle {
+	font-size: 26px;
+	font-weight: 600;
+	color: #3561ff;
+}
+.cartBlock {
+	padding: 20px;
+}
+.cartProductImg img {
+	width: 180px;
+	border-radius: 8px;
+}
+.cartProductTitle {
+	font-size: 18px;
+	color: #000;
+	font-weight: 600;
+}
+.cartProductText {
+	font-size: 15px;
+	color: #000;
+	font-weight: 400;
+}
+.cartProductDetails {
+	display: flex;
+	margin-top: 30px;
+}
+.cartProductInfo {
+	padding-left: 20px;
+}
+.cartProductPrice {
+	padding-left: 45px;
+}
+.cartProductPrice .feesPriceValue {
+	color: #000;
+}
+.cartCouponTitle {
+	font-size: 18px;
+	color: #000;
+	font-weight: 600;
+}
+.cartCouponText {
+	font-size: 14px;
+	color: #000;
+	font-weight: 400;
+}
+.cartCoupon {
+	padding: 14px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+}
+.cartCouponBox {
+	margin-bottom: -14px;
+}
+.cartCouponBar {
+	border: 1px dashed #868686;
+  margin-top: 8px;
+}
+.cartCouponBoxText {
+	font-size: 15px;
+  color: #f20b81;
+  height: 60px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cartCouponTitle2 {
+	font-size: 16px;
+}
+.cartCoupon.cartCoupon2 {
+	background-color: #f5f6fa;
+  margin-top: 10px;
+}
+.paymentInfo {
+	font-size: 16px;
+	color: #000;
+}
+.paymentPrice {
+	font-size: 18px;
+	color: #000;
+	font-weight: 600;
+}
+.paymentPrice span {
+	color: #f20b81;
+}
+.paymentDetails {
+	display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.priceBar {
+	border: 1px solid #868686;
+	margin: 20px 0px 12px;
+}
+.paymentInfo.paymentInfoTotal {
+	font-size: 18px;
+	font-weight: 700;
+}
+.paymentSummaryAll .checkOutTitle {
+	margin: 16px 0px;
+}
+.paymentSummaryAll .btn-buyNow {
+	margin: 12px 0px 10px;
+}
+.couponBoxField .form-control {
+	height: 40px;
+	font-size: 14px;
+	color: #002872;
+	font-weight: 600;
+	border: 1px solid #d9d9d9;
+  border-radius: 30px !important;
+}
+.couponBoxField .input-group-append {
+	width: 90px;
+	margin-left: 10px !important;
+}
+.btn-applyCoupon {
+	font-size: 14px;
+  color: #fff !important;
+  background-color: #f20b81;
+  height: 40px;
+  border-radius: 30px;
+  width: 100%;
+}
+.couponBoxField {
+	padding: 10px 0px;
+}
+.couponOff {
+	display: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (min-width:1200px) {
+	
+}
+
+@media (max-width:1199px) {
+	
+}
+
+@media (max-width:991px) {
+	.topbannerA {
+		margin-top: 60px;
+	}
+	.quickBlock,
+	.resMargin {
+		margin-bottom: 45px;
+	}
+	#testseriesDetails {
+		margin-top: 100px;
+	}
+}
+
+@media (max-width:767px) {
+	
+}
+
+@media (max-width:575px) {
+	
+}
+
+@media (max-width:489px) {
+	
+}
+
+@media(max-width:413px) {
+	
+}

@@ -1,0 +1,221 @@
+.rankerBanner {
+  background: linear-gradient(50deg, rgba(0,18,70,1) 0%, rgba(243,11,129,1) 100%); 
+  padding: 58px 0px 50px;
+}
+.rankerBanner .rankersblockSlider {
+  background: #fff;
+  padding-top: 68px;
+  padding: 14px 18px 16px;
+  -webkit-box-shadow: 0px 7px 18px 0px rgba(0,0,0,0.06);
+  -moz-box-shadow: 0px 7px 18px 0px rgba(0,0,0,0.06);
+  box-shadow: 0px 7px 18px 0px rgba(0,0,0,0.06);
+  margin-top: 0px;
+  border-radius: 16px;
+  border: 2px solid;
+  width: 316px;
+  margin-right: 20px;
+}
+.rankerBanner .rankersblockSlider h5,
+.rankerBanner .rankersblockSlider .rankersblockSliderText {
+  text-shadow: none;
+  color: #000;
+  padding-left: 0px;
+}
+.rankerBanner .rankersblockSlider h5 {
+  font-size: 18px;
+}
+.rankerBanner .rankersblockSlider .rankersblockSliderText {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+  margin-bottom: 12px;
+}
+.rankerBanner .rankersImg {
+  width: 184px;
+  height: 188px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+.rankerBanner .row .col-rankersblock {
+  padding-right: calc(var(--bs-gutter-x) * .5);
+  padding-left: calc(var(--bs-gutter-x) * .5);
+}
+.rankerBanner .row .col-rankersblock:first-child {
+  width: calc(100% - 150px);
+}
+.rankerBanner .row .col-rankersblock:last-child {
+  width: 150px;
+}
+.rankerBanner .rconnect {
+  position: absolute;
+  left: 0;
+  bottom: 0px;
+}
+.rankerBanner .topmateplaly {
+  position: relative;
+  left: auto;
+  top: 38px;
+  width: auto !important;
+}
+.rankerBanner .rankersblockLeft {
+  height: 100%;
+  position: relative;
+}
+.bgBlue {
+    background-color: #3a49da;
+}
+.bgPurple {
+    background-color: #730394;
+}
+.bgRed2 {
+    background-color: #b60554;
+}
+.bgBlue2 {
+    background-color: #0b827c;
+}
+.bgPink {
+    background-color: #ff538a;
+}
+.bgTkg {
+    background-color: #8c4b02;
+}
+.filterButtonAll {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+.filterButtonAll .filterBtn {
+  font-size: 18px;
+  color: #000;
+  background-color: #fff;
+  margin: 0px 10px;
+  padding: 5px 30px;
+  border-radius: 50px;
+  min-width: 98px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.filterButtonAll .filterBtn.active,
+.filterButtonAll .filterSubBtn ul .filterBtn.active {
+  background-color: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+}
+.filterButtonAll .filterSubBtn {
+  display: none;
+}
+.filterButtonAll .filterSubBtn ul {
+  display: flex;
+}
+.filterButtonAll .filterBtn.languageClick.languageActive {
+  background-color: #3598fe;
+  color: #fff;
+}
+.filterButtonAll .filterSubBtn ul .filterBtn {
+  background-color: #32ffdf;
+  border: 2px solid transparent;
+  color: #000;
+}
+.rankerRanks .headinginfo {
+  /* width: 66%; */
+  margin-left: auto;
+  margin-right: auto;
+}
+.rankerRanks .headinginfo b {
+  font-weight: 600;
+}
+.rankerRanks .rankersblock h5,
+.rankerRanks .rankersblock span {
+  color: #000;
+  text-shadow: none;
+}
+/* .rankerRanks .rankerRanksBlocks {
+  margin: 0px 114px;
+} */
+.rankerRanks .rankersblock {
+  border-radius: 24px;
+  width: 564px !important;
+  margin-right: 0px;
+  background-position: center;
+}
+.rankerRanks .rankers-carousel {
+  display: flex;
+  justify-content: center;
+}
+.filterButtonAll .filterBtn .nav-link,
+.filterButtonAll .filterBtn .nav-link.active {
+  background: none;
+  border: none;
+  padding: 0px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (min-width:1200px) {
+
+}
+
+@media (max-width:1300px) {
+  /* .rankerRanks .rankerRanksBlocks {
+    margin: 0px 30px;
+  } */
+}
+
+@media (max-width:1199px) {
+	.rankerRanks .rankerRanksBlocks {
+    margin: 0px 0px;
+  }
+  .rankerRanks .headinginfo {
+    width: 100%;
+  }
+}
+
+@media (max-width:991px) {
+	.filterButtonAll .filterBtn {
+    font-size: 16px;
+    padding: 5px 22px;
+  }
+}
+
+@media (max-width:767px) {
+	.filterButtonAll {
+    display: block;
+  }
+  .filterButtonAll .filterBtn {
+    margin-bottom: 15px;
+  }
+  .filterButtonAll .filterBtn:last-child {
+    margin-bottom: 0px;
+  }
+  .filterButtonAll .filterSubBtn ul .filterBtn {
+    width: 50%;
+  }
+}
+
+@media (max-width:575px) {
+	
+}
+
+@media (max-width:489px) {
+	
+}
+
+@media(max-width:413px) {
+	
+}

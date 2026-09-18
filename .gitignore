@@ -1,0 +1,54 @@
+# Laravel
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+/.phpunit.cache
+
+# Logs and caches
+*.log
+error_log
+/storage/logs/*
+!/storage/logs/.gitignore
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+
+# Secrets, dumps, hosting leftovers
+*.sql
+*.zip
+/mysql
+php.ini
+.user.ini
+
+# Nested deploy copy and dated backups
+/demo.rankpro.co.in
+/app-25-08-2026
+/resources-25-08-2026
+/routes-25-08-2026
+
+# User uploads (keep folder)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

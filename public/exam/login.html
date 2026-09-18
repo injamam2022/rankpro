@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="css/bootstrap.min.css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet"> 
+
+	<title>Shikkha</title>
+
+    <link rel="shortcut icon" href="img/fav-icon.png" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="stylesheet" type="text/css" href="css/all.css" />
+</head>
+
+<body>
+  <section id="mainBody">
+    <div class="container">
+      <div class="login_card">
+        <div class="card">
+          <div class="card-header">
+            <img class="card-img-top img-fluid" src="img/examLogo.png" alt="Card image">
+          </div>
+          <div class="card-body">
+            <div class="card-title">Login</div>
+            <form action="/action_page.php" class="validHint">
+              <div class="form-group">
+                <label for="number">Mobile No</label>
+                <input type="number" class="form-control" id="pNumber" min="0" data-attr="" name="pNumber">
+                <span class="animatedSpan">Enter Mobile No</span>
+              </div>
+              <div class="form-group">
+                <label for="pwd">Password</label>
+                <input type="password" class="form-control" id="pwd" placeholder="" name="pswd">
+                <span class="animatedSpan">Enter Password</span>
+                <ul class="list-unstyled mb-0 belowInput">
+                  <li class="d-inline-block">
+                    <a href="registration1.html" title="">Registration</a>
+                  </li>
+                  <li class="d-inline-block">
+                    <a href="forgot-password.html" title="">Forgot Password</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-img"><img src="img/submitBtn.png" class="img-fluid" alt=""></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+    
+	  <script src="js/jquery.min.js"></script>
+  	<script src="js/popper.min.js"></script>
+  	<script src="js/bootstrap.min.js"></script>
+    <script src="js/main.js"></script>
+
+    <script>
+      $(document).ready(function() {
+        $('.validHint input[type=number], .validHint input[type=password]').click(function() {
+          //$('.animatedSpan').removeClass('imActiveFeild');
+          $(this).parent().children('.animatedSpan').addClass('imActiveFeild');
+        });
+        $('.validHint input[type=number], .validHint input[type=password]').focus(function() {
+          //$('.animatedSpan').removeClass('imActiveFeild');
+          $(this).parent().children('.animatedSpan').addClass('imActiveFeild');
+        });
+
+        $(document).on('mouseup', function(e)  {
+          $("span.imActiveFeild").each(function() {
+              var currInput = $(this).parents().children('input');
+              if (!currInput.is(e.target) && currInput.has(e.target).length === 0) {
+                  if($(this).parents('.form-group').children('input').val() == '' ) {
+                    $(this).removeClass('imActiveFeild');
+                  }
+              }
+            });
+          });
+
+
+          $("input").each(function() {
+              if($(this).val() != '' ) {
+                $(this).parents('.form-group').children('span').addClass('imActiveFeild');
+              }
+          });
+
+          
+          
+
+
+
+
+      });
+      document.getElementById("mainBody").style.minHeight = window.innerHeight + "px";
+    </script>
+</body>
+</html>
