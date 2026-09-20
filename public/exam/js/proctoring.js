@@ -17,7 +17,9 @@
         noFaceStreak: 0,
         extraPersonStreak: 0,
         modelsReady: false,
-        tinyOnly: false,
+        ssdReady: false,
+        tinyReady: false,
+        lastFaceAt: 0,
         graceUntil: 0,
         warningOpen: false,
         webcamWarningShown: false,
@@ -79,15 +81,19 @@
             if (!window.faceapi || !this.config.modelUrl) {
                 return;
             }
-            window.faceapi.nets.ssdMobilenetv1.loadFromUri(this.config.modelUrl).then(function () {
-                self.modelsReady = true;
+            var url = this.config.modelUrl;
+            var ssd = window.faceapi.nets.ssdMobilenetv1.loadFromUri(url).then(function () {
+                self.ssdReady = true;
             }).catch(function () {
-                window.faceapi.nets.tinyFaceDetector.loadFromUri(self.config.modelUrl).then(function () {
-                    self.tinyOnly = true;
-                    self.modelsReady = true;
-                }).catch(function () {
-                    self.modelsReady = false;
-                });
+                self.ssdReady = false;
+            });
+            var tiny = window.faceapi.nets.tinyFaceDetector.loadFromUri(url).then(function () {
+                self.tinyReady = true;
+            }).catch(function () {
+                self.tinyReady = false;
+            });
+            Promise.all([ssd, tiny]).then(function () {
+                self.modelsReady = !!(self.ssdReady || self.tinyReady);
             });
         },
 
@@ -129,7 +135,8 @@
             this.enterFullscreen();
             this.started = true;
             this.ended = false;
-            this.graceUntil = Date.now() + 4000;
+            this.graceUntil = Date.now() + 8000;
+            this.lastFaceAt = Date.now();
             document.body.classList.add('exam-proctored-active');
             var overlay = document.getElementById('proctoringGate');
             if (overlay) {
@@ -292,9 +299,10 @@
             return this.detectCanvas;
         },
 
-        getBrightness: function () {
+        getFrameStats: function () {
+            var empty = { brightness: 255, center: 255, variance: 255, covered: false };
             if (!this.video || !this.canvas || !this.video.videoWidth) {
-                return 255;
+                return empty;
             }
             this.canvas.width = 80;
             this.canvas.height = 60;
@@ -303,11 +311,66 @@
             var data = ctx.getImageData(0, 0, 80, 60).data;
             var total = 0;
             var count = 0;
-            for (var i = 0; i < data.length; i += 16) {
-                total += (data[i] + data[i + 1] + data[i + 2]) / 3;
-                count += 1;
+            var centerTotal = 0;
+            var centerCount = 0;
+            var values = [];
+            for (var y = 0; y < 60; y += 2) {
+                for (var x = 0; x < 80; x += 2) {
+                    var i = ((y * 80) + x) * 4;
+                    var lum = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    total += lum;
+                    count += 1;
+                    values.push(lum);
+                    if (x >= 20 && x < 60 && y >= 12 && y < 48) {
+                        centerTotal += lum;
+                        centerCount += 1;
+                    }
+                }
             }
-            return count ? (total / count) : 255;
+            var brightness = count ? (total / count) : 255;
+            var center = centerCount ? (centerTotal / centerCount) : brightness;
+            var varSum = 0;
+            for (var v = 0; v < values.length; v += 1) {
+                var diff = values[v] - brightness;
+                varSum += diff * diff;
+            }
+            var variance = values.length ? (varSum / values.length) : 0;
+            return {
+                brightness: brightness,
+                center: center,
+                variance: variance,
+                covered: brightness < 10 && center < 12 && variance < 16
+            };
+        },
+
+        detectFaces: function (input) {
+            var self = this;
+            var tryTiny = function () {
+                if (!self.tinyReady) {
+                    return Promise.resolve(0);
+                }
+                return window.faceapi.detectAllFaces(input, new window.faceapi.TinyFaceDetectorOptions({
+                    inputSize: 320,
+                    scoreThreshold: 0.12
+                })).then(function (faces) {
+                    return faces ? faces.length : 0;
+                }).catch(function () {
+                    return 0;
+                });
+            };
+            if (this.ssdReady) {
+                return window.faceapi.detectAllFaces(input, new window.faceapi.SsdMobilenetv1Options({
+                    minConfidence: 0.2
+                })).then(function (faces) {
+                    if (faces && faces.length) {
+                        return faces.length;
+                    }
+                    return tryTiny();
+                }).catch(function () {
+                    return tryTiny();
+                });
+            }
+            return tryTiny();
         },
 
         checkWebcam: function () {
@@ -316,43 +379,49 @@
                 return;
             }
             if (Date.now() < this.graceUntil) {
-                this.setFaceStatus('Look at the camera.', false);
-                return;
-            }
-            if (!this.modelsReady) {
-                this.setFaceStatus('Starting face check...', false);
+                this.setFaceStatus('Camera on', false);
                 return;
             }
 
-            var brightness = this.getBrightness();
-            if (brightness < 48) {
-                this.handleMissingFace('camera_covered', 'Face not visible. Look at the camera.');
+            var stats = this.getFrameStats();
+            if (stats.covered) {
+                this.handleCoveredCamera();
+                return;
+            }
+
+            if (!this.modelsReady) {
+                this.markPresent('Camera on');
                 return;
             }
 
             var input = this.getDetectCanvas() || this.video;
-            var options = this.tinyOnly
-                ? new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })
-                : new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.62 });
-
-            window.faceapi.detectAllFaces(input, options).then(function (faces) {
-                self.handleFaceResult(faces ? faces.length : 0);
+            this.detectFaces(input).then(function (count) {
+                self.handleFaceResult(count);
             }).catch(function () {
-                self.handleMissingFace('no_face', 'Face not visible. Look at the camera.');
+                self.markPresent('On camera');
             });
         },
 
-        handleMissingFace: function (type, statusText) {
+        markPresent: function (label) {
+            this.noFaceStreak = 0;
+            this.extraPersonStreak = 0;
+            this.lastFaceAt = Date.now();
+            this.setFaceStatus(label, false);
+            if (this.lockType === 'webcam') {
+                this.webcamWarningShown = false;
+                this.webcamStrikeCount = 0;
+                this.lockType = null;
+                this.hideWarning();
+            }
+        },
+
+        handleCoveredCamera: function () {
             this.extraPersonStreak = 0;
             this.noFaceStreak += 1;
-            this.setFaceStatus(statusText, true);
-            if (!this.webcamWarningShown && this.noFaceStreak >= 5) {
+            this.setFaceStatus('Camera is too dark or covered.', true);
+            if (!this.webcamWarningShown && this.noFaceStreak >= 10) {
                 this.webcamWarningShown = true;
-                this.recordWebcamStrike(type, 'Face was not visible on webcam. Return and look at the camera to continue.');
-                return;
-            }
-            if (this.webcamWarningShown && this.noFaceStreak >= 20) {
-                this.forceEnd('cancel');
+                this.recordWebcamStrike('camera_covered', 'Camera looks covered. Uncover it to continue.');
             }
         },
 
@@ -364,31 +433,17 @@
                 this.noFaceStreak = 0;
                 this.extraPersonStreak += 1;
                 this.setFaceStatus('More than one person detected.', true);
-                if (!this.webcamWarningShown && this.extraPersonStreak >= 5) {
+                if (!this.webcamWarningShown && this.extraPersonStreak >= 8) {
                     this.webcamWarningShown = true;
-                    this.recordWebcamStrike('multiple_faces', 'More than one person was visible. Sit alone and look at the camera to continue.');
-                    return;
-                }
-                if (this.webcamWarningShown && this.extraPersonStreak >= 15) {
-                    this.forceEnd('cancel');
+                    this.recordWebcamStrike('multiple_faces', 'More than one person was visible. Sit alone to continue.');
                 }
                 return;
             }
             if (faceCount < 1) {
-                this.handleMissingFace('no_face', 'Face not visible. Look at the camera.');
+                this.markPresent('On camera');
                 return;
             }
-
-            this.noFaceStreak = 0;
-            this.extraPersonStreak = 0;
-            this.setFaceStatus('Face detected', false);
-            if (this.lockType === 'webcam') {
-                this.webcamWarningShown = false;
-                this.webcamStrikeCount = 0;
-                this.lockType = null;
-                this.hideWarning();
-                this.graceUntil = Date.now() + 4000;
-            }
+            this.markPresent('Face detected');
         },
 
         setFaceStatus: function (text, isError) {
@@ -439,12 +494,10 @@
             }
             this.lastWebcamStrikeAt = now;
             this.webcamStrikeCount += 1;
-            this.violationCount += 1;
-            this.updateBadge();
             this.logEvent(type, message);
             this.captureSnapshot();
             this.lockType = 'webcam';
-            this.showWarning('Webcam warning: ' + message + ' The exam is cancelled only if you stay away.', false);
+            this.showWarning('Webcam warning: ' + message + ' Sitting and reading the exam will not cancel the test.', false);
         },
 
         updateBadge: function () {
