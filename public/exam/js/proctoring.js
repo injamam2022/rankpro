@@ -17,6 +17,7 @@
         noFaceStreak: 0,
         extraPersonStreak: 0,
         modelsReady: false,
+        tinyOnly: false,
         graceUntil: 0,
         warningOpen: false,
         webcamWarningShown: false,
@@ -65,10 +66,15 @@
             if (!window.faceapi || !this.config.modelUrl) {
                 return;
             }
-            window.faceapi.nets.tinyFaceDetector.loadFromUri(this.config.modelUrl).then(function () {
+            window.faceapi.nets.ssdMobilenetv1.loadFromUri(this.config.modelUrl).then(function () {
                 self.modelsReady = true;
             }).catch(function () {
-                self.modelsReady = false;
+                window.faceapi.nets.tinyFaceDetector.loadFromUri(self.config.modelUrl).then(function () {
+                    self.tinyOnly = true;
+                    self.modelsReady = true;
+                }).catch(function () {
+                    self.modelsReady = false;
+                });
             });
         },
 
@@ -110,7 +116,7 @@
             this.enterFullscreen();
             this.started = true;
             this.ended = false;
-            this.graceUntil = Date.now() + 12000;
+            this.graceUntil = Date.now() + 4000;
             document.body.classList.add('exam-proctored-active');
             var overlay = document.getElementById('proctoringGate');
             if (overlay) {
@@ -212,48 +218,37 @@
             }, 2000);
         },
 
-        analyzeFrame: function () {
+        getDetectCanvas: function () {
+            if (!this.video || !this.video.videoWidth) {
+                return null;
+            }
+            if (!this.detectCanvas) {
+                this.detectCanvas = document.createElement('canvas');
+            }
+            var width = 480;
+            var height = Math.round((this.video.videoHeight / this.video.videoWidth) * width) || 360;
+            this.detectCanvas.width = width;
+            this.detectCanvas.height = height;
+            this.detectCanvas.getContext('2d').drawImage(this.video, 0, 0, width, height);
+            return this.detectCanvas;
+        },
+
+        getBrightness: function () {
             if (!this.video || !this.canvas || !this.video.videoWidth) {
-                return { brightness: 255, skinRatio: 1 };
+                return 255;
             }
-            var width = 160;
-            var height = 120;
-            this.canvas.width = width;
-            this.canvas.height = height;
+            this.canvas.width = 80;
+            this.canvas.height = 60;
             var ctx = this.canvas.getContext('2d');
-            ctx.drawImage(this.video, 0, 0, width, height);
-            var data = ctx.getImageData(0, 0, width, height).data;
-            var brightnessTotal = 0;
-            var pixelCount = 0;
-            var skinCount = 0;
-            var x0 = Math.floor(width * 0.18);
-            var x1 = Math.floor(width * 0.82);
-            var y0 = Math.floor(height * 0.12);
-            var y1 = Math.floor(height * 0.88);
-            var centerCount = 0;
-            for (var y = 0; y < height; y++) {
-                for (var x = 0; x < width; x++) {
-                    var i = (y * width + x) * 4;
-                    var r = data[i];
-                    var g = data[i + 1];
-                    var b = data[i + 2];
-                    brightnessTotal += (r + g + b) / 3;
-                    pixelCount += 1;
-                    if (x < x0 || x > x1 || y < y0 || y > y1) {
-                        continue;
-                    }
-                    centerCount += 1;
-                    var cb = 128 - (0.168736 * r) - (0.331264 * g) + (0.5 * b);
-                    var cr = 128 + (0.5 * r) - (0.418688 * g) - (0.081312 * b);
-                    if (cb >= 70 && cb <= 140 && cr >= 120 && cr <= 185) {
-                        skinCount += 1;
-                    }
-                }
+            ctx.drawImage(this.video, 0, 0, 80, 60);
+            var data = ctx.getImageData(0, 0, 80, 60).data;
+            var total = 0;
+            var count = 0;
+            for (var i = 0; i < data.length; i += 16) {
+                total += (data[i] + data[i + 1] + data[i + 2]) / 3;
+                count += 1;
             }
-            return {
-                brightness: pixelCount ? (brightnessTotal / pixelCount) : 255,
-                skinRatio: centerCount ? (skinCount / centerCount) : 0
-            };
+            return count ? (total / count) : 255;
         },
 
         checkWebcam: function () {
@@ -262,40 +257,37 @@
                 return;
             }
             if (Date.now() < this.graceUntil) {
-                this.setFaceStatus('Camera on. Keep looking this way.', false);
+                this.setFaceStatus('Look at the camera.', false);
+                return;
+            }
+            if (!this.modelsReady) {
+                this.setFaceStatus('Starting face check...', false);
                 return;
             }
 
-            var frame = this.analyzeFrame();
-            if (frame.brightness < 10 && frame.skinRatio < 0.02) {
+            var brightness = this.getBrightness();
+            if (brightness < 14) {
                 this.handleMissingFace('camera_covered', 'Camera looks covered or too dark.');
                 return;
             }
 
-            if (this.modelsReady && window.faceapi && this.video) {
-                window.faceapi.detectAllFaces(this.video, new window.faceapi.TinyFaceDetectorOptions({
-                    inputSize: 416,
-                    scoreThreshold: 0.15
-                })).then(function (faces) {
-                    var count = faces ? faces.length : 0;
-                    if (count < 1 && frame.skinRatio >= 0.035 && frame.brightness > 18) {
-                        count = 1;
-                    }
-                    self.handleFaceResult(count);
-                }).catch(function () {
-                    self.handleFaceResult(frame.skinRatio >= 0.035 ? 1 : 0);
-                });
-                return;
-            }
+            var input = this.getDetectCanvas() || this.video;
+            var options = this.tinyOnly
+                ? new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })
+                : new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 });
 
-            this.handleFaceResult(frame.skinRatio >= 0.035 || frame.brightness > 25 ? 1 : 0);
+            window.faceapi.detectAllFaces(input, options).then(function (faces) {
+                self.handleFaceResult(faces ? faces.length : 0);
+            }).catch(function () {
+                self.handleMissingFace('no_face', 'Face not visible. Look at the camera.');
+            });
         },
 
         handleMissingFace: function (type, statusText) {
             this.extraPersonStreak = 0;
             this.noFaceStreak += 1;
             this.setFaceStatus(statusText, true);
-            if (!this.webcamWarningShown && this.noFaceStreak >= 8) {
+            if (!this.webcamWarningShown && this.noFaceStreak >= 5) {
                 this.webcamWarningShown = true;
                 this.recordWebcamStrike(type, 'Face was not visible on webcam. Return and look at the camera to continue.');
                 return;

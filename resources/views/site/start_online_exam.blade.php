@@ -1218,8 +1218,8 @@
       @endif
     </script>
     @if(!empty($exam_detail->is_proctored))
-    <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=3"></script>
-    <script src="{{ asset('exam/js/proctoring.js') }}?v=3"></script>
+    <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=4"></script>
+    <script src="{{ asset('exam/js/proctoring.js') }}?v=4"></script>
     <script>
       RankProProctoring.init({
         enabled: true,
