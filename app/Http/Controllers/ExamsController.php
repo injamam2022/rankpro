@@ -45,28 +45,34 @@ class ExamsController extends Controller
     public function start_exam(Request $request){
         $exam_id = $request->id;
         $user_id = Auth::user()->id;
-        
+        $exam_detail = Exam::where('id',$exam_id)->first();
+        $paper = $exam_detail ? Question_paper::where('id', $exam_detail->question_paper_id)->first() : null;
+        $durationMinutes = (int)($exam_detail->total_time_for_exam ?: ($paper->total_time_for_exam ?? 0));
+        $durationSeconds = $durationMinutes * 60;
 
-        $exam_user = Exam_user::where('exam_id',$exam_id)->where('user_id',$user_id)->first();
+        $exam_user = Exam_user::where('exam_id',$exam_id)->where('user_id',$user_id)->orderBy('id','desc')->first();
+        $needsNewAttempt = true;
+        if ($exam_user) {
+            $status = (string)$exam_user->proctoring_status;
+            $expired = $durationSeconds > 0 && (int)$exam_user->total_time >= $durationSeconds;
+            $finished = in_array($status, ['cancelled', 'auto_submitted', 'completed'], true);
+            $scored = $exam_user->percentage !== null && $exam_user->percentage !== '';
+            if (!$expired && !$finished && !$scored) {
+                $needsNewAttempt = false;
+            }
+        }
 
-        // dd($exam_user);
-        $exam_user_id = "";
-        if($exam_user){
-            $exam_user_id = $exam_user->id;
-        }else{
-            $exam_detail = Exam::where('id',$exam_id)->first();
-            // dd($exam_detail);
-            $insertData = [];
-            $insertData['exam_id'] = $exam_id;
-            $insertData['user_id'] = $user_id;
-            $insertData['exam_type'] = "OTS";
-
-            $exam_user = Exam_user::create($insertData);
-            $exam_user_id = $exam_user->id;
+        if ($needsNewAttempt) {
+            $exam_user = Exam_user::create([
+                'exam_id' => $exam_id,
+                'user_id' => $user_id,
+                'exam_type' => 'OTS',
+                'total_time' => 0,
+            ]);
         }
 
         toastr()->success('Exam start successfully.');
-        return redirect()->route('start_online_exam',['id'=>$exam_user_id]);
+        return redirect()->route('start_online_exam',['id'=>$exam_user->id]);
         
     }
 
@@ -79,6 +85,10 @@ class ExamsController extends Controller
         $data['exam_detail'] = Exam::select(['exams.*','question_papers.*'])
                                 ->leftJoin('question_papers', 'question_papers.id', '=', 'exams.question_paper_id')
                                 ->where('exams.id',$data['user_exam_detail']->exam_id)->first();
+        $examOnly = Exam::where('id', $data['user_exam_detail']->exam_id)->first();
+        if ($examOnly && !empty($examOnly->total_time_for_exam)) {
+            $data['exam_detail']->total_time_for_exam = $examOnly->total_time_for_exam;
+        }
 
         // dd($data['exam_detail']);
 
