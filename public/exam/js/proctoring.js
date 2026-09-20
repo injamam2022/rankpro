@@ -19,7 +19,9 @@
         modelsReady: false,
         ssdReady: false,
         tinyReady: false,
+        landmarksReady: false,
         lastPresentAt: 0,
+        lastEyesAt: 0,
         lastMotionAt: 0,
         graceUntil: 0,
         warningOpen: false,
@@ -88,17 +90,26 @@
                 return;
             }
             var url = this.config.modelUrl;
-            var ssd = window.faceapi.nets.ssdMobilenetv1.loadFromUri(url).then(function () {
-                self.ssdReady = true;
-            }).catch(function () {
-                self.ssdReady = false;
-            });
             var tiny = window.faceapi.nets.tinyFaceDetector.loadFromUri(url).then(function () {
                 self.tinyReady = true;
             }).catch(function () {
                 self.tinyReady = false;
             });
-            Promise.all([ssd, tiny]).then(function () {
+            var ssd = window.faceapi.nets.ssdMobilenetv1.loadFromUri(url).then(function () {
+                self.ssdReady = true;
+            }).catch(function () {
+                self.ssdReady = false;
+            });
+            var landmarks = window.faceapi.nets.faceLandmark68TinyNet.loadFromUri(url).then(function () {
+                self.landmarksReady = true;
+            }).catch(function () {
+                return window.faceapi.nets.faceLandmark68Net.loadFromUri(url).then(function () {
+                    self.landmarksReady = true;
+                });
+            }).catch(function () {
+                self.landmarksReady = false;
+            });
+            Promise.all([tiny, ssd, landmarks]).then(function () {
                 self.modelsReady = !!(self.ssdReady || self.tinyReady);
             });
         },
@@ -303,7 +314,7 @@
             this.checkWebcam();
             this.faceTimer = setInterval(function () {
                 self.checkWebcam();
-            }, 2000);
+            }, 1200);
         },
 
         getSampleCanvas: function (width) {
@@ -561,46 +572,109 @@
             };
         },
 
-        detectFaces: function (input) {
-            var self = this;
-            var tryTiny = function (size, threshold) {
-                if (!self.tinyReady) {
-                    return Promise.resolve(0);
-                }
-                return window.faceapi.detectAllFaces(input, new window.faceapi.TinyFaceDetectorOptions({
-                    inputSize: size,
-                    scoreThreshold: threshold
-                })).then(function (faces) {
-                    return faces ? faces.length : 0;
-                }).catch(function () {
-                    return 0;
-                });
+        eyeAspectRatio: function (eyePoints) {
+            if (!eyePoints || eyePoints.length < 6) {
+                return 0;
+            }
+            var dist = function (a, b) {
+                var dx = a.x - b.x;
+                var dy = a.y - b.y;
+                return Math.sqrt((dx * dx) + (dy * dy));
             };
-            var trySsd = function () {
-                if (!self.ssdReady) {
-                    return Promise.resolve(0);
+            var vertical1 = dist(eyePoints[1], eyePoints[5]);
+            var vertical2 = dist(eyePoints[2], eyePoints[4]);
+            var horizontal = dist(eyePoints[0], eyePoints[3]);
+            if (horizontal < 0.001) {
+                return 0;
+            }
+            return (vertical1 + vertical2) / (2 * horizontal);
+        },
+
+        scoreFaceResult: function (detections) {
+            var result = {
+                faceCount: 0,
+                eyesVisible: false,
+                eyesOpen: false,
+                label: 'none'
+            };
+            if (!detections || !detections.length) {
+                return result;
+            }
+            result.faceCount = detections.length;
+            if (detections.length !== 1) {
+                result.label = 'multiple';
+                return result;
+            }
+
+            var det = detections[0];
+            var landmarks = det.landmarks;
+            if (!landmarks || typeof landmarks.getLeftEye !== 'function') {
+                result.label = 'face';
+                return result;
+            }
+
+            var leftEye = landmarks.getLeftEye();
+            var rightEye = landmarks.getRightEye();
+            var leftEar = this.eyeAspectRatio(leftEye);
+            var rightEar = this.eyeAspectRatio(rightEye);
+            var avgEar = (leftEar + rightEar) / 2;
+
+            result.eyesVisible = !!(leftEye && rightEye && leftEye.length >= 6 && rightEye.length >= 6 && leftEar > 0.08 && rightEar > 0.08);
+            result.eyesOpen = result.eyesVisible && avgEar >= 0.14;
+
+            if (result.eyesOpen) {
+                result.label = 'eyes';
+            } else if (result.eyesVisible) {
+                result.label = 'eyes_soft';
+            } else {
+                result.label = 'face';
+            }
+            return result;
+        },
+
+        detectCandidate: function (input) {
+            var self = this;
+            if (!input || !window.faceapi) {
+                return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
+            }
+
+            var runDetect = function (options) {
+                var detector = window.faceapi.detectAllFaces(input, options);
+                if (self.landmarksReady) {
+                    detector = detector.withFaceLandmarks(true);
                 }
-                return window.faceapi.detectAllFaces(input, new window.faceapi.SsdMobilenetv1Options({
-                    minConfidence: 0.12
-                })).then(function (faces) {
-                    return faces ? faces.length : 0;
+                return detector.then(function (faces) {
+                    return self.scoreFaceResult(faces || []);
                 }).catch(function () {
-                    return 0;
+                    return { faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' };
                 });
             };
 
-            // Prefer Tiny first — more tolerant of blurry laptop webcams.
-            return tryTiny(224, 0.05).then(function (count) {
-                if (count > 0) {
-                    return count;
+            var attempts = [];
+            if (this.tinyReady) {
+                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.08 }));
+                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.05 }));
+                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.1 }));
+            }
+            if (this.ssdReady) {
+                attempts.push(new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.15 }));
+            }
+            if (!attempts.length) {
+                return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
+            }
+
+            var tryAt = function (index) {
+                if (index >= attempts.length) {
+                    return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
                 }
-                return tryTiny(320, 0.08);
-            }).then(function (count) {
-                if (count > 0) {
-                    return count;
-                }
-                return trySsd();
-            });
+                return runDetect(attempts[index]).then(function (result) {
+                    if (result.faceCount > 0) {
+                        return result;
+                    }
+                    return tryAt(index + 1);
+                });
+            };
+            return tryAt(0);
         },
 
         checkWebcam: function () {
@@ -609,7 +683,7 @@
                 return;
             }
             if (Date.now() < this.graceUntil) {
-                this.setFaceStatus('Camera on', false);
+                this.setFaceStatus(this.landmarksReady ? 'Tracking eyes...' : 'Camera on', false);
                 if (!this.referenceReady) {
                     this.captureReference();
                 }
@@ -623,37 +697,39 @@
             }
 
             this.checking = true;
-            var finish = function (faceCount) {
+            var finish = function (result) {
                 self.checking = false;
-                self.applyPresence(faceCount, stats);
+                self.applyPresence(result, stats);
             };
 
             if (!this.modelsReady) {
-                finish(0);
+                finish({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
                 return;
             }
 
             var input = this.getDetectCanvas() || this.video;
-            this.detectFaces(input).then(function (count) {
-                if (count > 0) {
-                    finish(count);
+            this.detectCandidate(input).then(function (result) {
+                if (result.faceCount > 0) {
+                    finish(result);
                     return;
                 }
                 var crop = self.getCenterCropCanvas();
                 if (!crop) {
-                    finish(0);
+                    finish(result);
                     return;
                 }
-                return self.detectFaces(crop).then(function (cropCount) {
-                    finish(cropCount);
+                return self.detectCandidate(crop).then(function (cropResult) {
+                    finish(cropResult.faceCount > 0 ? cropResult : result);
                 });
             }).catch(function () {
-                finish(0);
+                finish({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
             });
         },
 
-        applyPresence: function (faceCount, stats) {
-            if (faceCount >= 2) {
+        applyPresence: function (result, stats) {
+            result = result || { faceCount: 0, label: 'none' };
+
+            if (result.faceCount >= 2 || result.label === 'multiple') {
                 this.noFaceStreak = 0;
                 this.extraPersonStreak += 1;
                 this.setFaceStatus('More than one person detected.', true);
@@ -664,19 +740,30 @@
                 return;
             }
 
-            if (faceCount === 1) {
+            if (result.label === 'eyes' || result.label === 'eyes_soft') {
+                this.lastEyesAt = Date.now();
+                this.markPresent(result.eyesOpen ? 'Eyes detected' : 'Eyes visible');
+                return;
+            }
+
+            if (result.label === 'face' || result.faceCount === 1) {
                 this.markPresent('Face detected');
                 return;
             }
 
-            if (stats && stats.present) {
-                this.markPresent(stats.reason === 'match' ? 'At the seat' : 'At the seat');
+            // Soft fallback only for a few seconds while looking down at questions.
+            if (stats && stats.present && this.lastPresentAt && (Date.now() - this.lastPresentAt) < 6000) {
+                this.setFaceStatus('At the seat', false);
                 return;
             }
 
-            // Short misses while looking at the paper should not flip red.
-            if (this.lastPresentAt && (Date.now() - this.lastPresentAt) < 8000) {
-                this.setFaceStatus('At the seat', false);
+            if (this.lastEyesAt && (Date.now() - this.lastEyesAt) < 5000) {
+                this.setFaceStatus('Eyes detected', false);
+                return;
+            }
+
+            if (this.lastPresentAt && (Date.now() - this.lastPresentAt) < 7000) {
+                this.setFaceStatus('Face detected', false);
                 return;
             }
 
