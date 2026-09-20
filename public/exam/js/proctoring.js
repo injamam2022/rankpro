@@ -21,6 +21,10 @@
         graceUntil: 0,
         warningOpen: false,
         webcamWarningShown: false,
+        lockType: null,
+        lockTimer: null,
+        guardsBound: false,
+        resumeGraceUntil: 0,
 
         init: function (config) {
             this.config = config || {};
@@ -52,11 +56,20 @@
             if (resumeBtn) {
                 resumeBtn.addEventListener('click', function () {
                     self.enterFullscreen();
-                    self.noFaceStreak = 0;
-                    self.extraPersonStreak = 0;
-                    self.webcamWarningShown = false;
-                    self.graceUntil = Date.now() + 10000;
+                    self.resumeGraceUntil = Date.now() + 2000;
+                    if (self.lockType === 'webcam') {
+                        self.noFaceStreak = 0;
+                        self.extraPersonStreak = 0;
+                        self.webcamWarningShown = false;
+                        self.graceUntil = Date.now() + 4000;
+                    }
+                    self.lockType = null;
                     self.hideWarning();
+                    setTimeout(function () {
+                        if (self.started && !self.ended && !self.isFullscreen()) {
+                            self.lockToExam('fullscreen', 'Stay in fullscreen. Click Return to Exam to continue.');
+                        }
+                    }, 1800);
                 });
             }
         },
@@ -123,6 +136,7 @@
                 overlay.style.display = 'none';
             }
             this.bindExamGuards();
+            this.startLockWatch();
             this.logEvent('started', 'Proctored exam started');
             this.startSnapshots();
             this.startFaceMonitor();
@@ -146,32 +160,48 @@
         },
 
         bindExamGuards: function () {
+            if (this.guardsBound) {
+                return;
+            }
+            this.guardsBound = true;
             var self = this;
 
+            document.addEventListener('keydown', function (e) {
+                if (!self.started || self.ended) {
+                    return;
+                }
+                if (e.key === 'Escape' || e.keyCode === 27) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    self.lockToExam('fullscreen', 'You pressed Esc and left fullscreen. Click Return to Exam to continue.');
+                    self.recordViolation('fullscreen_exit', 'Student pressed Esc / left fullscreen');
+                }
+            }, true);
+
             document.addEventListener('visibilitychange', function () {
-                if (document.hidden && !self.warningOpen) {
+                if (document.hidden && self.started && !self.ended) {
+                    self.lockToExam('focus', 'You switched away from the exam. Click Return to Exam to continue in fullscreen.');
                     self.recordViolation('tab_switch', 'Student switched tab or minimized the window');
                 }
             });
 
             window.addEventListener('blur', function () {
-                if (!self.warningOpen) {
+                if (self.started && !self.ended && !self.warningOpen) {
+                    self.lockToExam('focus', 'The exam window lost focus. Click Return to Exam to continue in fullscreen.');
                     self.recordViolation('tab_switch', 'Exam window lost focus');
                 }
             });
 
-            document.addEventListener('fullscreenchange', function () {
+            var onFullscreenLeave = function () {
                 if (!self.isFullscreen() && self.started && !self.ended) {
+                    self.lockToExam('fullscreen', 'Stay in fullscreen. Click Return to Exam to continue.');
                     self.recordViolation('fullscreen_exit', 'Student left fullscreen');
-                    self.showWarning('Please return to fullscreen to continue the exam.');
                 }
-            });
-            document.addEventListener('webkitfullscreenchange', function () {
-                if (!self.isFullscreen() && self.started && !self.ended) {
-                    self.recordViolation('fullscreen_exit', 'Student left fullscreen');
-                    self.showWarning('Please return to fullscreen to continue the exam.');
-                }
-            });
+            };
+            document.addEventListener('fullscreenchange', onFullscreenLeave);
+            document.addEventListener('webkitfullscreenchange', onFullscreenLeave);
+            document.addEventListener('mozfullscreenchange', onFullscreenLeave);
+            document.addEventListener('MSFullscreenChange', onFullscreenLeave);
 
             document.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
@@ -208,6 +238,35 @@
                     self.recordViolation('copy_attempt', 'Blocked keyboard shortcut: ' + e.key);
                 }
             });
+        },
+
+        lockToExam: function (type, message) {
+            if (!this.started || this.ended) {
+                return;
+            }
+            this.lockType = type;
+            this.showWarning(message, false);
+        },
+
+        startLockWatch: function () {
+            var self = this;
+            if (this.lockTimer) {
+                clearInterval(this.lockTimer);
+            }
+            this.lockTimer = setInterval(function () {
+                if (!self.started || self.ended) {
+                    return;
+                }
+                if (Date.now() < (self.resumeGraceUntil || 0)) {
+                    return;
+                }
+                if (Date.now() < self.graceUntil && !self.lockType) {
+                    return;
+                }
+                if (!self.isFullscreen() && self.lockType !== 'webcam') {
+                    self.lockToExam('fullscreen', 'Stay in fullscreen. Click Return to Exam to continue.');
+                }
+            }, 700);
         },
 
         startFaceMonitor: function () {
@@ -266,15 +325,15 @@
             }
 
             var brightness = this.getBrightness();
-            if (brightness < 14) {
-                this.handleMissingFace('camera_covered', 'Camera looks covered or too dark.');
+            if (brightness < 48) {
+                this.handleMissingFace('camera_covered', 'Face not visible. Look at the camera.');
                 return;
             }
 
             var input = this.getDetectCanvas() || this.video;
             var options = this.tinyOnly
                 ? new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })
-                : new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 });
+                : new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.62 });
 
             window.faceapi.detectAllFaces(input, options).then(function (faces) {
                 self.handleFaceResult(faces ? faces.length : 0);
@@ -323,11 +382,12 @@
             this.noFaceStreak = 0;
             this.extraPersonStreak = 0;
             this.setFaceStatus('Face detected', false);
-            if (this.webcamWarningShown || this.warningOpen) {
+            if (this.lockType === 'webcam') {
                 this.webcamWarningShown = false;
                 this.webcamStrikeCount = 0;
+                this.lockType = null;
                 this.hideWarning();
-                this.graceUntil = Date.now() + 8000;
+                this.graceUntil = Date.now() + 4000;
             }
         },
 
@@ -358,7 +418,15 @@
                 this.forceEnd('submit');
                 return;
             }
-            this.showWarning('Proctoring warning: ' + message + '. ' + remaining + ' warning(s) left before the exam is submitted.', false);
+            if (type === 'fullscreen_exit') {
+                this.lockToExam('fullscreen', 'You left fullscreen. Click Return to Exam to continue.');
+                return;
+            }
+            if (type === 'tab_switch') {
+                this.lockToExam('focus', 'You switched away from the exam. Click Return to Exam to continue in fullscreen.');
+                return;
+            }
+            this.showWarning('Proctoring warning: ' + message + '. Stay in this window and click Return to Exam.', false);
         },
 
         recordWebcamStrike: function (type, message) {
@@ -375,6 +443,7 @@
             this.updateBadge();
             this.logEvent(type, message);
             this.captureSnapshot();
+            this.lockType = 'webcam';
             this.showWarning('Webcam warning: ' + message + ' The exam is cancelled only if you stay away.', false);
         },
 
@@ -443,6 +512,10 @@
             if (this.faceTimer) {
                 clearInterval(this.faceTimer);
                 this.faceTimer = null;
+            }
+            if (this.lockTimer) {
+                clearInterval(this.lockTimer);
+                this.lockTimer = null;
             }
             if (this.stream) {
                 this.stream.getTracks().forEach(function (track) {

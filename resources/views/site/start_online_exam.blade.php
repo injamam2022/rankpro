@@ -401,10 +401,11 @@
             .buttonSetBottom a { min-width:105px; }
         }
         .proctoring-gate, .proctoring-warning {
-            position:fixed; inset:0; z-index:4000;
+            position:fixed; inset:0; z-index:99999;
             background:rgba(12,18,32,.94);
             display:flex; align-items:center; justify-content:center;
             padding:24px;
+            pointer-events:auto;
         }
         .proctoring-card {
             width:100%; max-width:560px; background:#fff; border-radius:16px;
@@ -422,7 +423,7 @@
         .proctoring-actions button:disabled { background:#9aa7c7; cursor:not-allowed; }
         .proctoring-actions .secondary { background:#17233b; }
         .proctoring-pip {
-            display:none; position:fixed; right:18px; bottom:18px; z-index:3500;
+            display:none; position:fixed; right:18px; bottom:18px; z-index:100000;
             width:168px; height:126px; border-radius:12px; overflow:hidden;
             border:3px solid #fff; box-shadow:0 8px 24px rgba(0,0,0,.25); background:#000;
         }
@@ -453,7 +454,7 @@
       <li>Keep your face clearly visible on the webcam. Sitting normally will not cancel the exam.</li>
       <li>If you look away, a warning appears. Come back and show your face to continue.</li>
       <li>The exam is cancelled only if you stay away after that warning, not if you return.</li>
-      <li>Do not switch tabs, windows, or leave fullscreen.</li>
+      <li>Do not switch tabs, windows, or leave fullscreen. Esc exits fullscreen and locks the exam until you click Return to Exam.</li>
       <li>Copy, paste, and right-click are disabled.</li>
       <li>After {{ $exam_detail->proctoring_max_violations ?? 5 }} other warnings, the exam is submitted automatically.</li>
     </ul>
@@ -1218,8 +1219,8 @@
       @endif
     </script>
     @if(!empty($exam_detail->is_proctored))
-    <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=4"></script>
-    <script src="{{ asset('exam/js/proctoring.js') }}?v=4"></script>
+    <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=5"></script>
+    <script src="{{ asset('exam/js/proctoring.js') }}?v=5"></script>
     <script>
       RankProProctoring.init({
         enabled: true,
