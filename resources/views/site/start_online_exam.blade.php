@@ -451,7 +451,8 @@
     <p>Before you start, allow camera access and stay in fullscreen for the full duration.</p>
     <ul>
       <li>Keep your face clearly visible on the webcam. Sitting normally will not cancel the exam.</li>
-      <li>The exam is cancelled if you leave your seat, cover the camera, or another person appears — after 3 webcam warnings.</li>
+      <li>If you look away, a warning appears. Come back and show your face to continue.</li>
+      <li>The exam is cancelled only if you stay away after that warning, not if you return.</li>
       <li>Do not switch tabs, windows, or leave fullscreen.</li>
       <li>Copy, paste, and right-click are disabled.</li>
       <li>After {{ $exam_detail->proctoring_max_violations ?? 5 }} other warnings, the exam is submitted automatically.</li>

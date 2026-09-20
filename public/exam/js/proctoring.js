@@ -15,8 +15,11 @@
         snapshotTimer: null,
         faceTimer: null,
         noFaceStreak: 0,
+        extraPersonStreak: 0,
         modelsReady: false,
         graceUntil: 0,
+        warningOpen: false,
+        webcamWarningShown: false,
 
         init: function (config) {
             this.config = config || {};
@@ -48,6 +51,10 @@
             if (resumeBtn) {
                 resumeBtn.addEventListener('click', function () {
                     self.enterFullscreen();
+                    self.noFaceStreak = 0;
+                    self.extraPersonStreak = 0;
+                    self.webcamWarningShown = false;
+                    self.graceUntil = Date.now() + 10000;
                     self.hideWarning();
                 });
             }
@@ -103,7 +110,7 @@
             this.enterFullscreen();
             this.started = true;
             this.ended = false;
-            this.graceUntil = Date.now() + 8000;
+            this.graceUntil = Date.now() + 12000;
             document.body.classList.add('exam-proctored-active');
             var overlay = document.getElementById('proctoringGate');
             if (overlay) {
@@ -136,13 +143,15 @@
             var self = this;
 
             document.addEventListener('visibilitychange', function () {
-                if (document.hidden) {
+                if (document.hidden && !self.warningOpen) {
                     self.recordViolation('tab_switch', 'Student switched tab or minimized the window');
                 }
             });
 
             window.addEventListener('blur', function () {
-                self.recordViolation('tab_switch', 'Exam window lost focus');
+                if (!self.warningOpen) {
+                    self.recordViolation('tab_switch', 'Exam window lost focus');
+                }
             });
 
             document.addEventListener('fullscreenchange', function () {
@@ -232,20 +241,15 @@
             }
 
             var brightness = this.getBrightness();
-            if (brightness < 18) {
-                this.noFaceStreak += 1;
-                this.setFaceStatus('Camera looks covered or too dark.', true);
-                if (this.noFaceStreak >= 4) {
-                    this.noFaceStreak = 0;
-                    this.recordWebcamStrike('camera_covered', 'Camera was covered or too dark');
-                }
+            if (brightness < 12) {
+                this.handleMissingFace('camera_covered', 'Camera looks covered or too dark.');
                 return;
             }
 
             if (this.modelsReady && window.faceapi && this.video) {
                 window.faceapi.detectAllFaces(this.video, new window.faceapi.TinyFaceDetectorOptions({
-                    inputSize: 224,
-                    scoreThreshold: 0.4
+                    inputSize: 320,
+                    scoreThreshold: 0.25
                 })).then(function (faces) {
                     self.handleFaceResult(faces ? faces.length : 0);
                 }).catch(function () {
@@ -257,27 +261,52 @@
             this.handleFaceResult(1);
         },
 
+        handleMissingFace: function (type, statusText) {
+            this.extraPersonStreak = 0;
+            this.noFaceStreak += 1;
+            this.setFaceStatus(statusText, true);
+            if (!this.webcamWarningShown && this.noFaceStreak >= 8) {
+                this.webcamWarningShown = true;
+                this.recordWebcamStrike(type, 'Face was not visible on webcam. Return and look at the camera to continue.');
+                return;
+            }
+            if (this.webcamWarningShown && this.noFaceStreak >= 20) {
+                this.forceEnd('cancel');
+            }
+        },
+
         handleFaceResult: function (faceCount) {
             if (!this.started || this.ended) {
                 return;
             }
             if (faceCount >= 2) {
                 this.noFaceStreak = 0;
+                this.extraPersonStreak += 1;
                 this.setFaceStatus('More than one person detected.', true);
-                this.recordWebcamStrike('multiple_faces', 'More than one person was visible on camera');
-                return;
-            }
-            if (faceCount < 1) {
-                this.noFaceStreak += 1;
-                this.setFaceStatus('Face not visible. Look at the camera.', true);
-                if (this.noFaceStreak >= 4) {
-                    this.noFaceStreak = 0;
-                    this.recordWebcamStrike('no_face', 'Face was not visible on webcam');
+                if (!this.webcamWarningShown && this.extraPersonStreak >= 5) {
+                    this.webcamWarningShown = true;
+                    this.recordWebcamStrike('multiple_faces', 'More than one person was visible. Sit alone and look at the camera to continue.');
+                    return;
+                }
+                if (this.webcamWarningShown && this.extraPersonStreak >= 15) {
+                    this.forceEnd('cancel');
                 }
                 return;
             }
+            if (faceCount < 1) {
+                this.handleMissingFace('no_face', 'Face not visible. Look at the camera.');
+                return;
+            }
+
             this.noFaceStreak = 0;
+            this.extraPersonStreak = 0;
             this.setFaceStatus('Face detected', false);
+            if (this.webcamWarningShown || this.warningOpen) {
+                this.webcamWarningShown = false;
+                this.webcamStrikeCount = 0;
+                this.hideWarning();
+                this.graceUntil = Date.now() + 8000;
+            }
         },
 
         setFaceStatus: function (text, isError) {
@@ -324,14 +353,7 @@
             this.updateBadge();
             this.logEvent(type, message);
             this.captureSnapshot();
-
-            var maxStrikes = this.config.maxWebcamStrikes || 3;
-            var remaining = Math.max(0, maxStrikes - this.webcamStrikeCount);
-            if (remaining <= 0) {
-                this.forceEnd('cancel');
-                return;
-            }
-            this.showWarning('Webcam warning: ' + message + '. ' + remaining + ' webcam warning(s) left before the exam is cancelled.', false);
+            this.showWarning('Webcam warning: ' + message + ' The exam is cancelled only if you stay away.', false);
         },
 
         updateBadge: function () {
@@ -342,6 +364,7 @@
         },
 
         showWarning: function (text, hideResume) {
+            this.warningOpen = !hideResume;
             var box = document.getElementById('proctoringWarning');
             var msg = document.getElementById('proctoringWarningText');
             var resumeBtn = document.getElementById('proctoringResumeBtn');
@@ -357,6 +380,7 @@
         },
 
         hideWarning: function () {
+            this.warningOpen = false;
             var box = document.getElementById('proctoringWarning');
             if (box) {
                 box.style.display = 'none';
