@@ -451,9 +451,9 @@
     <h3>This exam is proctored</h3>
     <p>Before you start, allow camera access and stay in fullscreen for the full duration.</p>
     <ul>
-      <li>Keep the camera on and stay in your seat while you take the exam. Looking at the questions will not cancel the test.</li>
-      <li>If you leave the seat, cover the camera, or another person is visible, a warning appears. Sit back down to continue.</li>
-      <li>The exam is not cancelled for sitting normally or looking at the screen.</li>
+      <li>Keep the camera on and stay in your seat. Looking at the questions is fine.</li>
+      <li>If you leave the seat or cover the camera, a warning appears. Sit back down to continue.</li>
+      <li>Sitting normally will not cancel the exam.</li>
       <li>Do not switch tabs, windows, or leave fullscreen. Esc exits fullscreen and locks the exam until you click Return to Exam.</li>
       <li>Copy, paste, and right-click are disabled.</li>
       <li>After {{ $exam_detail->proctoring_max_violations ?? 5 }} other warnings, the exam is submitted automatically.</li>
@@ -1219,8 +1219,8 @@
       @endif
     </script>
     @if(!empty($exam_detail->is_proctored))
-    <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=8"></script>
-    <script src="{{ asset('exam/js/proctoring.js') }}?v=8"></script>
+    <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=9"></script>
+    <script src="{{ asset('exam/js/proctoring.js') }}?v=9"></script>
     <script>
       RankProProctoring.init({
         enabled: true,
