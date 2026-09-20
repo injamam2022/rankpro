@@ -281,7 +281,7 @@
             this.checkWebcam();
             this.faceTimer = setInterval(function () {
                 self.checkWebcam();
-            }, 2000);
+            }, 1500);
         },
 
         getDetectCanvas: function () {
@@ -297,6 +297,25 @@
             this.detectCanvas.height = height;
             this.detectCanvas.getContext('2d').drawImage(this.video, 0, 0, width, height);
             return this.detectCanvas;
+        },
+
+        getCenterCropCanvas: function () {
+            if (!this.video || !this.video.videoWidth) {
+                return null;
+            }
+            if (!this.cropCanvas) {
+                this.cropCanvas = document.createElement('canvas');
+            }
+            var vw = this.video.videoWidth;
+            var vh = this.video.videoHeight;
+            var cw = Math.round(vw * 0.72);
+            var ch = Math.round(vh * 0.72);
+            var sx = Math.round((vw - cw) / 2);
+            var sy = Math.round((vh - ch) * 0.28);
+            this.cropCanvas.width = 400;
+            this.cropCanvas.height = Math.round(400 * ch / cw) || 300;
+            this.cropCanvas.getContext('2d').drawImage(this.video, sx, sy, cw, ch, 0, 0, this.cropCanvas.width, this.cropCanvas.height);
+            return this.cropCanvas;
         },
 
         getFrameStats: function () {
@@ -350,8 +369,8 @@
                     return Promise.resolve(0);
                 }
                 return window.faceapi.detectAllFaces(input, new window.faceapi.TinyFaceDetectorOptions({
-                    inputSize: 320,
-                    scoreThreshold: 0.12
+                    inputSize: 416,
+                    scoreThreshold: 0.15
                 })).then(function (faces) {
                     return faces ? faces.length : 0;
                 }).catch(function () {
@@ -360,7 +379,7 @@
             };
             if (this.ssdReady) {
                 return window.faceapi.detectAllFaces(input, new window.faceapi.SsdMobilenetv1Options({
-                    minConfidence: 0.2
+                    minConfidence: 0.28
                 })).then(function (faces) {
                     if (faces && faces.length) {
                         return faces.length;
@@ -390,15 +409,30 @@
             }
 
             if (!this.modelsReady) {
-                this.markPresent('Camera on');
+                this.setFaceStatus('Checking camera...', false);
                 return;
             }
 
             var input = this.getDetectCanvas() || this.video;
             this.detectFaces(input).then(function (count) {
-                self.handleFaceResult(count);
+                if (count > 0) {
+                    self.handleFaceResult(count);
+                    return;
+                }
+                var crop = self.getCenterCropCanvas();
+                if (!crop) {
+                    self.handleAwayFromSeat();
+                    return;
+                }
+                return self.detectFaces(crop).then(function (cropCount) {
+                    if (cropCount > 0) {
+                        self.handleFaceResult(cropCount);
+                    } else {
+                        self.handleAwayFromSeat();
+                    }
+                });
             }).catch(function () {
-                self.markPresent('On camera');
+                self.handleAwayFromSeat();
             });
         },
 
@@ -415,11 +449,25 @@
             }
         },
 
+        handleAwayFromSeat: function () {
+            this.extraPersonStreak = 0;
+            this.noFaceStreak += 1;
+            if (this.lastFaceAt && (Date.now() - this.lastFaceAt) < 6000) {
+                this.setFaceStatus('Face detected', false);
+                return;
+            }
+            this.setFaceStatus('Not at the seat', true);
+            if (!this.webcamWarningShown && this.noFaceStreak >= 6) {
+                this.webcamWarningShown = true;
+                this.recordWebcamStrike('no_face', 'You left the seat. Sit down in front of the camera to continue.');
+            }
+        },
+
         handleCoveredCamera: function () {
             this.extraPersonStreak = 0;
             this.noFaceStreak += 1;
             this.setFaceStatus('Camera is too dark or covered.', true);
-            if (!this.webcamWarningShown && this.noFaceStreak >= 10) {
+            if (!this.webcamWarningShown && this.noFaceStreak >= 8) {
                 this.webcamWarningShown = true;
                 this.recordWebcamStrike('camera_covered', 'Camera looks covered. Uncover it to continue.');
             }
@@ -440,7 +488,7 @@
                 return;
             }
             if (faceCount < 1) {
-                this.markPresent('On camera');
+                this.handleAwayFromSeat();
                 return;
             }
             this.markPresent('Face detected');
