@@ -20,6 +20,8 @@ class Exam_user extends Model
         'rank',
         'total_mark',
         'status',
+        'tab_switch_count',
+        'proctoring_status',
         'created_at',
         'updated_at',
     ];

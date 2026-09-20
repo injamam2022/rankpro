@@ -73,6 +73,7 @@
                                 @if($row->is_ended == 0)
                                     <a href="{{route('admin.online_exam.end',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you realy want to end exam?');"><i class="material-icons">stop</i></a>
                                 @endif
+                                <a href="{{route('admin.online_exam.proctoring',['id'=>$row->id])}}" class="btn btn-warning btn-sm mr-1" title="Proctoring log"><i class="material-icons">videocam</i></a>
                                 
                                     <a href="{{route('admin.offline_exam.view',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1"><i class="material-icons">visibility</i></a>
                             </td>

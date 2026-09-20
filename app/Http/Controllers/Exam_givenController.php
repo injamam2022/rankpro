@@ -194,7 +194,7 @@ class Exam_givenController extends Controller
         $exam_user_id = $request->id;
         $user_id = Auth::user()->id;
         $data = [];
-        $data['offline_exam'] = Exam_user::select(['exams.*','exam_users.id as user_exam_id','exam_users.total_answer','exam_users.total_right_answer','exam_users.total_number'])
+        $data['offline_exam'] = Exam_user::select(['exams.*','exam_users.id as user_exam_id','exam_users.total_answer','exam_users.total_right_answer','exam_users.total_number','exam_users.proctoring_status'])
                                 ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
                                 ->where('exam_users.id',$exam_user_id)->first();
         if($data['offline_exam']->question_paper_id){

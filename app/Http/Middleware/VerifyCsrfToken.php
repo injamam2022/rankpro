@@ -17,6 +17,8 @@ class VerifyCsrfToken extends Middleware
         "update-time",
         "save-exam",
         "update-exam-time",
-        "end-exam"
+        "end-exam",
+        "log-proctoring-event",
+        "save-proctoring-snapshot"
     ];
 }

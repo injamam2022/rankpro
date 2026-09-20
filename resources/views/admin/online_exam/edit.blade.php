@@ -147,6 +147,28 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-sm-6">
+                            <label class="form-label">Enable Proctoring</label>
+                            <div class="form-control" style="display:flex;">
+                                <div class="form-check">
+                                    <input class="form-check-input" id="is_proctored_yes" type="radio" name="is_proctored" value="1" @if(!empty($details->is_proctored)) checked @endif />
+                                    <label class="form-check-label" for="is_proctored_yes">Yes</label>
+                                </div>
+                                <div class="form-check" style="margin-left: 15px;">
+                                    <input class="form-check-input" id="is_proctored_no" type="radio" name="is_proctored" value="0" @if(empty($details->is_proctored)) checked @endif />
+                                    <label class="form-check-label" for="is_proctored_no">No</label>
+                                </div>
+                            </div>
+                            <small class="text-muted">Requires webcam, fullscreen, and flags tab switching during the exam.</small>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="proctoring_max_violations">Max Proctoring Warnings</label>
+                            <input class="form-control" id="proctoring_max_violations" type="number" min="1" max="20" name="proctoring_max_violations" value="{{ $details->proctoring_max_violations ?? 5 }}" />
+                            <small class="text-muted">Exam auto-submits after this many tab/fullscreen violations.</small>
+                        </div>
+                    </div>
 
                         
                         <div class="col-lg-12 mt-5 text-center">

@@ -20,6 +20,7 @@ use App\Models\User;
 use App\Models\Question_detail;
 use App\Models\Exam_result;
 use App\Models\Question_paper;
+use App\Models\Exam_proctoring_event;
 
 class ExamsController extends Controller
 {
@@ -291,8 +292,85 @@ class ExamsController extends Controller
         }
         $insertData['total_mark'] = $totals_marks_for_exam;
 
+        if ($request->proctoring_cancelled) {
+            $insertData['proctoring_status'] = 'cancelled';
+        } elseif ($request->proctoring_auto_submit) {
+            $insertData['proctoring_status'] = 'auto_submitted';
+        } elseif (!empty($user_exam_detail->proctoring_status)) {
+            $insertData['proctoring_status'] = 'completed';
+        }
         $user_exam_detail->update($insertData);
         echo 1; exit;
+    }
+
+    public function log_proctoring_event(Request $request){
+        $user_id = Auth::user()->id;
+        $exam_user = Exam_user::where('id', $request->exam_user_id)->where('user_id', $user_id)->first();
+        if (!$exam_user) {
+            return response()->json(['ok' => 0], 403);
+        }
+
+        $allowed = ['tab_switch','fullscreen_exit','copy_attempt','paste_attempt','right_click','camera_lost','camera_covered','no_face','multiple_faces','started','warning'];
+        $event_type = $request->event_type;
+        if (!in_array($event_type, $allowed, true)) {
+            return response()->json(['ok' => 0], 422);
+        }
+
+        Exam_proctoring_event::create([
+            'exam_id' => $exam_user->exam_id,
+            'exam_user_id' => $exam_user->id,
+            'user_id' => $user_id,
+            'event_type' => $event_type,
+            'message' => substr((string)$request->message, 0, 255),
+        ]);
+
+        if (in_array($event_type, ['tab_switch', 'fullscreen_exit', 'camera_lost', 'camera_covered', 'no_face', 'multiple_faces'], true)) {
+            $exam_user->update([
+                'tab_switch_count' => ((int)$exam_user->tab_switch_count) + 1,
+                'proctoring_status' => $exam_user->proctoring_status ?: 'started',
+            ]);
+        } elseif ($event_type === 'started') {
+            $exam_user->update(['proctoring_status' => 'started']);
+        }
+
+        return response()->json(['ok' => 1, 'tab_switch_count' => $exam_user->tab_switch_count]);
+    }
+
+    public function save_proctoring_snapshot(Request $request){
+        $user_id = Auth::user()->id;
+        $exam_user = Exam_user::where('id', $request->exam_user_id)->where('user_id', $user_id)->first();
+        if (!$exam_user) {
+            return response()->json(['ok' => 0], 403);
+        }
+
+        $snapshot = (string)$request->snapshot;
+        if (!preg_match('/^data:image\/jpeg;base64,/', $snapshot)) {
+            return response()->json(['ok' => 0], 422);
+        }
+
+        $binary = base64_decode(substr($snapshot, strpos($snapshot, ',') + 1), true);
+        if ($binary === false || strlen($binary) < 100 || strlen($binary) > 400000) {
+            return response()->json(['ok' => 0], 422);
+        }
+
+        $folder = public_path('uploads/proctoring/'.$exam_user->id);
+        if (!is_dir($folder)) {
+            mkdir($folder, 0755, true);
+        }
+        $filename = date('Ymd_His').'_'.uniqid().'.jpg';
+        file_put_contents($folder.'/'.$filename, $binary);
+
+        $image_path = 'uploads/proctoring/'.$exam_user->id.'/'.$filename;
+        Exam_proctoring_event::create([
+            'exam_id' => $exam_user->exam_id,
+            'exam_user_id' => $exam_user->id,
+            'user_id' => $user_id,
+            'event_type' => 'snapshot',
+            'message' => 'Webcam snapshot',
+            'image_path' => $image_path,
+        ]);
+
+        return response()->json(['ok' => 1]);
     }
 
 

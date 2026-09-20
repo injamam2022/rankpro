@@ -177,6 +177,8 @@
     Route::post('/end-exam', [ExamsController::class, 'end_exam'])->name('end_exam')->middleware(['verifyMembership']);
     Route::post('/update-exam-time', [ExamsController::class, 'update_exam_time'])->name('update_exam_time')->middleware(['verifyMembership']);
     Route::post('/update-user-exam-question', [ExamsController::class, 'update_user_exam_question'])->name('update_user_exam_question')->middleware(['verifyMembership']);
+    Route::post('/log-proctoring-event', [ExamsController::class, 'log_proctoring_event'])->name('log_proctoring_event')->middleware(['verifyMembership']);
+    Route::post('/save-proctoring-snapshot', [ExamsController::class, 'save_proctoring_snapshot'])->name('save_proctoring_snapshot')->middleware(['verifyMembership']);
 
     Route::get('/dashboard', [StudentsController::class, 'dashboard'])->name('dashboard')->middleware(['verifyMembership']);
     Route::get('/dashboard-exam-type', [StudentsController::class, 'dashboard_exam_type'])->name('dashboard_exam_type')->middleware(['verifyMembership']);
@@ -494,6 +496,8 @@
         Route::get('/online_exam/question', [Online_examController::class, 'question'])->name('online_exam.question');
         Route::get('/online_exam/result', [Online_examController::class, 'result'])->name('online_exam.result');
         Route::get('/online_exam/result_details', [Online_examController::class, 'result_details'])->name('online_exam.result_details');
+        Route::get('/online_exam/proctoring', [Online_examController::class, 'proctoring'])->name('online_exam.proctoring');
+        Route::get('/online_exam/proctoring_detail', [Online_examController::class, 'proctoring_detail'])->name('online_exam.proctoring_detail');
 
         Route::get('/ranker', [RankerController::class, 'list'])->name('ranker');
         Route::get('/ranker/add', [RankerController::class, 'add'])->name('ranker.add');

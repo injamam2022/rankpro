@@ -400,16 +400,93 @@
             .exam-footer-actions .buttonSetBottom { justify-content:center; flex-wrap:wrap; }
             .buttonSetBottom a { min-width:105px; }
         }
+        .proctoring-gate, .proctoring-warning {
+            position:fixed; inset:0; z-index:4000;
+            background:rgba(12,18,32,.94);
+            display:flex; align-items:center; justify-content:center;
+            padding:24px;
+        }
+        .proctoring-card {
+            width:100%; max-width:560px; background:#fff; border-radius:16px;
+            padding:28px 28px 24px; text-align:center;
+            box-shadow:0 18px 50px rgba(0,0,0,.25);
+        }
+        .proctoring-card h3 { font-size:22px; margin-bottom:8px; color:#17233b; }
+        .proctoring-card p, .proctoring-card li { color:#4d5a73; font-size:14px; text-align:left; }
+        .proctoring-card ul { padding-left:18px; margin:14px 0 18px; }
+        .proctoring-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+        .proctoring-actions button {
+            min-width:160px; height:42px; border:0; border-radius:10px;
+            font-weight:700; color:#fff; background:#3561ff; cursor:pointer;
+        }
+        .proctoring-actions button:disabled { background:#9aa7c7; cursor:not-allowed; }
+        .proctoring-actions .secondary { background:#17233b; }
+        .proctoring-pip {
+            display:none; position:fixed; right:18px; bottom:18px; z-index:3500;
+            width:168px; height:126px; border-radius:12px; overflow:hidden;
+            border:3px solid #fff; box-shadow:0 8px 24px rgba(0,0,0,.25); background:#000;
+        }
+        body.exam-proctored-active .proctoring-pip { display:block; }
+        body.exam-proctored-active { user-select:none; }
+        #proctoringVideo { width:100%; height:100%; object-fit:cover; }
+        #proctoringFaceStatus {
+            position:absolute; left:0; right:0; bottom:0;
+            background:#2e7d32; color:#fff; font-size:11px;
+            padding:4px 6px; text-align:center; font-weight:600;
+        }
+        .proctoring-badge {
+            display:none; align-items:center; gap:8px; margin-left:12px;
+            background:#fff3e0; color:#c2410c; border:1px solid #ffd7b0;
+            border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600;
+        }
+        body.exam-proctored-active .proctoring-badge { display:inline-flex; }
     </style>
 </head>
-<body id="mainBody">
+<body id="mainBody" @if(!empty($exam_detail->is_proctored)) class="exam-proctored" @endif>
 @include('site.include.body_meta')
+@if(!empty($exam_detail->is_proctored))
+<div id="proctoringGate" class="proctoring-gate">
+  <div class="proctoring-card">
+    <h3>This exam is proctored</h3>
+    <p>Before you start, allow camera access and stay in fullscreen for the full duration.</p>
+    <ul>
+      <li>Keep your face clearly visible on the webcam. Sitting normally will not cancel the exam.</li>
+      <li>The exam is cancelled if you leave your seat, cover the camera, or another person appears — after 3 webcam warnings.</li>
+      <li>Do not switch tabs, windows, or leave fullscreen.</li>
+      <li>Copy, paste, and right-click are disabled.</li>
+      <li>After {{ $exam_detail->proctoring_max_violations ?? 5 }} other warnings, the exam is submitted automatically.</li>
+    </ul>
+    <p id="proctoringCameraStatus">Camera is not connected yet.</p>
+    <div class="proctoring-actions">
+      <button type="button" id="proctoringCameraBtn" class="secondary">Allow Camera</button>
+      <button type="button" id="proctoringStartBtn" disabled>Enter Fullscreen &amp; Start</button>
+    </div>
+  </div>
+</div>
+<div id="proctoringWarning" class="proctoring-warning" style="display:none;">
+  <div class="proctoring-card">
+    <h3>Proctoring warning</h3>
+    <p id="proctoringWarningText"></p>
+    <div class="proctoring-actions">
+      <button type="button" id="proctoringResumeBtn">Return to Exam</button>
+    </div>
+  </div>
+</div>
+<div class="proctoring-pip">
+  <video id="proctoringVideo" autoplay playsinline muted></video>
+  <div id="proctoringFaceStatus">Checking face...</div>
+</div>
+<canvas id="proctoringCanvas" style="display:none;"></canvas>
+@endif
 <header id="header">
   <div class="container-fluid h-100">
     <div class="mainHeader">
       <div class="logo dashboardMenuPL" id="logoContain"><a href="javascript:void(0);"><img src="{{ asset('') }}web/images/logo.png" class="img-fluid" alt="RankPro" id="mainLogo"></a></div>
       <div class="questionCount"><b id="current_question_view"></b> questions left of <b><?php echo count($question_list);?></b></div>
       <div class="exampTime" id="clockdiv"><div class="blueTime"><div id="main_timer_div" style="width:0%;"></div><span><b class="main_hours"></b><b class="main_minutes"></b><b class="main_seconds"></b></span></div><span>of <?php echo $exam_detail->total_time_for_exam;?> min</span></div>
+      @if(!empty($exam_detail->is_proctored))
+      <div class="proctoring-badge">Proctored · warnings <span id="proctoringViolationCount">0</span>/{{ $exam_detail->proctoring_max_violations ?? 5 }}</div>
+      @endif
       <div class="topExampButtons"><div class="topExampButtonsResponsive"><a href="javascript:void(0);" class="redButton button" onclick="examExamTimer(1);"><i class="fa fa-power-off"></i> &nbsp;&nbsp;&nbsp;End Test</a><a href="javascript:void(0);" class="whiteButton" onclick="clickReported();"><i class="fa fa-flag"></i><i class="fa fa-check" aria-hidden="true" id="reported_tick_icon_id" style="display:none;"></i> &nbsp;&nbsp;&nbsp;Report</a></div></div>
       <!-- <div class="avtar_demo"><a href="javascript:void(0);"><div class="avtar_profile" id="avtarProfile"><img src="{{ asset('') }}exam/img/avtar_demo.png" class="img-fluid" alt=""></div></a></div> -->
     </div>
@@ -493,7 +570,7 @@
   </div>
 </section>
 <footer><div class="container-fluid"><ul class="bottom-footer list-unstyled mb-0"><li class="d-inline-block">&copy; Copyright <span id="footerYear"></span> RankPro. All Rights Reserved.</li><li class="d-inline-block mx-4">|</li><li class="d-inline-block">Developed by <a href="http://zabingo.com/" target="_blank">Zabingo Softwares (www.zabingo.com)</a></li></ul></div></footer>
-<div id="retest" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST <img class="closeModel img-fluid" onclick="cancalTestModalClick();" src="{{ asset('') }}exam/img/close.png" alt="Close"></div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul><a href="javascript:void(0);" class="orengeButton" onclick="saveTestModalClick();">Save</a><a href="javascript:void(0);" class="orengeButton" style="background-color:#ff0000;" onclick="endTestModalClick();">End Test</a></div></div></div></div></div>
+<div id="retest" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST <img class="closeModel img-fluid" onclick="cancalTestModalClick();" src="{{ asset('') }}exam/img/close.png" alt="Close"></div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul>@if(empty($exam_detail->is_proctored))<a href="javascript:void(0);" class="orengeButton" onclick="saveTestModalClick();">Save</a>@endif<a href="javascript:void(0);" class="orengeButton" style="background-color:#ff0000;" onclick="endTestModalClick();">End Test</a></div></div></div></div></div>
 <div id="exam_end_timer" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST</div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul><a href="javascript:void(0);" class="orengeButton" onclick="endTestModalClick();">End Test</a></div></div></div></div></div>
 
     <script type="text/javascript">
@@ -967,10 +1044,15 @@
         $('#endExamModal').modal('show');
       }
 
-      function endTestModalClick(){
+      function endTestModalClick(mode){
         var requestData = {};
         requestData.exam_user_id = {{$user_exam_id}};
         requestData.exam_id = {{$user_exam_detail->exam_id}};
+        if(mode === 'cancel'){
+          requestData.proctoring_cancelled = 1;
+        } else if(mode){
+          requestData.proctoring_auto_submit = 1;
+        }
         $.ajax({
           url:"{{route('end_exam')}}",
           method:"POST",
@@ -1123,10 +1205,36 @@
           globalData.questionTimeInterval = setInterval(updateQuestionClock, 1000);
         }
       }
-      var examStartTime = new Date();
-      examStartTime.setSeconds(examStartTime.getSeconds() - globalData.total_time);
-      initializeTotalExamTime(examStartTime);
+      function beginExamTimer() {
+        var examStartTime = new Date();
+        examStartTime.setSeconds(examStartTime.getSeconds() - globalData.total_time);
+        initializeTotalExamTime(examStartTime);
+      }
+      @if(empty($exam_detail->is_proctored))
+      beginExamTimer();
+      @else
+      window.beginExamTimer = beginExamTimer;
+      @endif
     </script>
+    @if(!empty($exam_detail->is_proctored))
+    <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}"></script>
+    <script src="{{ asset('exam/js/proctoring.js') }}"></script>
+    <script>
+      RankProProctoring.init({
+        enabled: true,
+        examUserId: {{ $user_exam_id }},
+        examId: {{ $user_exam_detail->exam_id }},
+        maxViolations: {{ (int)($exam_detail->proctoring_max_violations ?? 5) }},
+        maxWebcamStrikes: 3,
+        modelUrl: "{{ asset('exam/vendor/face-api') }}",
+        eventUrl: "{{ route('log_proctoring_event') }}",
+        snapshotUrl: "{{ route('save_proctoring_snapshot') }}",
+        snapshotInterval: 45000,
+        onForceEnd: function(){ endTestModalClick(1); },
+        onForceCancel: function(){ endTestModalClick('cancel'); }
+      });
+    </script>
+    @endif
 
 </body>
 </html>

@@ -21,6 +21,8 @@ use App\Models\Question;
 use App\Models\Question_detail;
 use App\Models\Question_paper;
 use App\Models\Exam_user;
+use App\Models\Exam_proctoring_event;
+use DB;
 
 class Online_examController extends Controller
 {
@@ -93,6 +95,8 @@ class Online_examController extends Controller
             $insertData['status'] = $request->status;
             $insertData['is_in_footer'] = ($request->is_in_footer)?$request->is_in_footer:0;
             $insertData['is_trending'] = ($request->is_trending)?$request->is_trending:0;
+            $insertData['is_proctored'] = ($request->is_proctored)?1:0;
+            $insertData['proctoring_max_violations'] = $request->proctoring_max_violations ? (int)$request->proctoring_max_violations : 5;
 
             $exam = Exam::create($insertData);
 
@@ -183,6 +187,8 @@ class Online_examController extends Controller
             $insertData['result_declaration'] = $request->result_declaration;
             $insertData['is_in_footer'] = ($request->is_in_footer)?$request->is_in_footer:0;
             $insertData['is_trending'] = ($request->is_trending)?$request->is_trending:0;
+            $insertData['is_proctored'] = ($request->is_proctored)?1:0;
+            $insertData['proctoring_max_violations'] = $request->proctoring_max_violations ? (int)$request->proctoring_max_violations : 5;
             $insertData['status'] = $request->status;
 
             $loginCheck->update($insertData);
@@ -311,6 +317,36 @@ class Online_examController extends Controller
         
         // dd($data['list']);
         return view('admin.online_exam.result_details',$data);
+    }
+
+    public function proctoring(Request $request){
+        $data = [];
+        $data['details'] = Exam::where('id',$request->id)->first();
+        $data['list'] = Exam_user::select([
+                'exam_users.*',
+                'users.first_name',
+                'users.last_name',
+                'users.email_id',
+                DB::raw('(select count(*) from exam_proctoring_events where exam_proctoring_events.exam_user_id = exam_users.id and exam_proctoring_events.event_type != "snapshot") as violation_count'),
+                DB::raw('(select count(*) from exam_proctoring_events where exam_proctoring_events.exam_user_id = exam_users.id and exam_proctoring_events.event_type = "snapshot") as snapshot_count'),
+            ])
+            ->leftJoin('users', 'users.id', '=', 'exam_users.user_id')
+            ->where('exam_users.exam_id', $request->id)
+            ->orderBy('exam_users.id', 'desc')
+            ->get();
+
+        return view('admin.online_exam.proctoring',$data);
+    }
+
+    public function proctoring_detail(Request $request){
+        $data = [];
+        $data['user_exam'] = Exam_user::select(['exam_users.*','users.first_name','users.last_name','users.email_id'])
+            ->leftJoin('users', 'users.id', '=', 'exam_users.user_id')
+            ->where('exam_users.id', $request->id)
+            ->first();
+        $data['details'] = Exam::where('id', optional($data['user_exam'])->exam_id)->first();
+        $data['events'] = Exam_proctoring_event::where('exam_user_id', $request->id)->orderBy('id', 'desc')->get();
+        return view('admin.online_exam.proctoring_detail',$data);
     }
     
 }

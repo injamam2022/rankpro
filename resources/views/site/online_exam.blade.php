@@ -77,7 +77,7 @@
                                         <img src="{{asset('uploads/exam/' . ($value->exam_logo ?? 'default.png')) }}" class="img-fluid">
                                           
                                           <p>{!! $value->name !!}</p>
-                                          <a href="{{ route('start_exam',['id'=>$value->id]) }}">Start Exam</a>
+                                          <a href="{{ route('start_exam',['id'=>$value->id]) }}" @if(!empty($value->is_proctored)) onclick="return confirm('This exam is proctored. Camera and fullscreen are required. Continue?');" @endif>Start Exam</a>
                                       </div>
                                   </div>
                               </div>

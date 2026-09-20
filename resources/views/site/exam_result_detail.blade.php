@@ -63,9 +63,15 @@
                       <div class="row">
                           <div class="col-10 resultOmr-col">
                               <div class="dashboardBlock">
-                                <!--<a href="result.html">-->
-                                <!--  <img src="{{ asset('') }}web/images/omrBack_ic.png" class="img-fluid omrBack_ic" alt="">-->
-                                <!--</a>-->
+                                @if(($offline_exam->proctoring_status ?? '') === 'cancelled')
+                                  <div style="background:#fdecea;color:#b71c1c;border:1px solid #f5c2c0;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-weight:600;">
+                                    This exam was cancelled due to webcam proctoring violations (face not visible, camera covered, or another person detected).
+                                  </div>
+                                @elseif(($offline_exam->proctoring_status ?? '') === 'auto_submitted')
+                                  <div style="background:#fff8e1;color:#8a5a00;border:1px solid #ffe082;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-weight:600;">
+                                    This exam was submitted automatically after repeated proctoring warnings.
+                                  </div>
+                                @endif
                                   <div class="resultOmrTitle">{{$offline_exam->result_title}}</div>
                                   <div class="resultOmrText">{{$offline_exam->result_description}}</div>
                                   <div class="resultOmrSubject">{{$offline_exam->name}}</div>

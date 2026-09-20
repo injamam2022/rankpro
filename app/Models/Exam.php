@@ -13,6 +13,7 @@ class Exam extends Model
         'no_of_questions_per_subject','exam_instructions','description','type',
         'exam_date','exam_time','location_id','result_title','result_description', 
         'price', 'dis_price', 'tax','landing_icon','is_deleted','hard_level','medium_name','easy_level',
-        'result_declaration','is_ended','ended_date','is_in_footer','is_trending','status','created_at','updated_at'
+        'result_declaration','is_ended','ended_date','is_in_footer','is_trending','status',
+        'is_proctored','proctoring_max_violations','created_at','updated_at'
     ];
 }
