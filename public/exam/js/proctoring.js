@@ -212,22 +212,48 @@
             }, 2000);
         },
 
-        getBrightness: function () {
+        analyzeFrame: function () {
             if (!this.video || !this.canvas || !this.video.videoWidth) {
-                return 255;
+                return { brightness: 255, skinRatio: 1 };
             }
+            var width = 160;
+            var height = 120;
+            this.canvas.width = width;
+            this.canvas.height = height;
             var ctx = this.canvas.getContext('2d');
-            this.canvas.width = 80;
-            this.canvas.height = 60;
-            ctx.drawImage(this.video, 0, 0, 80, 60);
-            var data = ctx.getImageData(0, 0, 80, 60).data;
-            var total = 0;
-            var count = 0;
-            for (var i = 0; i < data.length; i += 16) {
-                total += (data[i] + data[i + 1] + data[i + 2]) / 3;
-                count += 1;
+            ctx.drawImage(this.video, 0, 0, width, height);
+            var data = ctx.getImageData(0, 0, width, height).data;
+            var brightnessTotal = 0;
+            var pixelCount = 0;
+            var skinCount = 0;
+            var x0 = Math.floor(width * 0.18);
+            var x1 = Math.floor(width * 0.82);
+            var y0 = Math.floor(height * 0.12);
+            var y1 = Math.floor(height * 0.88);
+            var centerCount = 0;
+            for (var y = 0; y < height; y++) {
+                for (var x = 0; x < width; x++) {
+                    var i = (y * width + x) * 4;
+                    var r = data[i];
+                    var g = data[i + 1];
+                    var b = data[i + 2];
+                    brightnessTotal += (r + g + b) / 3;
+                    pixelCount += 1;
+                    if (x < x0 || x > x1 || y < y0 || y > y1) {
+                        continue;
+                    }
+                    centerCount += 1;
+                    var cb = 128 - (0.168736 * r) - (0.331264 * g) + (0.5 * b);
+                    var cr = 128 + (0.5 * r) - (0.418688 * g) - (0.081312 * b);
+                    if (cb >= 70 && cb <= 140 && cr >= 120 && cr <= 185) {
+                        skinCount += 1;
+                    }
+                }
             }
-            return count ? (total / count) : 255;
+            return {
+                brightness: pixelCount ? (brightnessTotal / pixelCount) : 255,
+                skinRatio: centerCount ? (skinCount / centerCount) : 0
+            };
         },
 
         checkWebcam: function () {
@@ -236,29 +262,33 @@
                 return;
             }
             if (Date.now() < this.graceUntil) {
-                this.setFaceStatus('Get ready. Keep your face in view.', false);
+                this.setFaceStatus('Camera on. Keep looking this way.', false);
                 return;
             }
 
-            var brightness = this.getBrightness();
-            if (brightness < 12) {
+            var frame = this.analyzeFrame();
+            if (frame.brightness < 10 && frame.skinRatio < 0.02) {
                 this.handleMissingFace('camera_covered', 'Camera looks covered or too dark.');
                 return;
             }
 
             if (this.modelsReady && window.faceapi && this.video) {
                 window.faceapi.detectAllFaces(this.video, new window.faceapi.TinyFaceDetectorOptions({
-                    inputSize: 320,
-                    scoreThreshold: 0.25
+                    inputSize: 416,
+                    scoreThreshold: 0.15
                 })).then(function (faces) {
-                    self.handleFaceResult(faces ? faces.length : 0);
+                    var count = faces ? faces.length : 0;
+                    if (count < 1 && frame.skinRatio >= 0.035 && frame.brightness > 18) {
+                        count = 1;
+                    }
+                    self.handleFaceResult(count);
                 }).catch(function () {
-                    self.handleFaceResult(1);
+                    self.handleFaceResult(frame.skinRatio >= 0.035 ? 1 : 0);
                 });
                 return;
             }
 
-            this.handleFaceResult(1);
+            this.handleFaceResult(frame.skinRatio >= 0.035 || frame.brightness > 25 ? 1 : 0);
         },
 
         handleMissingFace: function (type, statusText) {
