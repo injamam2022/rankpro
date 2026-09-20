@@ -136,7 +136,7 @@
             this.started = true;
             this.ended = false;
             this.graceUntil = Date.now() + 8000;
-            this.lastFaceAt = Date.now();
+            this.lastFaceAt = 0;
             document.body.classList.add('exam-proctored-active');
             var overlay = document.getElementById('proctoringGate');
             if (overlay) {
@@ -318,8 +318,20 @@
             return this.cropCanvas;
         },
 
+        isSkinPixel: function (r, g, b) {
+            var y = (0.299 * r) + (0.587 * g) + (0.114 * b);
+            var cb = 128 - (0.168736 * r) - (0.331264 * g) + (0.5 * b);
+            var cr = 128 + (0.5 * r) - (0.418688 * g) - (0.081312 * b);
+            return y > 35 && y < 250
+                && cb > 68 && cb < 148
+                && cr > 118 && cr < 188
+                && r > 35 && g > 15 && b > 10
+                && r >= g * 0.65
+                && r >= b;
+        },
+
         getFrameStats: function () {
-            var empty = { brightness: 255, center: 255, variance: 255, covered: false };
+            var empty = { brightness: 255, center: 255, variance: 255, covered: false, personAtSeat: false };
             if (!this.video || !this.canvas || !this.video.videoWidth) {
                 return empty;
             }
@@ -333,16 +345,31 @@
             var centerTotal = 0;
             var centerCount = 0;
             var values = [];
-            for (var y = 0; y < 60; y += 2) {
-                for (var x = 0; x < 80; x += 2) {
+            var headSkin = 0;
+            var headCount = 0;
+            var headLumTotal = 0;
+            var headLums = [];
+            for (var y = 0; y < 60; y += 1) {
+                for (var x = 0; x < 80; x += 1) {
                     var i = ((y * 80) + x) * 4;
-                    var lum = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    var r = data[i];
+                    var g = data[i + 1];
+                    var b = data[i + 2];
+                    var lum = (r + g + b) / 3;
                     total += lum;
                     count += 1;
                     values.push(lum);
-                    if (x >= 20 && x < 60 && y >= 12 && y < 48) {
+                    if (x >= 18 && x < 62 && y >= 8 && y < 50) {
                         centerTotal += lum;
                         centerCount += 1;
+                    }
+                    if (x >= 16 && x < 64 && y >= 2 && y < 40) {
+                        headCount += 1;
+                        headLumTotal += lum;
+                        headLums.push(lum);
+                        if (this.isSkinPixel(r, g, b)) {
+                            headSkin += 1;
+                        }
                     }
                 }
             }
@@ -354,42 +381,77 @@
                 varSum += diff * diff;
             }
             var variance = values.length ? (varSum / values.length) : 0;
+            var headMean = headCount ? (headLumTotal / headCount) : 0;
+            var headVarSum = 0;
+            for (var h = 0; h < headLums.length; h += 1) {
+                var hd = headLums[h] - headMean;
+                headVarSum += hd * hd;
+            }
+            var headVariance = headLums.length ? (headVarSum / headLums.length) : 0;
+            var headSkinRatio = headCount ? (headSkin / headCount) : 0;
             return {
                 brightness: brightness,
                 center: center,
                 variance: variance,
-                covered: brightness < 10 && center < 12 && variance < 16
+                covered: brightness < 10 && center < 12 && variance < 16,
+                personAtSeat: headSkinRatio >= 0.10 && headSkinRatio <= 0.78 && headVariance >= 16 && headMean >= 28 && headMean <= 230
             };
         },
 
         detectFaces: function (input) {
             var self = this;
-            var tryTiny = function () {
+            var tryTiny = function (size, threshold) {
                 if (!self.tinyReady) {
                     return Promise.resolve(0);
                 }
                 return window.faceapi.detectAllFaces(input, new window.faceapi.TinyFaceDetectorOptions({
-                    inputSize: 416,
-                    scoreThreshold: 0.15
+                    inputSize: size,
+                    scoreThreshold: threshold
                 })).then(function (faces) {
                     return faces ? faces.length : 0;
                 }).catch(function () {
                     return 0;
                 });
             };
-            if (this.ssdReady) {
+            var trySsd = function () {
+                if (!self.ssdReady) {
+                    return Promise.resolve(0);
+                }
                 return window.faceapi.detectAllFaces(input, new window.faceapi.SsdMobilenetv1Options({
-                    minConfidence: 0.28
+                    minConfidence: 0.15
                 })).then(function (faces) {
-                    if (faces && faces.length) {
-                        return faces.length;
-                    }
-                    return tryTiny();
+                    return faces ? faces.length : 0;
                 }).catch(function () {
-                    return tryTiny();
+                    return 0;
                 });
+            };
+            return tryTiny(224, 0.08).then(function (count) {
+                if (count > 0) {
+                    return count;
+                }
+                return tryTiny(320, 0.1);
+            }).then(function (count) {
+                if (count > 0) {
+                    return count;
+                }
+                return trySsd();
+            });
+        },
+
+        applyPresence: function (faceCount, stats) {
+            if (faceCount >= 2) {
+                this.handleFaceResult(faceCount);
+                return;
             }
-            return tryTiny();
+            if (faceCount === 1) {
+                this.markPresent('Face detected');
+                return;
+            }
+            if (stats && stats.personAtSeat) {
+                this.markPresent('At the seat');
+                return;
+            }
+            this.handleAwayFromSeat();
         },
 
         checkWebcam: function () {
@@ -409,30 +471,26 @@
             }
 
             if (!this.modelsReady) {
-                this.setFaceStatus('Checking camera...', false);
+                this.applyPresence(0, stats);
                 return;
             }
 
             var input = this.getDetectCanvas() || this.video;
             this.detectFaces(input).then(function (count) {
                 if (count > 0) {
-                    self.handleFaceResult(count);
+                    self.applyPresence(count, stats);
                     return;
                 }
                 var crop = self.getCenterCropCanvas();
                 if (!crop) {
-                    self.handleAwayFromSeat();
+                    self.applyPresence(0, stats);
                     return;
                 }
                 return self.detectFaces(crop).then(function (cropCount) {
-                    if (cropCount > 0) {
-                        self.handleFaceResult(cropCount);
-                    } else {
-                        self.handleAwayFromSeat();
-                    }
+                    self.applyPresence(cropCount, stats);
                 });
             }).catch(function () {
-                self.handleAwayFromSeat();
+                self.applyPresence(0, stats);
             });
         },
 
@@ -451,11 +509,10 @@
 
         handleAwayFromSeat: function () {
             this.extraPersonStreak = 0;
-            this.noFaceStreak += 1;
-            if (this.lastFaceAt && (Date.now() - this.lastFaceAt) < 6000) {
-                this.setFaceStatus('Face detected', false);
+            if (this.lastFaceAt && (Date.now() - this.lastFaceAt) < 2500) {
                 return;
             }
+            this.noFaceStreak += 1;
             this.setFaceStatus('Not at the seat', true);
             if (!this.webcamWarningShown && this.noFaceStreak >= 6) {
                 this.webcamWarningShown = true;
