@@ -21,6 +21,7 @@ use App\Models\Question_detail;
 use App\Models\Exam_result;
 use App\Models\Question_paper;
 use App\Models\Exam_proctoring_event;
+use Illuminate\Support\Facades\Storage;
 
 class ExamsController extends Controller
 {
@@ -79,9 +80,13 @@ class ExamsController extends Controller
     public function start_online_exam(Request $request){
         $exam_user_id = $request->id;
         $data = [];
+        $user_id = Auth::user()->id;
 
         $data['user_exam_id'] = $exam_user_id;
-        $data['user_exam_detail'] = Exam_user::where('id',$exam_user_id)->first();
+        $data['user_exam_detail'] = Exam_user::where('id', $exam_user_id)->where('user_id', $user_id)->first();
+        if (!$data['user_exam_detail']) {
+            abort(403);
+        }
         $data['exam_detail'] = Exam::select(['exams.*','question_papers.*'])
                                 ->leftJoin('question_papers', 'question_papers.id', '=', 'exams.question_paper_id')
                                 ->where('exams.id',$data['user_exam_detail']->exam_id)->first();
@@ -90,26 +95,39 @@ class ExamsController extends Controller
             $data['exam_detail']->total_time_for_exam = $examOnly->total_time_for_exam;
         }
 
-        // dd($data['exam_detail']);
-
-        $data['question_list'] = Question_paper_question::select(['questions.*','question_paper_questions.id as question_paper_question_id'])
+        $data['question_list'] = Question_paper_question::select([
+                                'questions.id',
+                                'question_paper_questions.id as question_paper_question_id'
+                            ])
                                 ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
                                 ->where('question_paper_id',$data['exam_detail']->question_paper_id)->get();
-        $user_id = Auth::user()->id;
+
+        $questionIds = $data['question_list']->pluck('id')->filter()->all();
+        $paperQuestionIds = $data['question_list']->pluck('question_paper_question_id')->filter()->all();
+        $details = Question_detail::whereIn('question_id', $questionIds ?: [0])
+                            ->where('language_id', 1)
+                            ->get()
+                            ->keyBy('question_id');
+        $results = Exam_result::where('user_id', $user_id)
+                            ->where('exam_user_id', $exam_user_id)
+                            ->whereIn('exam_question_id', $paperQuestionIds ?: [0])
+                            ->get()
+                            ->keyBy('exam_question_id');
 
         foreach($data['question_list'] as $key=>$value){
-            $exam_result = Exam_result::where('user_id',$user_id)->where('exam_user_id',$exam_user_id)->where('exam_question_id',$value->question_paper_question_id)->first();
-            $question = Question_detail::where("question_id",$value->id)->where("language_id",1)->first();
-            $data['question_list'][$key]->question_text = $question->question_text;
-            $data['question_list'][$key]->question_image = $question->question_image;
-            $data['question_list'][$key]->option1 = $question->option1;
-            $data['question_list'][$key]->option2 = $question->option2;
-            $data['question_list'][$key]->option3 = $question->option3;
-            $data['question_list'][$key]->option4 = $question->option4;
-            $data['question_list'][$key]->is_option1_image = $question->is_option1_image;
-            $data['question_list'][$key]->is_option2_image = $question->is_option2_image;
-            $data['question_list'][$key]->is_option3_image = $question->is_option3_image;
-            $data['question_list'][$key]->is_option4_image = $question->is_option4_image;
+            $question = $details->get($value->id);
+            $data['question_list'][$key]->question_text = $question->question_text ?? '';
+            $data['question_list'][$key]->question_image = $question->question_image ?? '';
+            $data['question_list'][$key]->option1 = $question->option1 ?? '';
+            $data['question_list'][$key]->option2 = $question->option2 ?? '';
+            $data['question_list'][$key]->option3 = $question->option3 ?? '';
+            $data['question_list'][$key]->option4 = $question->option4 ?? '';
+            $data['question_list'][$key]->is_option1_image = $question->is_option1_image ?? 0;
+            $data['question_list'][$key]->is_option2_image = $question->is_option2_image ?? 0;
+            $data['question_list'][$key]->is_option3_image = $question->is_option3_image ?? 0;
+            $data['question_list'][$key]->is_option4_image = $question->is_option4_image ?? 0;
+
+            $exam_result = $results->get($value->question_paper_question_id);
             if($exam_result){
                 $data['question_list'][$key]->reported = $exam_result->reported;
                 $data['question_list'][$key]->review_later = $exam_result->review_later;
@@ -123,9 +141,8 @@ class ExamsController extends Controller
                 $data['question_list'][$key]->answer = "";
                 $data['question_list'][$key]->type = "";
             }
-
+            $data['question_list'][$key]->makeHidden(['solution', 'solution_video_link', 'correct_answer']);
         }
-        // dd($data['exam_detail']);
         return view('site.start_online_exam',$data);
         
     }
@@ -135,12 +152,15 @@ class ExamsController extends Controller
         $input = $request->all();
 
         $user_id = Auth::user()->id;
+        $exam_user_id = $request->exam_user_id;
+        if (!$this->ownedExamUser($exam_user_id)) {
+            abort(403);
+        }
         $exam_question_id = $request->question_paper_question_id;
         $question_id = $request->id;
         $answer = $request->answer;
         $time = $request->time;
         $type = $request->type;
-        $exam_user_id = $request->exam_user_id;
         $exam_id = $request->exam_id;
         $reported = ($request->reported == 1)?1:0;
         $review_later = ($request->review_later == 1)?1:0;
@@ -168,13 +188,19 @@ class ExamsController extends Controller
     }
 
     public function update_exam_time(Request $request){
-        $exam_user_id = $request->exam_user_id;
-
-        $user_exam_detail = Exam_user::where('id',$exam_user_id)->first();
-
-        if($user_exam_detail){
-            $user_exam_detail->update(['total_time'=>$user_exam_detail->total_time+5]);
+        $user_exam_detail = $this->ownedExamUser($request->exam_user_id);
+        if(!$user_exam_detail){
+            abort(403);
         }
+
+        $exam = Exam::where('id', $user_exam_detail->exam_id)->first();
+        $durationMinutes = (int)($exam->total_time_for_exam ?? 0);
+        $durationSeconds = $durationMinutes > 0 ? $durationMinutes * 60 : 0;
+        $next = (int)$user_exam_detail->total_time + 30;
+        if ($durationSeconds > 0 && $next > $durationSeconds) {
+            $next = $durationSeconds;
+        }
+        $user_exam_detail->update(['total_time' => $next]);
     }
 
     public function save_exam(Request $request){
@@ -182,7 +208,10 @@ class ExamsController extends Controller
         $exam_id = $request->exam_id;
         $user_id = Auth::user()->id;
 
-        $user_exam_detail = Exam_user::where('id',$exam_user_id)->first();
+        $user_exam_detail = $this->ownedExamUser($exam_user_id);
+        if (!$user_exam_detail) {
+            abort(403);
+        }
 
         $exam_details = Exam::where('id',$exam_id)->first();
         $question_paper_details = Question_paper::where('id',$exam_details->question_paper_id)->first();
@@ -247,10 +276,19 @@ class ExamsController extends Controller
         $exam_id = $request->exam_id;
         $user_id = Auth::user()->id;
 
-        $user_exam_detail = Exam_user::where('id',$exam_user_id)->first();
+        $user_exam_detail = $this->ownedExamUser($exam_user_id);
+        if (!$user_exam_detail) {
+            abort(403);
+        }
 
         $exam_details = Exam::where('id',$exam_id)->first();
+        if (!$exam_details) {
+            abort(404);
+        }
         $question_paper_details = Question_paper::where('id',$exam_details->question_paper_id)->first();
+        if (!$question_paper_details) {
+            abort(404);
+        }
 
         $exam_question = Question_paper_question::select('question_paper_questions.*','question_paper_questions.id as question_paper_question_id','questions.answer')
                             ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
@@ -353,6 +391,13 @@ class ExamsController extends Controller
             return response()->json(['ok' => 0], 403);
         }
 
+        $snapshotCount = Exam_proctoring_event::where('exam_user_id', $exam_user->id)
+            ->where('event_type', 'snapshot')
+            ->count();
+        if ($snapshotCount >= 20) {
+            return response()->json(['ok' => 1, 'skipped' => 1]);
+        }
+
         $snapshot = (string)$request->snapshot;
         if (!preg_match('/^data:image\/jpeg;base64,/', $snapshot)) {
             return response()->json(['ok' => 0], 422);
@@ -363,14 +408,10 @@ class ExamsController extends Controller
             return response()->json(['ok' => 0], 422);
         }
 
-        $folder = public_path('uploads/proctoring/'.$exam_user->id);
-        if (!is_dir($folder)) {
-            mkdir($folder, 0755, true);
-        }
         $filename = date('Ymd_His').'_'.uniqid().'.jpg';
-        file_put_contents($folder.'/'.$filename, $binary);
+        $image_path = 'proctoring/'.$exam_user->id.'/'.$filename;
+        Storage::disk('local')->put($image_path, $binary);
 
-        $image_path = 'uploads/proctoring/'.$exam_user->id.'/'.$filename;
         Exam_proctoring_event::create([
             'exam_id' => $exam_user->exam_id,
             'exam_user_id' => $exam_user->id,
@@ -383,5 +424,12 @@ class ExamsController extends Controller
         return response()->json(['ok' => 1]);
     }
 
+    private function ownedExamUser($examUserId)
+    {
+        if (!$examUserId) {
+            return null;
+        }
+        return Exam_user::where('id', $examUserId)->where('user_id', Auth::id())->first();
+    }
 
 }

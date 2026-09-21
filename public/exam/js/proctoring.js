@@ -219,21 +219,21 @@
             }, true);
 
             document.addEventListener('visibilitychange', function () {
-                if (document.hidden && self.started && !self.ended) {
+                if (document.hidden && self.started && !self.ended && !self.isExamModalOpen()) {
                     self.lockToExam('focus', 'You switched away from the exam. Click Return to Exam to continue in fullscreen.');
                     self.recordViolation('tab_switch', 'Student switched tab or minimized the window');
                 }
             });
 
             window.addEventListener('blur', function () {
-                if (self.started && !self.ended && !self.warningOpen) {
+                if (self.started && !self.ended && !self.warningOpen && !self.isExamModalOpen()) {
                     self.lockToExam('focus', 'The exam window lost focus. Click Return to Exam to continue in fullscreen.');
                     self.recordViolation('tab_switch', 'Exam window lost focus');
                 }
             });
 
             var onFullscreenLeave = function () {
-                if (!self.isFullscreen() && self.started && !self.ended) {
+                if (!self.isFullscreen() && self.started && !self.ended && !self.isExamModalOpen()) {
                     self.lockToExam('fullscreen', 'Stay in fullscreen. Click Return to Exam to continue.');
                     self.recordViolation('fullscreen_exit', 'Student left fullscreen');
                 }
@@ -280,8 +280,12 @@
             });
         },
 
+        isExamModalOpen: function () {
+            return !!(document.body && document.body.classList.contains('modal-active'));
+        },
+
         lockToExam: function (type, message) {
-            if (!this.started || this.ended) {
+            if (!this.started || this.ended || this.isExamModalOpen()) {
                 return;
             }
             this.lockType = type;
@@ -294,7 +298,7 @@
                 clearInterval(this.lockTimer);
             }
             this.lockTimer = setInterval(function () {
-                if (!self.started || self.ended) {
+                if (!self.started || self.ended || self.isExamModalOpen()) {
                     return;
                 }
                 if (Date.now() < (self.resumeGraceUntil || 0)) {
@@ -306,7 +310,7 @@
                 if (!self.isFullscreen() && self.lockType !== 'webcam') {
                     self.lockToExam('fullscreen', 'Stay in fullscreen. Click Return to Exam to continue.');
                 }
-            }, 700);
+            }, 2000);
         },
 
         startFaceMonitor: function () {
@@ -314,7 +318,7 @@
             this.checkWebcam();
             this.faceTimer = setInterval(function () {
                 self.checkWebcam();
-            }, 1200);
+            }, this.config.faceInterval || 4000);
         },
 
         getSampleCanvas: function (width) {
@@ -733,7 +737,7 @@
                 this.noFaceStreak = 0;
                 this.extraPersonStreak += 1;
                 this.setFaceStatus('More than one person detected.', true);
-                if (!this.webcamWarningShown && this.extraPersonStreak >= 10) {
+                if (!this.webcamWarningShown && this.extraPersonStreak >= 3) {
                     this.webcamWarningShown = true;
                     this.recordWebcamStrike('multiple_faces', 'More than one person was visible. Sit alone to continue.');
                 }
@@ -790,8 +794,8 @@
             this.extraPersonStreak = 0;
             this.noFaceStreak += 1;
             this.setFaceStatus('Not at the seat', true);
-            // ~16–20 seconds away before warning overlay
-            if (!this.webcamWarningShown && this.noFaceStreak >= 8) {
+            // ~12 seconds away before warning overlay (3 samples at 4s)
+            if (!this.webcamWarningShown && this.noFaceStreak >= 3) {
                 this.webcamWarningShown = true;
                 this.recordWebcamStrike('no_face', 'You left the seat. Sit down in front of the camera to continue.');
             }
@@ -801,7 +805,7 @@
             this.extraPersonStreak = 0;
             this.noFaceStreak += 1;
             this.setFaceStatus('Camera is too dark or covered.', true);
-            if (!this.webcamWarningShown && this.noFaceStreak >= 8) {
+            if (!this.webcamWarningShown && this.noFaceStreak >= 3) {
                 this.webcamWarningShown = true;
                 this.recordWebcamStrike('camera_covered', 'Camera looks covered. Uncover it to continue.');
             }
@@ -915,7 +919,7 @@
             this.captureSnapshot();
             this.snapshotTimer = setInterval(function () {
                 self.captureSnapshot();
-            }, this.config.snapshotInterval || 45000);
+            }, this.config.snapshotInterval || 120000);
         },
 
         stopCamera: function () {
@@ -972,10 +976,16 @@
             if (!url || typeof window.jQuery === 'undefined') {
                 return;
             }
+            var payload = data || {};
+            var token = this.config.csrfToken || window.examCsrfToken;
+            if (token) {
+                payload._token = token;
+            }
             window.jQuery.ajax({
                 url: url,
                 method: 'POST',
-                data: data
+                data: payload,
+                headers: token ? { 'X-CSRF-TOKEN': token } : {}
             });
         },
 

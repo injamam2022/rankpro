@@ -13,12 +13,5 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         "leads/*",
-        "update-user-exam-question",
-        "update-time",
-        "save-exam",
-        "update-exam-time",
-        "end-exam",
-        "log-proctoring-event",
-        "save-proctoring-snapshot"
     ];
 }

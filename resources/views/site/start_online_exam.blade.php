@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>RankPro - Online Examination</title>
     <link rel="shortcut icon" href="{{ asset('') }}exam/img/fav-icon.png">
@@ -441,6 +442,24 @@
             border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600;
         }
         body.exam-proctored-active .proctoring-badge { display:inline-flex; }
+        .modalStyle { pointer-events: none; }
+        .modalStyle.myFade {
+            z-index: 100002 !important;
+            pointer-events: auto;
+        }
+        body.modal-active .proctoring-gate,
+        body.modal-active .proctoring-warning {
+            pointer-events: none;
+        }
+        button.orengeButton {
+            border: 0;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button.orengeButton:disabled {
+            opacity: .7;
+            cursor: wait;
+        }
     </style>
 </head>
 <body id="mainBody" @if(!empty($exam_detail->is_proctored)) class="exam-proctored" @endif>
@@ -572,8 +591,8 @@
   </div>
 </section>
 <footer><div class="container-fluid"><ul class="bottom-footer list-unstyled mb-0"><li class="d-inline-block">&copy; Copyright <span id="footerYear"></span> RankPro. All Rights Reserved.</li><li class="d-inline-block mx-4">|</li><li class="d-inline-block">Developed by <a href="http://zabingo.com/" target="_blank">Zabingo Softwares (www.zabingo.com)</a></li></ul></div></footer>
-<div id="retest" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST <img class="closeModel img-fluid" onclick="cancalTestModalClick();" src="{{ asset('') }}exam/img/close.png" alt="Close"></div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul>@if(empty($exam_detail->is_proctored))<a href="javascript:void(0);" class="orengeButton" onclick="saveTestModalClick();">Save</a>@endif<a href="javascript:void(0);" class="orengeButton" style="background-color:#ff0000;" onclick="endTestModalClick();">End Test</a></div></div></div></div></div>
-<div id="exam_end_timer" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST</div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul><a href="javascript:void(0);" class="orengeButton" onclick="endTestModalClick();">End Test</a></div></div></div></div></div>
+<div id="retest" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST <img class="closeModel img-fluid" onclick="cancalTestModalClick();" src="{{ asset('') }}exam/img/close.png" alt="Close"></div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul>@if(empty($exam_detail->is_proctored))<button type="button" class="orengeButton" onclick="saveTestModalClick();">Save</button>@endif<button type="button" class="orengeButton js-end-test-btn" style="background-color:#ff0000;" onclick="endTestModalClick();">End Test</button></div></div></div></div></div>
+<div id="exam_end_timer" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST</div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul><button type="button" class="orengeButton js-end-test-btn" onclick="endTestModalClick();">End Test</button></div></div></div></div></div>
 
     <script type="text/javascript">
 
@@ -594,12 +613,17 @@
       globalData.exam_time = renderQuestionTime();
       globalData.time_per_question = globalData.exam_time/globalData.exam_detail.no_of_question;
       globalData.total_time = <?php echo ($user_exam_detail->total_time)?$user_exam_detail->total_time:0;?>;
-
-      console.log(globalData);
+      window.examCsrfToken = "{{ csrf_token() }}";
     </script>
 
    <!--===============================================================================================-->
      <script src="{{ asset('') }}exam/vendor/jquery/jquery-3.2.1.min.js"></script>
+     <script>
+       $.ajaxSetup({
+         headers: { 'X-CSRF-TOKEN': window.examCsrfToken },
+         data: { _token: window.examCsrfToken }
+       });
+     </script>
      <!-- <script src="js/jquery-3.2.1.slim.min.js"></script> -->
      <!--===============================================================================================-->
        <script src="{{ asset('') }}exam/vendor/animsition/js/animsition.min.js"></script>
@@ -1037,7 +1061,6 @@
           method:"POST",
           data:requestData,
           success:function(responseData){
-            console.log(responseData);
           }
         });
       }
@@ -1046,10 +1069,24 @@
         $('#endExamModal').modal('show');
       }
 
+      function examAjaxToken(){
+        return window.examCsrfToken || ($('meta[name="csrf-token"]').attr('content') || '');
+      }
+
       function endTestModalClick(mode){
-        var requestData = {};
-        requestData.exam_user_id = {{$user_exam_id}};
-        requestData.exam_id = {{$user_exam_detail->exam_id}};
+        if (window.examEndingNow) {
+          return;
+        }
+        window.examEndingNow = true;
+        if (window.RankProProctoring) {
+          RankProProctoring.ended = true;
+        }
+        $('.js-end-test-btn').prop('disabled', true).text('Ending...');
+        var requestData = {
+          _token: examAjaxToken(),
+          exam_user_id: {{$user_exam_id}},
+          exam_id: {{$user_exam_detail->exam_id}}
+        };
         if(mode === 'cancel'){
           requestData.proctoring_cancelled = 1;
         } else if(mode){
@@ -1059,23 +1096,38 @@
           url:"{{route('end_exam')}}",
           method:"POST",
           data:requestData,
+          headers: { 'X-CSRF-TOKEN': examAjaxToken() },
           success:function(responseData){
             window.location.href = "{{route('exam_result_detail',['id'=>$user_exam_id])}}";
+          },
+          error:function(xhr){
+            window.examEndingNow = false;
+            if (window.RankProProctoring) {
+              RankProProctoring.ended = false;
+            }
+            $('.js-end-test-btn').prop('disabled', false).text('End Test');
+            alert('Could not end the test. Please try again.');
           }
         });
       }
 
       function saveTestModalClick(){
-        var requestData = {};
-        requestData.exam_user_id = {{$user_exam_id}};
-        requestData.exam_id = {{$user_exam_detail->exam_id}};
+        var requestData = {
+          _token: examAjaxToken(),
+          exam_user_id: {{$user_exam_id}},
+          exam_id: {{$user_exam_detail->exam_id}}
+        };
         $.ajax({
           url:"{{route('save_exam')}}",
           method:"POST",
           data:requestData,
+          headers: { 'X-CSRF-TOKEN': examAjaxToken() },
           success:function(responseData){
 
             window.location.href = "{{route('upcoming_exam')}}";
+          },
+          error:function(){
+            alert('Could not save the test. Please try again.');
           }
         });
       }
@@ -1142,7 +1194,6 @@
 
         function updateExamClock() {
             var t = getTimeRemaining(startTime);
-            console.log(t);
             hoursSpan.text(('0' + t.hours).slice(-2));
             minutesSpan.text(('0' + t.minutes).slice(-2));
             secondsSpan.text(('0' + t.seconds).slice(-2));
@@ -1157,7 +1208,7 @@
             percentage = Math.min(100, Math.max(0, percentage));
 
             progressBar.css('width', percentage + '%');
-            if ((t.total - lastUpdateTime >= 5000) && lastUpdateCount ) {
+            if ((t.total - lastUpdateTime >= 30000) && lastUpdateCount ) {
 
                 lastUpdateTime = t.total;
                 lastUpdateCount = 1;
@@ -1220,7 +1271,7 @@
     </script>
     @if(!empty($exam_detail->is_proctored))
     <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=10"></script>
-    <script src="{{ asset('exam/js/proctoring.js') }}?v=10"></script>
+    <script src="{{ asset('exam/js/proctoring.js') }}?v=13"></script>
     <script>
       RankProProctoring.init({
         enabled: true,
@@ -1231,7 +1282,8 @@
         modelUrl: "{{ asset('exam/vendor/face-api') }}",
         eventUrl: "{{ route('log_proctoring_event') }}",
         snapshotUrl: "{{ route('save_proctoring_snapshot') }}",
-        snapshotInterval: 45000,
+        snapshotInterval: 120000,
+        csrfToken: window.examCsrfToken,
         onForceEnd: function(){ endTestModalClick(1); },
         onForceCancel: function(){ endTestModalClick('cancel'); }
       });

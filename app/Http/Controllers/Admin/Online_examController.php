@@ -348,5 +348,27 @@ class Online_examController extends Controller
         $data['events'] = Exam_proctoring_event::where('exam_user_id', $request->id)->orderBy('id', 'desc')->get();
         return view('admin.online_exam.proctoring_detail',$data);
     }
+
+    public function proctoring_snapshot(Request $request){
+        $event = Exam_proctoring_event::where('id', $request->id)->where('event_type', 'snapshot')->first();
+        if (!$event || !$event->image_path) {
+            abort(404);
+        }
+
+        $path = ltrim(str_replace('\\', '/', $event->image_path), '/');
+        if (str_starts_with($path, 'public/')) {
+            $path = substr($path, 7);
+        }
+        if (str_starts_with($path, 'uploads/')) {
+            $full = public_path($path);
+        } else {
+            $full = storage_path('app/'.$path);
+        }
+        if (!is_file($full)) {
+            abort(404);
+        }
+
+        return response()->file($full, ['Content-Type' => 'image/jpeg']);
+    }
     
 }

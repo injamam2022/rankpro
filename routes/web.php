@@ -498,6 +498,7 @@
         Route::get('/online_exam/result_details', [Online_examController::class, 'result_details'])->name('online_exam.result_details');
         Route::get('/online_exam/proctoring', [Online_examController::class, 'proctoring'])->name('online_exam.proctoring');
         Route::get('/online_exam/proctoring_detail', [Online_examController::class, 'proctoring_detail'])->name('online_exam.proctoring_detail');
+        Route::get('/online_exam/proctoring_snapshot', [Online_examController::class, 'proctoring_snapshot'])->name('online_exam.proctoring_snapshot');
 
         Route::get('/ranker', [RankerController::class, 'list'])->name('ranker');
         Route::get('/ranker/add', [RankerController::class, 'add'])->name('ranker.add');

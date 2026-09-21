@@ -38,8 +38,8 @@
                             <td>{{ $row->message }}</td>
                             <td>
                                 @if($row->image_path)
-                                    <a href="{{ asset($row->image_path) }}" target="_blank">
-                                        <img src="{{ asset($row->image_path) }}" class="proctor-shot" alt="Snapshot">
+                                    <a href="{{ route('admin.online_exam.proctoring_snapshot', ['id' => $row->id]) }}" target="_blank">
+                                        <img src="{{ route('admin.online_exam.proctoring_snapshot', ['id' => $row->id]) }}" class="proctor-shot" alt="Snapshot">
                                     </a>
                                 @else
                                     -
