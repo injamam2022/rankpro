@@ -32,7 +32,7 @@
             color:#17233b;
         }
         #header {
-            height:78px;
+            height:72px;
             margin:0 !important;
             padding:0 !important;
             background:#fff;
@@ -41,42 +41,103 @@
             position:relative;
             z-index:1000;
         }
-        #header .container-fluid { height:100%; }
+        #header .container-fluid {
+            height:100%;
+            padding-left:20px !important;
+            padding-right:20px !important;
+        }
         .mainHeader {
             height:100%;
             display:flex;
+            flex-direction:row;
             align-items:center;
-            padding:0 32px;
-            gap:24px;
+            justify-content:flex-start;
+            flex-wrap:nowrap;
+            gap:16px;
+            padding:0 !important;
+            margin:0 !important;
         }
-        #mainLogo { max-width:145px; max-height:42px; }
-        .logo { flex:0 0 185px; }
+        #mainLogo { max-width:130px; max-height:38px; display:block; }
+        .logo,
+        #logoContain,
+        .logo.dashboardMenuPL,
+        #header .logo.dashboardMenuPL {
+            flex:0 0 auto;
+            width:auto !important;
+            margin:0 !important;
+            padding:0 !important;
+            padding-top:0 !important;
+            padding-bottom:0 !important;
+            padding-left:0 !important;
+            text-align:left;
+            height:auto !important;
+        }
+        .logo a,
+        #logoContain a {
+            display:inline-flex;
+            align-items:center;
+            line-height:1;
+            padding:0 !important;
+        }
+        .proctoring-badge {
+            display:none;
+            flex:0 0 auto;
+            align-items:center;
+            justify-content:center;
+            height:36px;
+            margin:0 !important;
+            padding:0 12px;
+            background:#fff3e0;
+            color:#c2410c;
+            border:1px solid #ffd7b0;
+            border-radius:8px;
+            font-size:12px;
+            font-weight:600;
+            white-space:nowrap;
+            line-height:1;
+            order:0;
+        }
+        body.exam-proctored-active .proctoring-badge { display:inline-flex; }
         .questionCount {
-            order:2;
+            flex:0 0 auto;
+            order:0;
+            margin:0 !important;
+            padding:0 !important;
             font-size:14px;
             color:#707b91;
             white-space:nowrap;
+            line-height:36px;
+            height:36px;
+            display:inline-flex;
+            align-items:center;
         }
         .questionCount b { color:#17233b; }
-        .exampTime {
-            order:3;
-            display:flex;
+        .exampTime,
+        #clockdiv {
+            flex:0 0 auto;
+            order:0;
+            display:inline-flex !important;
             align-items:center;
-            gap:10px;
+            gap:8px;
+            width:auto !important;
+            margin:0 !important;
+            padding:0 !important;
             font-size:14px;
             color:#7a8498;
-            margin-left:10px;
+            line-height:1;
         }
-        .blueTime {
+        .blueTime,
+        #clockdiv .blueTime {
             position:relative;
-            width:182px;
-            height:35px;
+            width:148px !important;
+            height:36px !important;
             border-radius:10px;
             background:#dfe8ff;
             overflow:hidden;
             display:flex;
             align-items:center;
             justify-content:center;
+            margin:0 !important;
         }
         .blueTime > div {
             position:absolute;
@@ -88,22 +149,52 @@
             position:relative;
             z-index:2;
             color:#3561ff;
-            font-size:18px;
-            letter-spacing:2px;
+            font-size:16px;
+            letter-spacing:0.5px;
+            font-variant-numeric:tabular-nums;
+            font-weight:700;
+            line-height:1;
+            top:auto !important;
+            left:auto !important;
+            right:auto !important;
+            bottom:auto !important;
         }
-        .topExampButtons { order:4; margin-left:auto; }
-        .topExampButtonsResponsive { display:flex; gap:28px; align-items:center; }
+        .blueTime .timer-sep {
+            margin:0 1px;
+            font-weight:700;
+        }
+        .exampTime .timer-label {
+            color:#7a8498;
+            font-size:13px;
+            white-space:nowrap;
+            line-height:1;
+        }
+        .topExampButtons {
+            order:0;
+            margin-left:auto !important;
+            margin-right:0 !important;
+            padding:0 !important;
+            flex:0 0 auto;
+        }
+        .topExampButtonsResponsive {
+            display:flex;
+            gap:12px;
+            align-items:center;
+        }
         .topExampButtons a {
-            min-width:165px;
-            height:35px;
+            min-width:132px;
+            height:36px;
             display:inline-flex;
             align-items:center;
             justify-content:center;
+            gap:8px;
             border-radius:9px;
-            font-size:15px;
+            font-size:14px;
             font-weight:700;
             text-decoration:none !important;
             text-transform:uppercase;
+            line-height:1;
+            padding:0 14px;
         }
         .topExampButtons .redButton {
             background:#ff1010;
@@ -115,21 +206,38 @@
             color:#151515;
             border:1px solid #3561ff;
         }
-        .avtar_demo { order:5; margin-left:8px; }
-        .avtar_profile {
-            width:58px;
-            height:58px;
-            border-radius:50%;
-            overflow:hidden;
-            border:1px solid #dce2ec;
-            box-shadow:0 2px 8px rgba(0,0,0,.08);
+        .avtar_demo { display:none !important; }
+
+        @media (max-width:1100px) {
+            .mainHeader { gap:10px; }
+            .topExampButtons a { min-width:110px; font-size:12px; padding:0 10px; }
+            .exampTime .timer-label { display:none; }
+            .questionCount { font-size:12px; }
+            .proctoring-badge { font-size:11px; padding:0 8px; }
+            .blueTime, #clockdiv .blueTime { width:132px !important; }
+            .blueTime span { font-size:14px; }
         }
-        .avtar_profile img { width:100%; height:100%; object-fit:cover; }
+        @media (max-width:767px) {
+            #header { height:auto; min-height:72px; }
+            .mainHeader {
+                flex-wrap:wrap;
+                padding:10px 0 !important;
+                row-gap:10px;
+            }
+            .topExampButtons {
+                margin-left:0 !important;
+                width:100%;
+            }
+            .topExampButtonsResponsive {
+                width:100%;
+            }
+            .topExampButtons a { flex:1; }
+        }
 
         #dashboardBody {
             background:#f5f7fb !important;
             padding:42px 0 50px !important;
-            min-height:calc(100vh - 78px);
+            min-height:calc(100vh - 72px);
             margin-top: 0px;
         }
         .exam-layout {
@@ -436,12 +544,6 @@
             background:#2e7d32; color:#fff; font-size:11px;
             padding:4px 6px; text-align:center; font-weight:600;
         }
-        .proctoring-badge {
-            display:none; align-items:center; gap:8px; margin-left:12px;
-            background:#fff3e0; color:#c2410c; border:1px solid #ffd7b0;
-            border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600;
-        }
-        body.exam-proctored-active .proctoring-badge { display:inline-flex; }
         .modalStyle { pointer-events: none; }
         .modalStyle.myFade {
             z-index: 100002 !important;
@@ -472,7 +574,7 @@
     <ul>
       <li>The camera tracks your face and eyes continuously while you take the exam.</li>
       <li>Looking at the questions is fine. A warning appears if you leave the seat or cover the camera.</li>
-      <li>Sitting normally will not cancel the exam.</li>
+      <li>If you stay away or keep the camera covered after warnings, the exam is cancelled.</li>
       <li>Do not switch tabs, windows, or leave fullscreen. Esc exits fullscreen and locks the exam until you click Return to Exam.</li>
       <li>Copy, paste, and right-click are disabled.</li>
       <li>After {{ $exam_detail->proctoring_max_violations ?? 5 }} other warnings, the exam is submitted automatically.</li>
@@ -503,13 +605,12 @@
   <div class="container-fluid h-100">
     <div class="mainHeader">
       <div class="logo dashboardMenuPL" id="logoContain"><a href="javascript:void(0);"><img src="{{ asset('') }}web/images/logo.png" class="img-fluid" alt="RankPro" id="mainLogo"></a></div>
-      <div class="questionCount"><b id="current_question_view"></b> questions left of <b><?php echo count($question_list);?></b></div>
-      <div class="exampTime" id="clockdiv"><div class="blueTime"><div id="main_timer_div" style="width:0%;"></div><span><b class="main_hours"></b><b class="main_minutes"></b><b class="main_seconds"></b></span></div><span>of <?php echo $exam_detail->total_time_for_exam;?> min</span></div>
       @if(!empty($exam_detail->is_proctored))
       <div class="proctoring-badge">Proctored · warnings <span id="proctoringViolationCount">0</span>/{{ $exam_detail->proctoring_max_violations ?? 5 }}</div>
       @endif
-      <div class="topExampButtons"><div class="topExampButtonsResponsive"><a href="javascript:void(0);" class="redButton button" onclick="examExamTimer(1);"><i class="fa fa-power-off"></i> &nbsp;&nbsp;&nbsp;End Test</a><a href="javascript:void(0);" class="whiteButton" onclick="clickReported();"><i class="fa fa-flag"></i><i class="fa fa-check" aria-hidden="true" id="reported_tick_icon_id" style="display:none;"></i> &nbsp;&nbsp;&nbsp;Report</a></div></div>
-      <!-- <div class="avtar_demo"><a href="javascript:void(0);"><div class="avtar_profile" id="avtarProfile"><img src="{{ asset('') }}exam/img/avtar_demo.png" class="img-fluid" alt=""></div></a></div> -->
+      <div class="questionCount"><b id="current_question_view"></b> questions left of <b><?php echo count($question_list);?></b></div>
+      <div class="exampTime" id="clockdiv"><div class="blueTime"><div id="main_timer_div" style="width:0%;"></div><span><b class="main_hours">00</b><b class="timer-sep">:</b><b class="main_minutes">00</b><b class="timer-sep">:</b><b class="main_seconds">00</b></span></div><span class="timer-label">left of <?php echo $exam_detail->total_time_for_exam;?> min</span></div>
+      <div class="topExampButtons"><div class="topExampButtonsResponsive"><a href="javascript:void(0);" class="redButton button" onclick="examExamTimer(1);"><i class="fa fa-power-off"></i> End Test</a><a href="javascript:void(0);" class="whiteButton" onclick="clickReported();"><i class="fa fa-flag"></i><i class="fa fa-check" aria-hidden="true" id="reported_tick_icon_id" style="display:none;"></i> Report</a></div></div>
     </div>
   </div>
 </header>
@@ -1194,12 +1295,17 @@
 
         function updateExamClock() {
             var t = getTimeRemaining(startTime);
-            hoursSpan.text(('0' + t.hours).slice(-2));
-            minutesSpan.text(('0' + t.minutes).slice(-2));
-            secondsSpan.text(('0' + t.seconds).slice(-2));
+            var totalTime = globalData.exam_time;
+            var remainingMs = Math.max(0, totalTime - t.total);
+            var hours = Math.floor(remainingMs / (1000 * 60 * 60));
+            var minutes = Math.floor((remainingMs / (1000 * 60)) % 60);
+            var seconds = Math.floor((remainingMs / 1000) % 60);
+
+            hoursSpan.text(('0' + hours).slice(-2));
+            minutesSpan.text(('0' + minutes).slice(-2));
+            secondsSpan.text(('0' + seconds).slice(-2));
 
             var percentage = 0;
-            var totalTime = globalData.exam_time;
 
             if (totalTime > 0) {
                 percentage = (t.total / totalTime) * 100;
@@ -1222,6 +1328,9 @@
                 clearInterval(examTimeInterval);
 
                 progressBar.css('width', '100%');
+                hoursSpan.text('00');
+                minutesSpan.text('00');
+                secondsSpan.text('00');
 
                 examExamTimer(0);
 
@@ -1271,7 +1380,7 @@
     </script>
     @if(!empty($exam_detail->is_proctored))
     <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=10"></script>
-    <script src="{{ asset('exam/js/proctoring.js') }}?v=13"></script>
+    <script src="{{ asset('exam/js/proctoring.js') }}?v=14"></script>
     <script>
       RankProProctoring.init({
         enabled: true,

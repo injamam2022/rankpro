@@ -16,6 +16,7 @@
         faceTimer: null,
         noFaceStreak: 0,
         extraPersonStreak: 0,
+        awayAfterWarnStreak: 0,
         modelsReady: false,
         ssdReady: false,
         tinyReady: false,
@@ -67,11 +68,12 @@
                     self.enterFullscreen();
                     self.resumeGraceUntil = Date.now() + 2000;
                     if (self.lockType === 'webcam') {
+                        // Let them sit back down; do not pretend they are already present.
                         self.noFaceStreak = 0;
                         self.extraPersonStreak = 0;
+                        self.awayAfterWarnStreak = 0;
                         self.webcamWarningShown = false;
-                        self.graceUntil = Date.now() + 5000;
-                        self.lastPresentAt = Date.now();
+                        self.graceUntil = Date.now() + 4000;
                     }
                     self.lockType = null;
                     self.hideWarning();
@@ -163,6 +165,9 @@
             this.lastPresentAt = Date.now();
             this.lastMotionAt = Date.now();
             this.noFaceStreak = 0;
+            this.awayAfterWarnStreak = 0;
+            this.webcamStrikeCount = 0;
+            this.webcamWarningShown = false;
             this.referenceReady = false;
             this.referenceGray = null;
             this.prevGray = null;
@@ -318,7 +323,7 @@
             this.checkWebcam();
             this.faceTimer = setInterval(function () {
                 self.checkWebcam();
-            }, this.config.faceInterval || 4000);
+            }, this.config.faceInterval || 2500);
         },
 
         getSampleCanvas: function (width) {
@@ -439,7 +444,8 @@
                 brightness += gray[i];
             }
             brightness = brightness / gray.length;
-            if (brightness < 12) {
+            // Covered / blocked lens is usually very dark (or a hand close to the lens).
+            if (brightness < 22) {
                 this.prevGray = gray;
                 return {
                     covered: true,
@@ -654,14 +660,14 @@
                 });
             };
 
+            // Higher thresholds: low scores were matching ceiling fans / walls as "faces".
             var attempts = [];
             if (this.tinyReady) {
-                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.08 }));
-                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.05 }));
-                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.1 }));
+                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.35 }));
+                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.3 }));
             }
             if (this.ssdReady) {
-                attempts.push(new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.15 }));
+                attempts.push(new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }));
             }
             if (!attempts.length) {
                 return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
@@ -732,15 +738,27 @@
 
         applyPresence: function (result, stats) {
             result = result || { faceCount: 0, label: 'none' };
+            stats = stats || {};
 
             if (result.faceCount >= 2 || result.label === 'multiple') {
                 this.noFaceStreak = 0;
                 this.extraPersonStreak += 1;
                 this.setFaceStatus('More than one person detected.', true);
-                if (!this.webcamWarningShown && this.extraPersonStreak >= 3) {
-                    this.webcamWarningShown = true;
+                if (this.extraPersonStreak >= 3) {
                     this.recordWebcamStrike('multiple_faces', 'More than one person was visible. Sit alone to continue.');
                 }
+                return;
+            }
+
+            // Reject face-api false positives on empty rooms (ceiling fan, walls, etc.).
+            var faceApiSaysPresent = (
+                result.label === 'eyes'
+                || result.label === 'eyes_soft'
+                || result.label === 'face'
+                || result.faceCount === 1
+            );
+            if (faceApiSaysPresent && stats.present === false && !stats.covered) {
+                this.handleAwayFromSeat();
                 return;
             }
 
@@ -755,19 +773,9 @@
                 return;
             }
 
-            // Soft fallback only for a few seconds while looking down at questions.
-            if (stats && stats.present && this.lastPresentAt && (Date.now() - this.lastPresentAt) < 6000) {
+            // Soft fallback only while looking down — and only if pixel analysis still sees a person.
+            if (stats.present && this.lastPresentAt && (Date.now() - this.lastPresentAt) < 4000) {
                 this.setFaceStatus('At the seat', false);
-                return;
-            }
-
-            if (this.lastEyesAt && (Date.now() - this.lastEyesAt) < 5000) {
-                this.setFaceStatus('Eyes detected', false);
-                return;
-            }
-
-            if (this.lastPresentAt && (Date.now() - this.lastPresentAt) < 7000) {
-                this.setFaceStatus('Face detected', false);
                 return;
             }
 
@@ -777,11 +785,11 @@
         markPresent: function (label) {
             this.noFaceStreak = 0;
             this.extraPersonStreak = 0;
+            this.awayAfterWarnStreak = 0;
             this.lastPresentAt = Date.now();
             this.setFaceStatus(label, false);
             if (this.lockType === 'webcam') {
                 this.webcamWarningShown = false;
-                this.webcamStrikeCount = 0;
                 this.lockType = null;
                 this.hideWarning();
             }
@@ -794,10 +802,19 @@
             this.extraPersonStreak = 0;
             this.noFaceStreak += 1;
             this.setFaceStatus('Not at the seat', true);
-            // ~12 seconds away before warning overlay (3 samples at 4s)
+            // ~6–8 seconds away before first warning (3 samples at ~2.5s)
             if (!this.webcamWarningShown && this.noFaceStreak >= 3) {
                 this.webcamWarningShown = true;
+                this.awayAfterWarnStreak = 0;
                 this.recordWebcamStrike('no_face', 'You left the seat. Sit down in front of the camera to continue.');
+                return;
+            }
+            // Already warned and still away — escalate and stop the exam.
+            if (this.webcamWarningShown && this.lockType === 'webcam') {
+                this.awayAfterWarnStreak = (this.awayAfterWarnStreak || 0) + 1;
+                if (this.awayAfterWarnStreak >= 3) {
+                    this.recordWebcamStrike('no_face', 'Still not at the seat after the warning.');
+                }
             }
         },
 
@@ -807,7 +824,15 @@
             this.setFaceStatus('Camera is too dark or covered.', true);
             if (!this.webcamWarningShown && this.noFaceStreak >= 3) {
                 this.webcamWarningShown = true;
+                this.awayAfterWarnStreak = 0;
                 this.recordWebcamStrike('camera_covered', 'Camera looks covered. Uncover it to continue.');
+                return;
+            }
+            if (this.webcamWarningShown && this.lockType === 'webcam') {
+                this.awayAfterWarnStreak = (this.awayAfterWarnStreak || 0) + 1;
+                if (this.awayAfterWarnStreak >= 3) {
+                    this.recordWebcamStrike('camera_covered', 'Camera is still covered after the warning.');
+                }
             }
         },
 
@@ -854,15 +879,34 @@
                 return;
             }
             var now = Date.now();
-            if (now - this.lastWebcamStrikeAt < 8000) {
+            if (now - this.lastWebcamStrikeAt < 5000) {
                 return;
             }
             this.lastWebcamStrikeAt = now;
             this.webcamStrikeCount += 1;
+            // Count seat/camera issues on the same warning badge students see (0 / 5).
+            this.violationCount += 1;
+            this.updateBadge();
             this.logEvent(type, message);
             this.captureSnapshot();
+
+            var maxWebcam = this.config.maxWebcamStrikes || 3;
+            var maxAll = this.config.maxViolations || 5;
+            if (this.webcamStrikeCount >= maxWebcam || this.violationCount >= maxAll) {
+                this.forceEnd('cancel');
+                return;
+            }
+
             this.lockType = 'webcam';
-            this.showWarning('Webcam warning: ' + message + ' Sitting and reading the exam will not cancel the test.', false);
+            this.webcamWarningShown = true;
+            this.awayAfterWarnStreak = 0;
+            var remaining = Math.max(0, maxWebcam - this.webcamStrikeCount);
+            this.showWarning(
+                'Webcam warning: ' + message
+                + ' Return to your seat with your face visible. '
+                + remaining + ' more seat/camera warning(s) will cancel the exam.',
+                false
+            );
         },
 
         updateBadge: function () {
