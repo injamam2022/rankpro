@@ -40,7 +40,7 @@ class ResultController extends Controller
         $subject_id = $request->subject_id;
         $exam_type = $request->exam_type;
 
-        $data['upcoming_exam_list'] = Exam::select(['exams.*','locations.location_name','question_papers.no_of_question','question_papers.totals_marks_for_exam','question_papers.total_time_for_exam'])
+        $data['upcoming_exam_list'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name','question_papers.no_of_question','question_papers.totals_marks_for_exam','question_papers.total_time_for_exam'])
                         ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
                         ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
                         ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')

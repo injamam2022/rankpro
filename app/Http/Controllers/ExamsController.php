@@ -34,7 +34,7 @@ class ExamsController extends Controller
         
 
         $data = [];
-        $data['exam_list'] = Exam::select(['exams.*'])
+        $data['exam_list'] = Exam::assignedTo(Auth::id())->select(['exams.*'])
                             ->where('exams.type',1)
                             ->where('exams.status',1)
                             ->where('exams.is_deleted',0)
@@ -46,7 +46,7 @@ class ExamsController extends Controller
     public function start_exam(Request $request){
         $exam_id = $request->id;
         $user_id = Auth::user()->id;
-        $exam_detail = Exam::where('id',$exam_id)->first();
+        $exam_detail = Exam::assignedTo($user_id)->where('status', 1)->where('is_deleted', 0)->where('type', 1)->where('id',$exam_id)->firstOrFail();
         $paper = $exam_detail ? Question_paper::where('id', $exam_detail->question_paper_id)->first() : null;
         $durationMinutes = (int)($exam_detail->total_time_for_exam ?: ($paper->total_time_for_exam ?? 0));
         $durationSeconds = $durationMinutes * 60;
@@ -83,7 +83,7 @@ class ExamsController extends Controller
         $user_id = Auth::user()->id;
 
         $data['user_exam_id'] = $exam_user_id;
-        $data['user_exam_detail'] = Exam_user::where('id', $exam_user_id)->where('user_id', $user_id)->first();
+        $data['user_exam_detail'] = $this->ownedExamUser($exam_user_id);
         if (!$data['user_exam_detail']) {
             abort(403);
         }
@@ -156,6 +156,8 @@ class ExamsController extends Controller
         if (!$this->ownedExamUser($exam_user_id)) {
             abort(403);
         }
+        $attempt = $this->ownedExamUser($exam_user_id);
+        abort_unless((int) $request->exam_id === (int) $attempt->exam_id, 403);
         $exam_question_id = $request->question_paper_question_id;
         $question_id = $request->id;
         $answer = $request->answer;
@@ -213,7 +215,8 @@ class ExamsController extends Controller
             abort(403);
         }
 
-        $exam_details = Exam::where('id',$exam_id)->first();
+        abort_unless((int) $exam_id === (int) $user_exam_detail->exam_id, 403);
+        $exam_details = Exam::assignedTo($user_id)->where('status', 1)->where('is_deleted', 0)->where('type', 1)->where('id',$exam_id)->firstOrFail();
         $question_paper_details = Question_paper::where('id',$exam_details->question_paper_id)->first();
 
         $exam_question = Question_paper_question::select('question_paper_questions.*','question_paper_questions.id as question_paper_question_id','questions.answer')
@@ -281,7 +284,8 @@ class ExamsController extends Controller
             abort(403);
         }
 
-        $exam_details = Exam::where('id',$exam_id)->first();
+        abort_unless((int) $exam_id === (int) $user_exam_detail->exam_id, 403);
+        $exam_details = Exam::assignedTo($user_id)->where('status', 1)->where('is_deleted', 0)->where('type', 1)->where('id',$exam_id)->firstOrFail();
         if (!$exam_details) {
             abort(404);
         }
@@ -429,7 +433,7 @@ class ExamsController extends Controller
         if (!$examUserId) {
             return null;
         }
-        return Exam_user::where('id', $examUserId)->where('user_id', Auth::id())->first();
+        return Exam_user::where('id', $examUserId)->where('user_id', Auth::id())->whereIn('exam_id', Exam::assignedTo(Auth::id())->where('status', 1)->where('is_deleted', 0)->select('exams.id'))->first();
     }
 
 }

@@ -36,7 +36,7 @@ class Upcoming_examController extends Controller
         $subject_id = $request->subject_id;
         $exam_type = $request->exam_type;
 
-        $data['upcoming_exam_list'] = Exam::select(['exams.*','locations.location_name','question_papers.no_of_question','question_papers.totals_marks_for_exam','question_papers.total_time_for_exam', 'exam_statuses.type as exam_status'])
+        $data['upcoming_exam_list'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name','question_papers.no_of_question','question_papers.totals_marks_for_exam','question_papers.total_time_for_exam', 'exam_statuses.type as exam_status'])
                         ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
                         ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
                         ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
@@ -96,7 +96,7 @@ class Upcoming_examController extends Controller
     }
 
     public function upcoming_exam_accept(Request $request){
-        $loginCheck = Exam::where('id',$request->id)->first();
+        $loginCheck = Exam::assignedTo(Auth::id())->where('status', 1)->where('is_deleted', 0)->where('id',$request->id)->firstOrFail();
 
         $user_id = Auth::user()->id;
 
@@ -123,7 +123,7 @@ class Upcoming_examController extends Controller
     }
 
     public function upcoming_exam_reject(Request $request){
-        $loginCheck = Exam::where('id',$request->id)->first();
+        $loginCheck = Exam::assignedTo(Auth::id())->where('status', 1)->where('is_deleted', 0)->where('id',$request->id)->firstOrFail();
 
         $user_id = Auth::user()->id;
 

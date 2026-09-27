@@ -485,6 +485,10 @@
         Route::get('/offline_exam_result/upload', [Offline_exam_resultController::class, 'upload'])->name('offline_exam_result.upload');
         Route::post('/offline_exam_result/upload-save', [Offline_exam_resultController::class, 'upload_save'])->name('offline_exam_result.upload_save');
 
+        Route::get('/exam-assignments', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'index'])->name('exam_assignments');
+        Route::get('/batches', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'batches'])->name('batches');
+        Route::post('/batches/save', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'saveBatch'])->name('batches.save');
+        Route::post('/exam-assignments/save', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'saveAssignments'])->name('exam_assignments.save');
         Route::get('/online_exam', [Online_examController::class, 'list'])->name('online_exam');
         Route::get('/online_exam/add', [Online_examController::class, 'add'])->name('online_exam.add');
         Route::post('/online_exam/save', [Online_examController::class, 'save'])->name('online_exam.save');

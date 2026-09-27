@@ -386,6 +386,8 @@
                                 </div>
                             @endif
                             
+                            <a class="nav-link" href="{{ route('admin.batches') }}">Batch Master</a>
+                            <a class="nav-link" href="{{ route('admin.exam_assignments') }}">Test Assignments</a>
                             @if(isUserPermitted('online-exam', 'menu'))
                             
                                 <a class="nav-link collapsed

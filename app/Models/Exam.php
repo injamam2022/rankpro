@@ -6,6 +6,32 @@ use Illuminate\Database\Eloquent\Model;
 
 class Exam extends Model
 {
+    public function scopeAssignedTo($query, $userId)
+    {
+        return $query->where(function ($query) use ($userId) {
+            $query->whereExists(function ($assignment) use ($userId) {
+                $assignment->selectRaw('1')->from('exam_assignments')
+                    ->whereColumn('exam_assignments.exam_id', 'exams.id')
+                    ->where('exam_assignments.user_id', $userId);
+            })->orWhereExists(function ($batch) use ($userId) {
+                $batch->selectRaw('1')->from('batch_exam')
+                    ->join('batch_user', 'batch_user.batch_id', '=', 'batch_exam.batch_id')
+                    ->whereColumn('batch_exam.exam_id', 'exams.id')
+                    ->where('batch_user.user_id', $userId);
+            });
+        });
+    }
+
+    public function batches()
+    {
+        return $this->belongsToMany(Batch::class, 'batch_exam');
+    }
+
+    public function assignedStudents()
+    {
+        return $this->belongsToMany(User::class, 'exam_assignments');
+    }
+
     protected $fillable = [
         'name','question_type','question_paper_id','no_of_question','totals_marks_for_exam',
         'total_time_for_exam','marks_per_question','time_per_question','exam_code',

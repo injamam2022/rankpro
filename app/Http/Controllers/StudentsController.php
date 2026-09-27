@@ -83,7 +83,7 @@ class StudentsController extends Controller
                                     $query->where('exams.type',$exam_type); 
                                 })->distinct()->orderBy('exams.exam_date','DESC')->take(5)->get();
 
-        $data['upcoming_list'] = Exam::select(['exams.*','locations.location_name'])
+        $data['upcoming_list'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
                                     ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
                                     ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
                                     ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
@@ -157,7 +157,7 @@ class StudentsController extends Controller
 
         $data['your_score'] = $userRank[0]->rank ?? 1;
 
-        $data['trending_test'] = Exam::select(['exams.*','locations.location_name'])
+        $data['trending_test'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
                                     ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
                                     ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
                                     ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
