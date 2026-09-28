@@ -488,6 +488,7 @@
         Route::get('/exam-assignments', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'index'])->name('exam_assignments');
         Route::get('/batches', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'batches'])->name('batches');
         Route::post('/batches/save', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'saveBatch'])->name('batches.save');
+        Route::post('/batches/delete', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'deleteBatch'])->name('batches.delete');
         Route::post('/exam-assignments/save', [\App\Http\Controllers\Admin\ExamAssignmentController::class, 'saveAssignments'])->name('exam_assignments.save');
         Route::get('/online_exam', [Online_examController::class, 'list'])->name('online_exam');
         Route::get('/online_exam/add', [Online_examController::class, 'add'])->name('online_exam.add');

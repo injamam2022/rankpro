@@ -14,22 +14,77 @@ class ExamAssignmentController extends Controller
 {
     public function index(Request $request)
     {
-        $request->validate(['batch_id' => ['nullable', 'integer', 'exists:batches,id']]);
+        $request->validate([
+            'batch_id' => ['nullable', 'integer', 'exists:batches,id'],
+            'exam_id' => ['nullable', 'integer', 'exists:exams,id'],
+        ]);
+
+        $batches = Batch::with(['students' => function ($query) {
+            $query->select('users.id');
+        }])->withCount('students')
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $exams = Exam::query()
+            ->where('is_deleted', 0)
+            ->with([
+                'batches' => function ($query) {
+                    $query->with(['students' => function ($studentQuery) {
+                        $studentQuery->select('users.id');
+                    }])->withCount('students');
+                },
+                'assignedStudents' => function ($query) {
+                    $query->select('users.id');
+                },
+            ])
+            ->withCount(['batches', 'assignedStudents'])
+            ->orderBy('name')
+            ->get()
+            ->each(function (Exam $exam) {
+                $exam->unique_students_count = $exam->batches
+                    ->filter(function (Batch $batch) {
+                        return (int) $batch->status === 1;
+                    })
+                    ->flatMap(function (Batch $batch) {
+                        return $batch->students->pluck('id');
+                    })
+                    ->merge($exam->assignedStudents->pluck('id'))
+                    ->unique()
+                    ->count();
+            });
+
+        $exam = null;
+        if ($request->filled('exam_id')) {
+            $exam = Exam::where('is_deleted', 0)
+                ->with(['batches', 'assignedStudents'])
+                ->findOrFail($request->exam_id);
+        }
+
         return view('admin.exam_assignments.index', [
             'selectedBatchId' => $request->input('batch_id'),
-            'batches' => Batch::withCount('students')->orderBy('name')->get(),
-            'students' => User::orderBy('first_name')->get(),
-            'exams' => Exam::where('is_deleted', 0)->orderBy('name')->get(),
-            'exam' => $request->filled('exam_id') ? Exam::where('is_deleted', 0)->with(['batches', 'assignedStudents'])->findOrFail($request->exam_id) : null,
+            'batches' => $batches,
+            'students' => $this->activeStudents(),
+            'exams' => $exams,
+            'exam' => $exam,
+            'assignmentOverview' => $exams->filter(function ($item) {
+                return $item->batches_count > 0 || $item->assigned_students_count > 0;
+            })->values(),
         ]);
     }
 
     public function batches(Request $request)
     {
+        $request->validate([
+            'batch_id' => ['nullable', 'integer', 'exists:batches,id'],
+        ]);
+
         return view('admin.exam_assignments.batches', [
-            'batches' => Batch::withCount('students')->orderBy('name')->get(),
-            'students' => User::orderBy('first_name')->get(),
-            'batch' => $request->filled('batch_id') ? Batch::with('students')->findOrFail($request->batch_id) : null,
+            'batches' => Batch::withCount(['students', 'exams'])->orderBy('name')->get(),
+            'students' => $this->activeStudents(),
+            'batch' => $request->filled('batch_id')
+                ? Batch::with(['students', 'exams'])->findOrFail($request->batch_id)
+                : null,
         ]);
     }
 
@@ -37,33 +92,96 @@ class ExamAssignmentController extends Controller
     {
         $data = $request->validate([
             'batch_id' => ['nullable', 'integer', 'exists:batches,id'],
-            'name' => ['required', 'string', 'max:255', Rule::unique('batches')->ignore($request->input('batch_id'))],
-            'students' => ['array'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('batches', 'name')->ignore($request->input('batch_id'))],
+            'status' => ['required', 'in:0,1'],
+            'students' => ['nullable', 'array'],
             'students.*' => ['integer', 'distinct', 'exists:users,id'],
         ]);
+
         $batch = DB::transaction(function () use ($data) {
             $batch = !empty($data['batch_id']) ? Batch::findOrFail($data['batch_id']) : new Batch();
-            $batch->fill(['name' => $data['name']])->save();
+            $batch->fill([
+                'name' => $data['name'],
+                'status' => (int) $data['status'],
+            ])->save();
             $batch->students()->sync($data['students'] ?? []);
             return $batch;
         });
-        return redirect()->route('admin.batches', ['batch_id' => $batch->id])->with('success', 'Batch saved.');
+
+        return redirect()
+            ->route('admin.batches', ['batch_id' => $batch->id])
+            ->with('success', 'Batch saved successfully.');
+    }
+
+    public function deleteBatch(Request $request)
+    {
+        $data = $request->validate([
+            'batch_id' => ['required', 'integer', 'exists:batches,id'],
+        ]);
+
+        DB::transaction(function () use ($data) {
+            $batch = Batch::findOrFail($data['batch_id']);
+            $batch->students()->detach();
+            $batch->exams()->detach();
+            $batch->delete();
+        });
+
+        return redirect()
+            ->route('admin.batches')
+            ->with('success', 'Batch deleted. Related test assignments for that batch were removed.');
     }
 
     public function saveAssignments(Request $request)
     {
         $data = $request->validate([
             'exam_id' => ['required', 'integer', Rule::exists('exams', 'id')->where('is_deleted', 0)],
-            'batches' => ['array'],
-            'batches.*' => ['nullable', 'integer', 'distinct', 'exists:batches,id'],
-            'students' => ['array'],
+            'batches' => ['nullable', 'array'],
+            'batches.*' => ['nullable', 'integer', 'distinct', Rule::exists('batches', 'id')->where('status', 1)],
+            'students' => ['nullable', 'array'],
             'students.*' => ['integer', 'distinct', 'exists:users,id'],
         ]);
-        DB::transaction(function () use ($data) {
+
+        $batchIds = array_values(array_unique(array_filter($data['batches'] ?? [])));
+        $studentIds = array_values(array_unique($data['students'] ?? []));
+
+        $batchMemberIds = empty($batchIds)
+            ? collect()
+            : DB::table('batch_user')->whereIn('batch_id', $batchIds)->pluck('user_id')->map(fn ($id) => (int) $id)->unique();
+
+        $overlapIds = array_values(array_intersect($studentIds, $batchMemberIds->all()));
+        $studentIds = array_values(array_diff($studentIds, $batchMemberIds->all()));
+
+        DB::transaction(function () use ($data, $batchIds, $studentIds) {
             $exam = Exam::findOrFail($data['exam_id']);
-            $exam->batches()->sync(array_filter($data['batches'] ?? []));
-            $exam->assignedStudents()->sync($data['students'] ?? []);
+            $exam->batches()->sync($batchIds);
+            $exam->assignedStudents()->sync($studentIds);
         });
-        return redirect()->route('admin.exam_assignments', ['exam_id' => $data['exam_id']])->with('success', 'Test assignments saved.');
+
+        $redirect = redirect()->route('admin.exam_assignments', ['exam_id' => $data['exam_id']]);
+
+        if (!empty($overlapIds)) {
+            $names = User::whereIn('id', $overlapIds)
+                ->orderBy('first_name')
+                ->get(['first_name', 'last_name', 'email_id'])
+                ->map(fn ($u) => trim($u->first_name.' '.$u->last_name) ?: $u->email_id)
+                ->implode(', ');
+
+            return $redirect->with('success', 'Test assignments saved.')
+                ->with(
+                    'warning',
+                    count($overlapIds).' student(s) were not added as individual assignees because they are already covered by a selected batch: '.$names.'. They still have access through their batch and are counted only once.'
+                );
+        }
+
+        return $redirect->with('success', 'Test assignments saved. Only selected batches and students can access this test.');
+    }
+
+    private function activeStudents()
+    {
+        return User::query()
+            ->where('status', 1)
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'first_name', 'last_name', 'email_id', 'rankpro_id', 'mobile_number']);
     }
 }

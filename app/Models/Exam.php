@@ -16,8 +16,10 @@ class Exam extends Model
             })->orWhereExists(function ($batch) use ($userId) {
                 $batch->selectRaw('1')->from('batch_exam')
                     ->join('batch_user', 'batch_user.batch_id', '=', 'batch_exam.batch_id')
+                    ->join('batches', 'batches.id', '=', 'batch_exam.batch_id')
                     ->whereColumn('batch_exam.exam_id', 'exams.id')
-                    ->where('batch_user.user_id', $userId);
+                    ->where('batch_user.user_id', $userId)
+                    ->where('batches.status', 1);
             });
         });
     }

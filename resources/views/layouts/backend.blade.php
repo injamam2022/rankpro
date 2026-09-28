@@ -386,8 +386,14 @@
                                 </div>
                             @endif
                             
-                            <a class="nav-link" href="{{ route('admin.batches') }}">Batch Master</a>
-                            <a class="nav-link" href="{{ route('admin.exam_assignments') }}">Test Assignments</a>
+                            <a class="nav-link {{ request()->is('admin/batches*') ? 'active' : '' }}" href="{{ route('admin.batches') }}">
+                                <div class="nav-link-icon"><i class="material-icons">groups</i></div>
+                                Batch Master
+                            </a>
+                            <a class="nav-link {{ request()->is('admin/exam-assignments*') ? 'active' : '' }}" href="{{ route('admin.exam_assignments') }}">
+                                <div class="nav-link-icon"><i class="material-icons">assignment_ind</i></div>
+                                Test Assignments
+                            </a>
                             @if(isUserPermitted('online-exam', 'menu'))
                             
                                 <a class="nav-link collapsed

@@ -7,17 +7,35 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
-        Schema::create('batches', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->timestamps();
-        });
-        foreach (['batch_user' => ['batch_id', 'user_id'], 'batch_exam' => ['batch_id', 'exam_id'], 'exam_assignments' => ['exam_id', 'user_id']] as $name => $columns) {
-            Schema::create($name, function (Blueprint $table) use ($columns) {
-                foreach ($columns as $column) {
-                    $table->unsignedBigInteger($column)->index();
-                }
-                $table->unique($columns);
+        if (!Schema::hasTable('batches')) {
+            Schema::create('batches', function (Blueprint $table) {
+                $table->id();
+                $table->string('name')->unique();
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('batch_user')) {
+            Schema::create('batch_user', function (Blueprint $table) {
+                $table->unsignedBigInteger('batch_id')->index();
+                $table->unsignedInteger('user_id')->index();
+                $table->unique(['batch_id', 'user_id']);
+            });
+        }
+
+        if (!Schema::hasTable('batch_exam')) {
+            Schema::create('batch_exam', function (Blueprint $table) {
+                $table->unsignedBigInteger('batch_id')->index();
+                $table->unsignedBigInteger('exam_id')->index();
+                $table->unique(['batch_id', 'exam_id']);
+            });
+        }
+
+        if (!Schema::hasTable('exam_assignments')) {
+            Schema::create('exam_assignments', function (Blueprint $table) {
+                $table->unsignedBigInteger('exam_id')->index();
+                $table->unsignedInteger('user_id')->index();
+                $table->unique(['exam_id', 'user_id']);
             });
         }
     }

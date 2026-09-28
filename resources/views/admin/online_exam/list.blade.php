@@ -69,6 +69,7 @@
                             </td> -->
                             <td>
                                 <a href="{{route('admin.online_exam.edit',['id'=>$row->id])}}" class="btn btn-primary btn-sm mr-1"><i class="material-icons">edit</i></a>
+                                <a href="{{ route('admin.exam_assignments', ['exam_id' => $row->id]) }}" class="btn btn-info btn-sm mr-1" title="Assign to batch / students"><i class="material-icons">assignment_ind</i></a>
                                 <a href="{{route('admin.online_exam.delete',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you realy want to delete?');"><i class="material-icons">close</i></a>
                                 @if($row->is_ended == 0)
                                     <a href="{{route('admin.online_exam.end',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you realy want to end exam?');"><i class="material-icons">stop</i></a>

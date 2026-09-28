@@ -29,6 +29,7 @@ class ExamAssignmentTest extends TestCase
             $table->integer('type')->default(1);
         });
         (require database_path('migrations/2026_09_27_000001_create_exam_assignments.php'))->up();
+        (require database_path('migrations/2026_09_28_000002_add_status_to_batches_table.php'))->up();
         DB::table('exams')->insert([['id' => 1], ['id' => 2], ['id' => 3]]);
     }
 
@@ -36,6 +37,7 @@ class ExamAssignmentTest extends TestCase
     {
         $this->assertSame([], Exam::assignedTo(10)->pluck('id')->all());
         DB::table('exam_assignments')->insert(['exam_id' => 1, 'user_id' => 10]);
+        DB::table('batches')->insert(['id' => 1, 'name' => 'Batch 1', 'status' => 1]);
         DB::table('batch_user')->insert(['batch_id' => 1, 'user_id' => 10]);
         DB::table('batch_exam')->insert([['batch_id' => 1, 'exam_id' => 1], ['batch_id' => 1, 'exam_id' => 2]]);
         $this->assertSame([1, 2], Exam::assignedTo(10)->orderBy('id')->pluck('id')->all());
@@ -58,7 +60,7 @@ class ExamAssignmentTest extends TestCase
     public function test_admin_can_create_batch_and_replace_assignments()
     {
         $this->withSession(['adminAuth' => true])
-            ->post(route('admin.batches.save'), ['name' => 'Morning batch', 'students' => [10]])
+            ->post(route('admin.batches.save'), ['name' => 'Morning batch', 'students' => [10], 'status' => 1])
             ->assertRedirect();
         $batchId = DB::table('batches')->value('id');
         $this->post(route('admin.exam_assignments.save'), ['exam_id' => 2, 'batches' => [$batchId], 'students' => [11]])
@@ -68,6 +70,13 @@ class ExamAssignmentTest extends TestCase
         $this->post(route('admin.exam_assignments.save'), ['exam_id' => 2, 'batches' => ['']])->assertRedirect();
         $this->assertFalse(Exam::assignedTo(10)->where('id', 2)->exists());
         $this->assertFalse(Exam::assignedTo(11)->where('id', 2)->exists());
+
+        $this->post(route('admin.batches.save'), ['name' => 'Delete me', 'students' => [10], 'status' => 1])->assertRedirect();
+        $deleteId = DB::table('batches')->where('name', 'Delete me')->value('id');
+        DB::table('batch_exam')->insert(['batch_id' => $deleteId, 'exam_id' => 3]);
+        $this->post(route('admin.batches.delete'), ['batch_id' => $deleteId])->assertRedirect();
+        $this->assertFalse(DB::table('batches')->where('id', $deleteId)->exists());
+        $this->assertFalse(DB::table('batch_exam')->where('batch_id', $deleteId)->exists());
     }
 
     public function test_non_admin_cannot_assign_tests()

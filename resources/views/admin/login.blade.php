@@ -12,15 +12,18 @@
                     <div class="subheading-1 mb-5">to continue to app</div>
                 </div>
                 <!-- Login submission form-->
-                <form action="{{url('/')}}/admin/dologin" method="post">
+                <form action="{{ route('admin.dologin') }}" method="post">
                     @csrf
+                    @if(session('error-message'))
+                        <div class="alert alert-danger">{{ session('error-message') }}</div>
+                    @endif
                     <div class="mb-4">
-                        <label class="form-label" for="start_date">Email</label>
-                        <input class="form-control" id="email" name="email" placeholder="" value="" />
+                        <label class="form-label" for="email">Email</label>
+                        <input class="form-control" id="email" type="email" name="email" placeholder="admin@rankpro.local" value="{{ old('email') }}" required autocomplete="username" />
                     </div>
                     <div class="mb-4">
-                        <label class="form-label" for="start_date">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="" value="" />
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="" value="" required autocomplete="current-password" />
                     </div>
                     <div class="d-flex align-items-center">
                         <mwc-formfield label="Remember password"><mwc-checkbox></mwc-checkbox></mwc-formfield>
