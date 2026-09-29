@@ -7,6 +7,7 @@
     use App\Http\Controllers\HomeController;
     use App\Http\Controllers\StudentsController;
     use App\Http\Controllers\ExamsController;
+    use App\Http\Controllers\CustomTestController;
 
     //Sourav Start
     use App\Http\Controllers\AdmissionController;
@@ -179,6 +180,18 @@
     Route::post('/update-user-exam-question', [ExamsController::class, 'update_user_exam_question'])->name('update_user_exam_question')->middleware(['verifyMembership']);
     Route::post('/log-proctoring-event', [ExamsController::class, 'log_proctoring_event'])->name('log_proctoring_event')->middleware(['verifyMembership']);
     Route::post('/save-proctoring-snapshot', [ExamsController::class, 'save_proctoring_snapshot'])->name('save_proctoring_snapshot')->middleware(['verifyMembership']);
+
+    Route::get('/custom-test', [CustomTestController::class, 'index'])->name('custom_test')->middleware(['verifyMembership']);
+    Route::get('/custom-test/subject/{subjectId}', [CustomTestController::class, 'chapters'])->name('custom_test.chapters')->middleware(['verifyMembership']);
+    Route::get('/custom-test/subject/{subjectId}/data', [CustomTestController::class, 'chaptersData'])->name('custom_test.chapters_data')->middleware(['verifyMembership']);
+    Route::post('/custom-test/subject/save', [CustomTestController::class, 'saveChapters'])->name('custom_test.save_chapters')->middleware(['verifyMembership']);
+    Route::post('/custom-test/configure', [CustomTestController::class, 'configure'])->name('custom_test.configure')->middleware(['verifyMembership']);
+    Route::post('/custom-test/generate', [CustomTestController::class, 'generate'])->name('custom_test.generate')->middleware(['verifyMembership']);
+    Route::get('/custom-test/{id}/ready', [CustomTestController::class, 'ready'])->name('custom_test.ready')->middleware(['verifyMembership']);
+    Route::post('/custom-test/{id}/start', [CustomTestController::class, 'start'])->name('custom_test.start')->middleware(['verifyMembership']);
+    Route::get('/custom-test/{id}/download', [CustomTestController::class, 'download'])->name('custom_test.download')->middleware(['verifyMembership']);
+    Route::get('/custom-test/{id}/resume', [CustomTestController::class, 'resume'])->name('custom_test.resume')->middleware(['verifyMembership']);
+    Route::get('/custom-test/{id}/analysis', [CustomTestController::class, 'analysis'])->name('custom_test.analysis')->middleware(['verifyMembership']);
 
     Route::get('/dashboard', [StudentsController::class, 'dashboard'])->name('dashboard')->middleware(['verifyMembership']);
     Route::get('/dashboard-exam-type', [StudentsController::class, 'dashboard_exam_type'])->name('dashboard_exam_type')->middleware(['verifyMembership']);

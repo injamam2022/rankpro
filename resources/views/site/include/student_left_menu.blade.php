@@ -73,6 +73,10 @@
             <a href="{{ route('notice') }}"><img src="{{ asset('') }}web/images/d_notice_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Notices</span></a>
         </li>
 
+        <li class="{{ request()->is('custom-test') || request()->is('custom-test/*') ? ' active' : '' }}">
+            <a href="{{ route('custom_test') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Custom Test</span></a>
+        </li>
+
         <li class="{{ request()->is('exam-given') ? ' active' : '' }} {{ request()->is('exam-given/*') ? ' active' : '' }}">
             <a href="{{ route('exam_given') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Exams Given</span></a>
             @if(request()->is('exam-answers-analytics') || request()->is('exam-strength') || request()->is('exam-weakness') || request()->is('exam-progress-report') || request()->is('exam-personal-coach'))

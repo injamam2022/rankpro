@@ -259,6 +259,9 @@
             border-radius:12px;
             padding:28px 30px 26px;
             box-shadow:0 3px 18px rgba(20,34,60,.05);
+            overflow:visible;
+            position:relative;
+            z-index:1;
         }
         .exam-heading {
             display:flex;
@@ -284,24 +287,22 @@
             margin:0 0 20px;
             padding:26px 28px 27px;
             min-height:145px;
+            height:auto !important;
+            overflow:visible !important;
+            position:relative;
+            z-index:1;
             border:1px solid #e1e6ee;
             border-radius:12px;
             background:#fff;
+            clear:both;
         }
         .question-meta { display:none; }
         .questionDiv .question-text {
-            display:flex;
-            align-items:flex-start;
-            gap:8px;
+            display:block;
             width:100%;
+            overflow:visible;
         }
-        .questionDiv .q-no {
-            flex:0 0 auto;
-            font-size:17px;
-            line-height:1.75;
-            font-weight:600;
-            color:#17243a;
-        }
+        .questionDiv .q-no { display:none; }
         #question_div {
             margin:0;
             font-size:17px;
@@ -310,14 +311,66 @@
             color:#17243a;
             word-break:break-word;
             width:100%;
+            display:block;
+            overflow:visible !important;
+            height:auto !important;
+            max-height:none !important;
+            position:relative;
         }
-        #question_div img { max-width:100%; height:auto; }
-        .optionsDiv { margin:0; }
+        #question_div::after {
+            content:"";
+            display:table;
+            clear:both;
+        }
+        #question_div img,
+        .questionImg img,
+        .answerImg img,
+        .option-card img {
+            max-width:100% !important;
+            width:auto !important;
+            height:auto !important;
+            display:inline-block;
+            vertical-align:middle;
+        }
+        #question_div table {
+            width:auto !important;
+            max-width:100% !important;
+            height:auto !important;
+            border-collapse:collapse;
+            position:relative !important;
+            float:none !important;
+            margin:10px 0;
+            display:table;
+        }
+        #question_div table td,
+        #question_div table th {
+            height:auto !important;
+            vertical-align:top;
+            padding:6px 8px;
+        }
+        #question_div p,
+        #question_div div {
+            position:static !important;
+            float:none !important;
+            max-width:100%;
+            height:auto !important;
+            overflow:visible !important;
+        }
+        .questionImg { margin-top:12px; clear:both; }
+        .answerImg { width:100%; }
+        .optionsDiv {
+            margin:8px 0 0;
+            clear:both;
+            position:relative;
+            z-index:1;
+            overflow:visible;
+        }
         .optionsDiv > .row { margin:0 -7px; }
         .optionsDiv .col-lg-6 { padding:0 7px; }
         .option-card {
             position:relative;
             min-height:94px;
+            height:auto !important;
             margin-bottom:14px;
             padding:18px 20px;
             display:flex;
@@ -328,6 +381,7 @@
             background:#fff;
             cursor:pointer;
             transition:border-color .15s, background .15s, box-shadow .15s;
+            overflow:visible;
         }
         .option-card:hover { border-color:#a9b9ec; background:#fafbff; }
         .option-card > input {
@@ -407,13 +461,16 @@
             top:0 !important;
             right:20px !important;
             width:320px !important;
-            min-height:100%;
+            max-height:calc(100vh - 90px);
+            min-height:0;
             background:#fff !important;
             border:1px solid #e4e8ef !important;
             border-radius:12px !important;
             box-shadow:0 3px 18px rgba(20,34,60,.05) !important;
             overflow:hidden;
             z-index:10;
+            display:flex !important;
+            flex-direction:column;
         }
         .sideExampOptions .optionOpener { display:none !important; }
         .sideExampOptions > ul {
@@ -422,6 +479,7 @@
             margin:0 !important;
             padding:0 !important;
             border-bottom:1px solid #dfe4eb;
+            flex:0 0 auto;
         }
         .sideExampOptions > ul li { margin:0 !important; min-width:0; }
         .sideExampOptions > ul li a {
@@ -447,31 +505,49 @@
         .sideExampOptions .redlink a span { color:#fff; }
         .sideExampOptions .yellowlink a span { color:#222; }
         .questionBankList {
+            flex:1 1 auto;
+            min-height:220px;
             height:auto !important;
-            max-height:520px !important;
+            max-height:none !important;
             overflow-y:auto;
-            padding:26px 22px 22px !important;
+            overflow-x:hidden;
+            padding:18px 16px 20px !important;
+            -webkit-overflow-scrolling:touch;
         }
         .questionBankList:before {
             content:'QUESTION BANK';
             display:block;
-            margin:0 0 16px;
+            margin:0 0 12px;
             color:#17243a;
             font-size:14px;
             font-weight:700;
         }
+        .questionBankSubject {
+            display:block;
+            width:100%;
+            margin:10px 0 8px;
+            padding:4px 0 2px;
+            color:#596273;
+            font-size:11px;
+            font-weight:700;
+            letter-spacing:.04em;
+            text-transform:uppercase;
+            border-bottom:1px solid #eef0f4;
+        }
+        .questionBankSubject:first-of-type { margin-top:0; }
+        .questionBankGroup { display:block; margin-bottom:6px; }
         .questionBankList a {
             display:inline-flex;
             align-items:center;
             justify-content:center;
-            width:42px;
-            height:38px;
-            margin:0 6px 8px 0;
+            width:38px;
+            height:34px;
+            margin:0 5px 7px 0;
             border:1px solid #bfe8d1;
             border-radius:7px;
             background:#e7f9ef;
             color:#15925d;
-            font-size:12px;
+            font-size:11px;
             font-weight:600;
             text-decoration:none !important;
         }
@@ -492,10 +568,11 @@
                 top:auto !important;
                 right:auto !important;
                 width:100% !important;
+                max-height:none;
                 min-height:0;
                 margin-bottom:18px;
             }
-            .questionBankList { max-height:220px !important; }
+            .questionBankList { max-height:min(55vh, 420px) !important; }
         }
         @media (max-width:767px) {
             .exam-layout { padding:0 10px; }
@@ -649,7 +726,7 @@
         <div class="questionBankList" id="question_list"></div>
       </aside>
       <main class="exam-content">
-        <div class="exam-heading"><h5>Online Examination</h5><span class="subject">Question &amp; Answer</span></div>
+        <div class="exam-heading"><h5>Online Examination</h5><span class="subject" id="current_subject_label">Question &amp; Answer</span></div>
         <div class="exampTime" id="sclockdiv" style="display:none"><div class="blueTime"><div style="width:50%;"></div><span><b class="minutes"></b><b class="seconds"></b></span></div></div>
         <div class="questionDiv">
           <div class="question-text">
@@ -751,18 +828,29 @@
         renderQuestionList(globalData.question_list,true);
         renderOuestionCount();
         renderQuestionAndOption(globalData.question_list[globalData.question_index],globalData.question_index+1);
-
-        
-        var winHeight = $(document).height();
-        console.log(winHeight);
-        //$('.setHtight').css('min-height',winHeight-180);
-        var ulHeight = $('.sideExampOptions ul').height();
-        console.log(ulHeight);
-        $('.questionBankList').css('height',winHeight-ulHeight-200);
-
+        resizeQuestionBank();
+        $(window).on('resize', resizeQuestionBank);
       });
+
+      function resizeQuestionBank() {
+        var $sidebar = $('.sideExampOptions');
+        var $list = $('.questionBankList');
+        var $ul = $('.sideExampOptions > ul');
+        if (!$sidebar.length || !$list.length) return;
+        if (window.innerWidth <= 991) {
+          $list.css({ height: '', maxHeight: '' });
+          $sidebar.css({ height: '', maxHeight: '' });
+          return;
+        }
+        var top = $sidebar.offset().top - $(window).scrollTop();
+        if (top < 8) top = 8;
+        var sidebarH = Math.max(360, window.innerHeight - top - 16);
+        var ulH = $ul.outerHeight(true) || 0;
+        var listH = Math.max(220, sidebarH - ulH);
+        $sidebar.css({ height: sidebarH + 'px', maxHeight: sidebarH + 'px' });
+        $list.css({ height: listH + 'px', maxHeight: listH + 'px' });
+      }
     </script>
-   
 
     <script>
       function onclickQuestionList(question_index){
@@ -866,33 +954,95 @@
         document.getElementById('total_review_later_count').innerHTML = total_review_later_count;
       }
 
+      function examAssetBase() {
+        return @json(asset(''));
+      }
+
+      function looksLikeImageFile(value) {
+        if (value == null || value === '') return false;
+        var v = String(value).trim();
+        if (!v || v.length > 250) return false;
+        return /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(v);
+      }
+
+      function isImageOption(flag, value) {
+        return flag == 1 || flag === true || flag === '1' || looksLikeImageFile(value);
+      }
+
+      function mediaUrl(file) {
+        if (!file) return '';
+        var f = String(file).trim().replace(/^\/+/, '');
+        if (/^https?:\/\//i.test(f) || /^data:/i.test(f)) return f;
+        if (f.indexOf('uploads/option/') === 0) {
+          f = f.replace('uploads/option/', 'uploads/question/');
+        }
+        if (f.indexOf('uploads/') === 0) return examAssetBase() + f;
+        return examAssetBase() + 'uploads/question/' + f;
+      }
+
+      function fixHtmlMedia(html) {
+        if (!html) return '';
+        var wrap = document.createElement('div');
+        wrap.innerHTML = html;
+        wrap.querySelectorAll('img').forEach(function (img) {
+          var src = img.getAttribute('src') || '';
+          if (!src) return;
+          if (/^https?:\/\//i.test(src) || /^data:/i.test(src)) {
+            // keep absolute
+          } else if (src.indexOf('uploads/option/') !== -1) {
+            img.setAttribute('src', examAssetBase() + src.replace(/^\/+/, '').replace('uploads/option/', 'uploads/question/'));
+          } else if (src.indexOf('uploads/') === 0 || src.indexOf('/uploads/') !== -1) {
+            var cleaned = src.replace(/^\/+/, '');
+            if (cleaned.indexOf('uploads/') === -1) cleaned = 'uploads/question/' + cleaned.split('/').pop();
+            img.setAttribute('src', examAssetBase() + cleaned.replace('uploads/option/', 'uploads/question/'));
+          } else if (src.indexOf('/') === -1) {
+            img.setAttribute('src', mediaUrl(src));
+          }
+          img.removeAttribute('width');
+          img.removeAttribute('height');
+          img.style.maxWidth = '100%';
+          img.style.height = 'auto';
+        });
+        wrap.querySelectorAll('table').forEach(function (table) {
+          table.removeAttribute('height');
+          table.style.height = 'auto';
+          table.style.maxWidth = '100%';
+          table.style.position = 'relative';
+          table.style.float = 'none';
+        });
+        wrap.querySelectorAll('[style]').forEach(function (el) {
+          var style = el.getAttribute('style') || '';
+          if (/position\s*:\s*absolute/i.test(style)) {
+            el.style.position = 'relative';
+          }
+          if (/float\s*:\s*(left|right)/i.test(style)) {
+            el.style.float = 'none';
+          }
+        });
+        return wrap.innerHTML;
+      }
+
+      function renderOptionHtml(flag, value) {
+        if (looksLikeImageFile(value)) {
+          return '<div class="answerImg"><img src="' + mediaUrl(value) + '" alt="option"></div>';
+        }
+        // Flagged as image with a path-like value (no HTML)
+        if ((flag == 1 || flag === true || flag === '1') && value && String(value).indexOf('<') === -1 && String(value).length > 8) {
+          return '<div class="answerImg"><img src="' + mediaUrl(value) + '" alt="option"></div>';
+        }
+        return fixHtmlMedia(value || '');
+      }
+
       function renderQuestionAndOption(data,number){
-        console.log(data);
         var question_image = "";
         if(data.question_image){
-          question_image = `<div class="questionImg"><img src="{{ asset('') }}uploads/question/`+data.question_image+`"></div>`;
+          question_image = `<div class="questionImg"><img src="`+mediaUrl(data.question_image)+`" alt="question"></div>`;
         }
-        document.getElementById('question_div').innerHTML = number+') '+data.question_text+''+question_image;
-        if(data.is_option1_image == 1){
-          document.getElementById('option1_div').innerHTML = `<div class="answerImg"><img src="{{ asset('') }}uploads/option/`+data.option1+`"></div>`;
-        }else{
-          document.getElementById('option1_div').innerHTML = data.option1;
-        }
-        if(data.is_option2_image == 1){
-          document.getElementById('option2_div').innerHTML = `<div class="answerImg"><img src="{{ asset('') }}uploads/option/`+data.option2+`"></div>`;
-        }else{
-          document.getElementById('option2_div').innerHTML = data.option2;
-        }
-        if(data.is_option3_image == 1){
-          document.getElementById('option3_div').innerHTML = `<div class="answerImg"><img src="{{ asset('') }}uploads/option/`+data.option3+`"></div>`;
-        }else{
-          document.getElementById('option3_div').innerHTML = data.option3;
-        }
-        if(data.is_option4_image == 1){
-          document.getElementById('option4_div').innerHTML = `<div class="answerImg"><img src="{{ asset('') }}uploads/option/`+data.option4+`"></div>`;
-        }else{
-          document.getElementById('option4_div').innerHTML = data.option4;
-        }
+        document.getElementById('question_div').innerHTML = number+') '+fixHtmlMedia(data.question_text || '')+''+question_image;
+        document.getElementById('option1_div').innerHTML = renderOptionHtml(data.is_option1_image, data.option1);
+        document.getElementById('option2_div').innerHTML = renderOptionHtml(data.is_option2_image, data.option2);
+        document.getElementById('option3_div').innerHTML = renderOptionHtml(data.is_option3_image, data.option3);
+        document.getElementById('option4_div').innerHTML = renderOptionHtml(data.is_option4_image, data.option4);
         $('#option1').prop('checked', false);
         $('#option2').prop('checked', false);
         $('#option3').prop('checked', false);
@@ -951,12 +1101,20 @@
         }
 
         document.getElementById('current_question_view').innerHTML = number;
+        var subjectLabel = document.getElementById('current_subject_label');
+        if (subjectLabel) {
+          subjectLabel.textContent = data.subject_name || 'Question & Answer';
+        }
+        if (typeof resizeQuestionBank === 'function') {
+          setTimeout(resizeQuestionBank, 50);
+        }
       }
 
       function renderQuestionList(data,type){
-        var iHtml = `<h6>QUESTION BANK</h6>`;
+        var iHtml = '';
         var className = "";
         var keyName;
+        var lastSubject = null;
         data.forEach(function(res,index){
           className = "";
           if(res.answer == 0){
@@ -964,17 +1122,35 @@
           }else if(res.answer){
             className = "green";
           }
-          if(res.index){
+          if(typeof res.index !== 'undefined' && res.index !== null && res.index !== ''){
             keyName = res.index;
           }else{
             keyName = index;
           }
-          iHtml = iHtml + `<a href="javascript:void(0);" class="`+className+`" id="question_list_`+keyName+`" onclick="onclickQuestionList(`+keyName+`)">Q`+(keyName+1)+`</a>`;
           if(type){
             globalData.question_list[index].index = index;
           }
+          var subjectName = res.subject_name || 'General';
+          if(subjectName !== lastSubject){
+            if(lastSubject !== null){
+              iHtml += `</div>`;
+            }
+            iHtml += `<div class="questionBankSubject">`+subjectName+`</div><div class="questionBankGroup">`;
+            lastSubject = subjectName;
+          }
+          iHtml = iHtml + `<a href="javascript:void(0);" class="`+className+`" id="question_list_`+keyName+`" onclick="onclickQuestionList(`+keyName+`)">Q`+(keyName+1)+`</a>`;
         });
+        if(lastSubject !== null){
+          iHtml += `</div>`;
+        }
         document.getElementById("question_list").innerHTML = iHtml;
+        var current = document.getElementById("question_list_" + globalData.question_index);
+        if (current) {
+          current.classList.add('current');
+          if (typeof current.scrollIntoView === 'function') {
+            current.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          }
+        }
       }
 
       function selectAnswerOption(type){

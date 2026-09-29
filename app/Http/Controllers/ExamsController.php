@@ -38,6 +38,7 @@ class ExamsController extends Controller
                             ->where('exams.type',1)
                             ->where('exams.status',1)
                             ->where('exams.is_deleted',0)
+                            ->where('exams.exam_code', 'not like', 'CT-%')
                             ->where('exams.exam_date','>=',date('Y-m-d'))->get();
         return view('site.online_exam',$data);
         
@@ -97,10 +98,18 @@ class ExamsController extends Controller
 
         $data['question_list'] = Question_paper_question::select([
                                 'questions.id',
-                                'question_paper_questions.id as question_paper_question_id'
+                                'questions.subject_id',
+                                'subjects.name as subject_name',
+                                'question_paper_questions.id as question_paper_question_id',
+                                'question_paper_questions.question_number',
                             ])
                                 ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                ->where('question_paper_id',$data['exam_detail']->question_paper_id)->get();
+                                ->leftJoin('subjects', 'subjects.id', '=', 'questions.subject_id')
+                                ->where('question_paper_questions.question_paper_id', $data['exam_detail']->question_paper_id)
+                                ->orderByRaw("FIELD(subjects.name, 'Physics', 'Chemistry', 'Biology')")
+                                ->orderBy('subjects.name')
+                                ->orderBy('question_paper_questions.question_number')
+                                ->get();
 
         $questionIds = $data['question_list']->pluck('id')->filter()->all();
         $paperQuestionIds = $data['question_list']->pluck('question_paper_question_id')->filter()->all();
