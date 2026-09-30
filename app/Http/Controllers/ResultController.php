@@ -66,6 +66,7 @@ class ResultController extends Controller
                 $subject_list = Question_paper_subject::select(['subjects.name'])
                     ->leftJoin('subjects', 'subjects.id', '=', 'question_paper_subjects.subject_id')
                     ->where('question_paper_subjects.question_paper_id', $value->question_paper_id)
+                    ->groupBy('question_paper_subjects.subject_id', 'subjects.name')
                     ->get();
             } else {
                 $subject_list = Offline_exam_question::select(['subjects.name'])
@@ -75,11 +76,7 @@ class ResultController extends Controller
                     ->get();
             }
 
-            foreach ($subject_list as $val) {
-                $value->subject_names = $value->subject_names
-                    ? $value->subject_names.', '.$val->name
-                    : $val->name;
-            }
+            $value->subject_names = $subject_list->pluck('name')->filter()->unique()->implode(', ');
         }
 
         return view('site.trending_exam',$data);

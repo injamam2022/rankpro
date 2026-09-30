@@ -21,6 +21,7 @@ use App\Models\Question_detail;
 use App\Models\Exam_result;
 use App\Models\Question_paper;
 use App\Models\Exam_proctoring_event;
+use App\Models\CustomTest;
 use Illuminate\Support\Facades\Storage;
 
 class ExamsController extends Controller
@@ -53,29 +54,31 @@ class ExamsController extends Controller
         $durationSeconds = $durationMinutes * 60;
 
         $exam_user = Exam_user::where('exam_id',$exam_id)->where('user_id',$user_id)->orderBy('id','desc')->first();
-        $needsNewAttempt = true;
-        if ($exam_user) {
-            $status = (string)$exam_user->proctoring_status;
-            $expired = $durationSeconds > 0 && (int)$exam_user->total_time >= $durationSeconds;
-            $finished = in_array($status, ['cancelled', 'auto_submitted', 'completed'], true);
-            $scored = $exam_user->percentage !== null && $exam_user->percentage !== '';
-            if (!$expired && !$finished && !$scored) {
-                $needsNewAttempt = false;
+
+        if ($exam_user && $this->attemptIsFinished($exam_user, $durationSeconds)) {
+            if ((string) $exam_user->exam_type === 'CUSTOM') {
+                $custom = CustomTest::where('exam_user_id', $exam_user->id)->where('user_id', $user_id)->first();
+                if ($custom) {
+                    return redirect()->route('custom_test.analysis', $custom->id)
+                        ->with('error', 'This exam is already completed.');
+                }
             }
+
+            return redirect()->route('exam_result_detail', ['id' => $exam_user->id])
+                ->with('error', 'This exam is already completed. You cannot start it again.');
         }
 
-        if ($needsNewAttempt) {
+        if (!$exam_user) {
             $exam_user = Exam_user::create([
                 'exam_id' => $exam_id,
                 'user_id' => $user_id,
                 'exam_type' => 'OTS',
                 'total_time' => 0,
             ]);
+            toastr()->success('Exam start successfully.');
         }
 
-        toastr()->success('Exam start successfully.');
         return redirect()->route('start_online_exam',['id'=>$exam_user->id]);
-        
     }
 
     public function start_online_exam(Request $request){
@@ -88,12 +91,35 @@ class ExamsController extends Controller
         if (!$data['user_exam_detail']) {
             abort(403);
         }
+
+        $examOnly = Exam::where('id', $data['user_exam_detail']->exam_id)->first();
+        $paper = $examOnly ? Question_paper::where('id', $examOnly->question_paper_id)->first() : null;
+        $durationMinutes = (int) (($examOnly->total_time_for_exam ?? 0) ?: ($paper->total_time_for_exam ?? 0));
+        $durationSeconds = $durationMinutes * 60;
+
+        // Finished attempts cannot re-enter the live exam player.
+        if ($this->attemptIsFinished($data['user_exam_detail'], $durationSeconds)) {
+            if ((string) $data['user_exam_detail']->exam_type === 'CUSTOM') {
+                $custom = CustomTest::where('exam_user_id', $exam_user_id)->where('user_id', $user_id)->first();
+                if ($custom) {
+                    return redirect()->route('custom_test.analysis', $custom->id)
+                        ->with('error', 'This exam is already completed.');
+                }
+            }
+
+            return redirect()->route('exam_result_detail', ['id' => $exam_user_id])
+                ->with('error', 'This exam is already completed. You cannot enter it again.');
+        }
+
         $data['exam_detail'] = Exam::select(['exams.*','question_papers.*'])
                                 ->leftJoin('question_papers', 'question_papers.id', '=', 'exams.question_paper_id')
                                 ->where('exams.id',$data['user_exam_detail']->exam_id)->first();
-        $examOnly = Exam::where('id', $data['user_exam_detail']->exam_id)->first();
-        if ($examOnly && !empty($examOnly->total_time_for_exam)) {
-            $data['exam_detail']->total_time_for_exam = $examOnly->total_time_for_exam;
+        if ($examOnly) {
+            // Join with question_papers can overwrite exams.name / duration.
+            $data['exam_detail']->name = $examOnly->name ?: ($data['exam_detail']->name ?? 'Online Exam');
+            if (!empty($examOnly->total_time_for_exam)) {
+                $data['exam_detail']->total_time_for_exam = $examOnly->total_time_for_exam;
+            }
         }
 
         $data['question_list'] = Question_paper_question::select([
@@ -152,7 +178,12 @@ class ExamsController extends Controller
             }
             $data['question_list'][$key]->makeHidden(['solution', 'solution_video_link', 'correct_answer']);
         }
-        return view('site.start_online_exam',$data);
+
+        return response()
+            ->view('site.start_online_exam', $data)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
         
     }
 
@@ -303,6 +334,53 @@ class ExamsController extends Controller
             abort(404);
         }
 
+        // Final client flush: persist any answers still only in the browser.
+        $answersPayload = $request->input('answers', []);
+        if (is_string($answersPayload)) {
+            $decoded = json_decode($answersPayload, true);
+            $answersPayload = is_array($decoded) ? $decoded : [];
+        }
+        if (is_array($answersPayload)) {
+            foreach ($answersPayload as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $paperQuestionId = (int) ($row['question_paper_question_id'] ?? 0);
+                $questionId = (int) ($row['id'] ?? 0);
+                if ($paperQuestionId < 1) {
+                    continue;
+                }
+                $answer = $row['answer'] ?? null;
+                if ($answer === null || $answer === '') {
+                    continue;
+                }
+
+                $existing = Exam_result::where('user_id', $user_id)
+                    ->where('exam_user_id', $exam_user_id)
+                    ->where('exam_question_id', $paperQuestionId)
+                    ->first();
+
+                $payload = [
+                    'user_id' => $user_id,
+                    'exam_id' => $exam_id,
+                    'exam_user_id' => $exam_user_id,
+                    'exam_question_id' => $paperQuestionId,
+                    'question_id' => $questionId ?: ($existing->question_id ?? null),
+                    'answer' => $answer,
+                    'time' => $row['time'] ?? ($existing->time ?? 0),
+                    'type' => $row['type'] ?? ($existing->type ?? 'answer'),
+                    'review_later' => !empty($row['review_later']) ? 1 : (int) ($existing->review_later ?? 0),
+                    'reported' => !empty($row['reported']) ? 1 : (int) ($existing->reported ?? 0),
+                ];
+
+                if ($existing) {
+                    $existing->update($payload);
+                } else {
+                    Exam_result::create($payload);
+                }
+            }
+        }
+
         $exam_question = Question_paper_question::select('question_paper_questions.*','question_paper_questions.id as question_paper_question_id','questions.answer')
                             ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
                             ->where('question_paper_id',$exam_details->question_paper_id)
@@ -359,8 +437,18 @@ class ExamsController extends Controller
             $insertData['proctoring_status'] = 'auto_submitted';
         } elseif (!empty($user_exam_detail->proctoring_status)) {
             $insertData['proctoring_status'] = 'completed';
+        } else {
+            // Non-proctored manual end still marks the attempt finished.
+            $insertData['proctoring_status'] = 'completed';
         }
         $user_exam_detail->update($insertData);
+
+        if ((string) $user_exam_detail->exam_type === 'CUSTOM') {
+            CustomTest::where('exam_user_id', $exam_user_id)
+                ->where('user_id', $user_id)
+                ->update(['status' => 'attempted']);
+        }
+
         echo 1; exit;
     }
 
@@ -435,6 +523,20 @@ class ExamsController extends Controller
         ]);
 
         return response()->json(['ok' => 1]);
+    }
+
+    private function attemptIsFinished($examUser, int $durationSeconds = 0): bool
+    {
+        if (!$examUser) {
+            return false;
+        }
+
+        $status = (string) ($examUser->proctoring_status ?? '');
+        $finishedStatus = in_array($status, ['cancelled', 'auto_submitted', 'completed'], true);
+        $scored = $examUser->percentage !== null && $examUser->percentage !== '';
+        $expired = $durationSeconds > 0 && (int) ($examUser->total_time ?? 0) >= $durationSeconds;
+
+        return $finishedStatus || $scored || $expired;
     }
 
     private function ownedExamUser($examUserId)

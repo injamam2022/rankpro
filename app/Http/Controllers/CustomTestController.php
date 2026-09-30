@@ -463,6 +463,13 @@ class CustomTestController extends Controller
             $examUser = Exam_user::where('id', $custom->exam_user_id)->where('user_id', $userId)->first();
         }
 
+        if ($examUser) {
+            if ($this->customAttemptIsFinished($examUser)) {
+                return redirect()->route('custom_test.analysis', $custom->id)
+                    ->with('error', 'This exam is already completed.');
+            }
+        }
+
         if (!$examUser) {
             $examUser = Exam_user::create([
                 'exam_id' => $custom->exam_id,
@@ -579,8 +586,9 @@ class CustomTestController extends Controller
 
         if ($custom->exam_user_id) {
             $examUser = Exam_user::where('id', $custom->exam_user_id)->where('user_id', Auth::id())->first();
-            if ($examUser && $examUser->percentage !== null && $examUser->percentage !== '') {
-                return redirect()->route('custom_test.analysis', $custom->id);
+            if ($examUser && $this->customAttemptIsFinished($examUser)) {
+                return redirect()->route('custom_test.analysis', $custom->id)
+                    ->with('error', 'This exam is already completed.');
             }
         }
 
@@ -593,6 +601,19 @@ class CustomTestController extends Controller
         }
 
         return redirect()->route('start_online_exam', ['id' => $custom->exam_user_id]);
+    }
+
+    private function customAttemptIsFinished($examUser): bool
+    {
+        if (!$examUser) {
+            return false;
+        }
+
+        $status = (string) ($examUser->proctoring_status ?? '');
+        $finishedStatus = in_array($status, ['cancelled', 'auto_submitted', 'completed'], true);
+        $scored = $examUser->percentage !== null && $examUser->percentage !== '';
+
+        return $finishedStatus || $scored;
     }
 
     public function analysis(Request $request, $id)

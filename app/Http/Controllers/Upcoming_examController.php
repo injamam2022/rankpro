@@ -65,17 +65,11 @@ class Upcoming_examController extends Controller
                 $subject_list = Question_paper_subject::select(['subjects.name'])
                                         ->leftJoin('subjects', 'subjects.id', '=', 'question_paper_subjects.subject_id')
                                         ->where('question_paper_subjects.question_paper_id',$value->question_paper_id)
+                                        ->groupBy('question_paper_subjects.subject_id', 'subjects.name')
                                         ->get();
 
-                if(count($subject_list)){
-                    foreach($subject_list as $val){
-                        if($value->subject_names){
-                            $value->subject_names .= ", ".$val->name;
-                        }else{
-                            $value->subject_names = $val->name;
-                        }
-                    }
-                }
+                $names = $subject_list->pluck('name')->filter()->unique()->values();
+                $value->subject_names = $names->implode(', ');
             }else{
                 $subject_list = Offline_exam_question::select(['subjects.name'])
                                         ->leftJoin('subjects', 'subjects.id', '=', 'offline_exam_questions.subject_id')
@@ -83,15 +77,8 @@ class Upcoming_examController extends Controller
                                         ->groupBy('offline_exam_questions.subject_id')
                                         ->get();
 
-                if(count($subject_list)){
-                    foreach($subject_list as $val){
-                        if($value->subject_names){
-                            $value->subject_names .= ", ".$val->name;
-                        }else{
-                            $value->subject_names = $val->name;
-                        }
-                    }
-                }
+                $names = $subject_list->pluck('name')->filter()->unique()->values();
+                $value->subject_names = $names->implode(', ');
             }
         }
 

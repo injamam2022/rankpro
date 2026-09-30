@@ -244,7 +244,18 @@ class Exam_givenController extends Controller
         $total_qus_count = (int) (count($data['exam_question']) / 4);
         $question_count = 0;
         foreach ($data['exam_question'] as $key => $value) {
-            $exam_result = Exam_result::where('user_id',$user_id)->where('exam_id',$data['offline_exam']->id)->where('exam_question_id',$value->id)->first();
+            $exam_result = Exam_result::where('user_id', $user_id)
+                ->where('exam_user_id', $exam_user_id)
+                ->where('exam_question_id', $value->id)
+                ->first();
+            // Fallback for older rows saved without exam_user_id.
+            if (!$exam_result) {
+                $exam_result = Exam_result::where('user_id', $user_id)
+                    ->where('exam_id', $data['offline_exam']->id)
+                    ->where('exam_question_id', $value->id)
+                    ->orderByDesc('id')
+                    ->first();
+            }
             // $question_detail = Question_detail::where('question_id',$value->question_id)->where('language_id',1)->first();
             // dd($value);
             $value->user_answer = "";

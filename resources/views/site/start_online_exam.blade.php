@@ -702,8 +702,14 @@
   <div class="container-fluid h-100">
     <div class="mainHeader">
       <div class="logo dashboardMenuPL" id="logoContain"><a href="javascript:void(0);"><img src="{{ asset('') }}web/images/logo.png" class="img-fluid" alt="RankPro" id="mainLogo"></a></div>
-      <div class="examHeaderName" title="{{ $exam_detail->name ?? 'Exam' }}">
-        {{ $exam_detail->name ?? 'Online Exam' }}
+      @php
+        $examHeaderName = trim((string) ($exam_detail->name ?? ''));
+        if ($examHeaderName === '') {
+            $examHeaderName = 'Online Exam';
+        }
+      @endphp
+      <div class="examHeaderName" title="{{ $examHeaderName }}">
+        {{ $examHeaderName }}
       </div>
       @if(!empty($exam_detail->is_proctored))
       <div class="proctoring-badge">Proctored · warnings <span id="proctoringViolationCount">0</span>/{{ $exam_detail->proctoring_max_violations ?? 5 }}</div>
@@ -815,6 +821,36 @@
       globalData.time_per_question = globalData.exam_time/globalData.exam_detail.no_of_question;
       globalData.total_time = <?php echo ($user_exam_detail->total_time)?$user_exam_detail->total_time:0;?>;
       window.examCsrfToken = "{{ csrf_token() }}";
+      @php
+        $afterEndUrl = route('exam_result_detail', ['id' => $user_exam_id]);
+        if ((string) ($user_exam_detail->exam_type ?? '') === 'CUSTOM') {
+            $customId = \App\Models\CustomTest::where('exam_user_id', $user_exam_id)
+                ->where('user_id', Auth::id())
+                ->value('id');
+            $afterEndUrl = $customId
+                ? route('custom_test.analysis', $customId)
+                : route('custom_test', ['tab' => 'attempted']);
+        }
+      @endphp
+      window.examAfterEndUrl = @json($afterEndUrl);
+      window.examAttemptId = {{ (int) $user_exam_id }};
+      window.examEndedStorageKey = 'rankpro_exam_ended_' + window.examAttemptId;
+
+      // If this attempt was already ended, never stay on the exam player (covers browser Back).
+      if (sessionStorage.getItem(window.examEndedStorageKey) === '1') {
+        window.location.replace(window.examAfterEndUrl);
+      }
+
+      window.addEventListener('pageshow', function (event) {
+        if (sessionStorage.getItem(window.examEndedStorageKey) === '1') {
+          window.location.replace(window.examAfterEndUrl);
+          return;
+        }
+        // Back-forward cache can restore a mid-"Ending..." snapshot; force a fresh server check.
+        if (event.persisted) {
+          window.location.reload();
+        }
+      });
     </script>
 
    <!--===============================================================================================-->
@@ -1246,9 +1282,13 @@
           "question_paper_question_id":question_detail.question_paper_question_id,
           "answer":question_detail.answer,
           "time":question_detail.time,
+          "review_later":(question_detail.review_later)?1:0,
+          "reported":(question_detail.reported)?1:0,
           "type":"answer"
         };
-        // saveQuestionAnswer(requestData);
+        saveQuestionAnswer(requestData);
+        renderOuestionCount();
+        renderQuestionList(globalData.question_list,0);
       }
 
       function clickPreviousButton(){
@@ -1415,13 +1455,32 @@
       function saveQuestionAnswer(requestData){
         requestData.exam_user_id = {{$user_exam_id}};
         requestData.exam_id = {{$user_exam_detail->exam_id}};
-        $.ajax({
+        requestData._token = examAjaxToken();
+        return $.ajax({
           url:"{{route('update_user_exam_question')}}",
           method:"POST",
           data:requestData,
-          success:function(responseData){
-          }
+          headers: { 'X-CSRF-TOKEN': examAjaxToken() }
         });
+      }
+
+      function collectAnswersPayload(){
+        var answers = [];
+        (globalData.question_list || []).forEach(function(q){
+          if (q.answer === '' || q.answer === null || typeof q.answer === 'undefined') {
+            return;
+          }
+          answers.push({
+            id: q.id,
+            question_paper_question_id: q.question_paper_question_id,
+            answer: q.answer,
+            time: q.time || 0,
+            type: q.type || 'answer',
+            review_later: (q.review_later == 1 || q.review_later === '1') ? 1 : 0,
+            reported: (q.reported == 1 || q.reported === '1') ? 1 : 0
+          });
+        });
+        return answers;
       }
 
       function endTestExam(){
@@ -1441,23 +1500,43 @@
           RankProProctoring.ended = true;
         }
         $('.js-end-test-btn').prop('disabled', true).text('Ending...');
+
+        // Persist current question selection before scoring.
+        if (globalData.is_current_option_selected) {
+          globalData.question_list[globalData.question_index].answer = globalData.is_current_option_selected;
+          globalData.question_list[globalData.question_index].type = 'answer';
+          globalData.question_list[globalData.question_index].time = globalData.current_question_time.total/1000;
+        }
+
         var requestData = {
           _token: examAjaxToken(),
           exam_user_id: {{$user_exam_id}},
-          exam_id: {{$user_exam_detail->exam_id}}
+          exam_id: {{$user_exam_detail->exam_id}},
+          answers: JSON.stringify(collectAnswersPayload())
         };
         if(mode === 'cancel'){
           requestData.proctoring_cancelled = 1;
         } else if(mode){
           requestData.proctoring_auto_submit = 1;
         }
+
+        var afterEndUrl = window.examAfterEndUrl || "{{ route('exam_result_detail', ['id' => $user_exam_id]) }}";
+
         $.ajax({
           url:"{{route('end_exam')}}",
           method:"POST",
           data:requestData,
           headers: { 'X-CSRF-TOKEN': examAjaxToken() },
+          timeout: 60000,
           success:function(responseData){
-            window.location.href = "{{route('exam_result_detail',['id'=>$user_exam_id])}}";
+            try {
+              sessionStorage.setItem(window.examEndedStorageKey, '1');
+            } catch (e) {}
+            if (window.opener && !window.opener.closed) {
+              try { window.close(); } catch (e) {}
+            }
+            // replace() so browser Back cannot return to the live exam page.
+            window.location.replace(afterEndUrl);
           },
           error:function(xhr){
             window.examEndingNow = false;
@@ -1465,7 +1544,11 @@
               RankProProctoring.ended = false;
             }
             $('.js-end-test-btn').prop('disabled', false).text('End Test');
-            alert('Could not end the test. Please try again.');
+            var msg = 'Could not end the test. Please try again.';
+            if (xhr && xhr.status === 419) {
+              msg = 'Session expired. Refresh the page and end the test again.';
+            }
+            alert(msg);
           }
         });
       }
