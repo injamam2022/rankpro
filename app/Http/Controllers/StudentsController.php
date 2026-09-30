@@ -34,6 +34,7 @@ use App\Models\Subject;
 use App\Models\Chapter;
 use App\Models\Topic;
 use App\Models\Setting;
+use App\Models\Batch;
 
 use DB;
 
@@ -64,6 +65,16 @@ class StudentsController extends Controller
         $data['exam_user_type'] = $request->exam_user_type;
         $data['exam_type'] = $request->exam_type;
         $data['subject_id'] = $request->subject_id;
+        $data['student_batches'] = Batch::query()
+            ->select('batches.id', 'batches.name')
+            ->join('batch_user', 'batch_user.batch_id', '=', 'batches.id')
+            ->where('batch_user.user_id', Auth::id())
+            ->where(function ($q) {
+                $q->where('batches.status', 1)->orWhereNull('batches.status');
+            })
+            ->orderBy('batches.name')
+            ->distinct()
+            ->get();
 
         $subject_id = $request->subject_id;
         $exam_type = $request->exam_type;

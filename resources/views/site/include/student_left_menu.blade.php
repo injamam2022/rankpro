@@ -1,21 +1,21 @@
-<?php 
+<?php
     $auth_data = Auth::user();
-    
+
     $user_name = "";
     $xp_points = "";
-    
+
     if(session()->get('parant_login_type') == "P"){
         $user_name = $auth_data->father_full_name;
     }else{
         $user_name = $auth_data->first_name." ".$auth_data->last_name;
         $xp_points = $auth_data->xp_points;
     }
-    
+
 ?>
     <div class="menuBarBtn menuBarBtnClose">
         <i class="fas fa-times"></i>
     </div>
-    
+
     <div class="logo dashboardMenuPL">
       <a href="{{ route('index') }}">
         <img src="{{ asset('') }}web/images/logo-dashboard.png" class="img-fluid dashboardLogo_dx" alt="">
@@ -47,7 +47,7 @@
                         @if($auth_data->youtube_link)
                             <li><a href="{{$auth_data->youtube_link}}" target="_blank"><img src="{{ asset('') }}web/images/yt.png" class="img-fluid dashboardSocialImg" alt=""></a></li>
                         @endif
-                        @if($auth_data->twitter_link)                            
+                        @if($auth_data->twitter_link)
                             <li><a href="{{$auth_data->twitter_link}}" target="_blank"><img src="{{ asset('') }}web/images/tw.png" class="img-fluid dashboardSocialImg" alt=""></a></li>
                         @endif
                         @if($auth_data->whats_app_link)
@@ -107,19 +107,19 @@
         <li class="{{ request()->is('answers-analytics') ? ' active' : '' }} {{ request()->is('answers-analytics/*') ? ' active' : '' }}">
             <a href="{{ route('answers_analytics') }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
         </li>
-        
+
         <li class="{{ request()->is('strength') ? ' active' : '' }} {{ request()->is('strength/*') ? ' active' : '' }}">
             <a href="{{ route('strength') }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
         </li>
-        
+
         <li class="{{ request()->is('weakness') ? ' active' : '' }} {{ request()->is('weakness/*') ? ' active' : '' }}">
             <a href="{{ route('weakness') }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
         </li>
-        
+
         <li class="{{ request()->is('progress-report') ? ' active' : '' }} {{ request()->is('progress-report/*') ? ' active' : '' }}">
             <a href="{{ route('progress_report') }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
         </li>
-        
+
         <li class="{{ request()->is('personal-coach') ? ' active' : '' }} {{ request()->is('personal-coach/*') ? ' active' : '' }}">
             <a href="{{ route('personal_coach') }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
         </li>
@@ -127,7 +127,7 @@
         <li class="{{ request()->is('common_confusion') ? ' active' : '' }} {{ request()->is('common_confusion/*') ? ' active' : '' }}">
             <a href="{{ route('common_confusion') }}"><img src="{{ asset('') }}web/images/d_conf_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Mistake Monitor</span></a>
         </li>
-        
+
         <li class="">
             <a href="#"><img src="{{ asset('') }}web/images/d_ai_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>RankPro AI</span></a>
         </li>
@@ -141,13 +141,13 @@
         <li class="{{ request()->is('report-problem') ? ' active' : '' }} {{ request()->is('report-problem/*') ? ' active' : '' }}">
             <a href="{{ route('report_problem') }}"><img src="{{ asset('') }}web/images/d_headset_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Report a problem</span></a>
         </li>
-        
+
         <li class="{{ request()->is('plans') ? ' active' : '' }} {{ request()->is('plans/*') ? ' active' : '' }}">
             <a href="{{ route('plans') }}"><img src="{{ asset('') }}web/images/d_upgrade_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Upgrade</span></a>
         </li>
-        
-        
-        
+
+
+
         <!--<li class="{{ request()->is('profile') ? ' active' : '' }} {{ request()->is('profile/*') ? ' active' : '' }}">-->
         <!--    <a href="{{ route('profile') }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Profile</span></a>-->
         <!--</li>-->
@@ -157,8 +157,8 @@
         <!-- <li class="{{ request()->is('terms-and-condition') ? ' active' : '' }} {{ request()->is('terms-and-condition/*') ? ' active' : '' }}">-->
         <!--    <a href="{{ route('terms_and_condition') }}"><img src="{{ asset('') }}web/images/d_terms_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Terms & Conditions</span></a>-->
         <!--</li>-->
-        
-        
+
+
         <li class="{{ request()->is('logout') ? ' active' : '' }} {{ request()->is('logout/*') ? ' active' : '' }}">
             <a href="{{ route('logout') }}"><img src="{{ asset('') }}web/images/d_exit_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Logout</span></a>
         </li>

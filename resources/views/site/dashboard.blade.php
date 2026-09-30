@@ -98,6 +98,16 @@
                                         <div class="">
                                           <div class="dashboardTitle">{{ $user->first_name }} {{ strtoupper(substr($user->last_name, 0, 1)) }}, (<span>{{ $user->rankpro_id }}</span>)</div>
                                           <div class="dashboardEmail">{{$user->email_id}}</div>
+                                          @if(!empty($student_batches) && count($student_batches))
+                                            <div class="dashboardBatch">
+                                                <span class="dashboardBatchLabel">Batch</span>
+                                                <span class="dashboardBatchList">
+                                                    @foreach($student_batches as $batch)
+                                                        <span class="dashboardBatchChip">{{ $batch->name }}</span>
+                                                    @endforeach
+                                                </span>
+                                            </div>
+                                          @endif
                                           <!--<div class="dashboardText">{!!$dashboard_content->board!!}</div>-->
                                         </div>
                                       

@@ -155,24 +155,28 @@ class CustomTestController extends Controller
                         'name' => $sub->name,
                         'questions' => (int) ($subTopicCounts[$sub->id] ?? 0),
                     ];
-                })->values();
+                })->filter(fn ($sub) => $sub['questions'] > 0)->values();
+
+                $topicQuestions = (int) ($topicCounts[$topic->id] ?? 0);
 
                 return [
                     'id' => (int) $topic->id,
                     'name' => $topic->name,
-                    'questions' => (int) ($topicCounts[$topic->id] ?? 0),
+                    'questions' => $topicQuestions,
                     'subtopics' => $subs,
                 ];
-            })->values();
+            })->filter(fn ($topic) => $topic['questions'] > 0 || $topic['subtopics']->count() > 0)->values();
+
+            $chapterQuestions = (int) ($chapterCounts[$chapter->id] ?? 0);
 
             return [
                 'id' => (int) $chapter->id,
                 'name' => $chapter->name,
-                'questions' => (int) ($chapterCounts[$chapter->id] ?? 0),
+                'questions' => $chapterQuestions,
                 'topic_count' => $chapterTopics->count(),
                 'topics' => $chapterTopics,
             ];
-        })->values();
+        })->filter(fn ($chapter) => $chapter['questions'] > 0 || $chapter['topic_count'] > 0)->values();
 
         return response()->json([
             'subject' => ['id' => $subject->id, 'name' => $subject->name],
