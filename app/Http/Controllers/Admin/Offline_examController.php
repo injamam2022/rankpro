@@ -33,6 +33,7 @@ use App\Models\Question_paper_question;
 use App\Models\Offline_exam_question;
 use App\Models\Exam_status;
 use App\Models\Exam_mistake_input;
+use App\Models\CustomTest;
 
 class Offline_examController extends Controller
 {
@@ -50,7 +51,10 @@ class Offline_examController extends Controller
         $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['location_list'] = Location::where('status',1)->get();
-        $data['question_paper_list'] = Question_paper::where('status',1)->where('is_deleted',0)->get();
+        $data['question_paper_list'] = Question_paper::where('status',1)
+            ->where('is_deleted',0)
+            ->whereNotIn('id', CustomTest::questionPaperIdQuery())
+            ->get();
         return view('admin.offline_exam.add',$data);
     }
 
@@ -178,7 +182,10 @@ class Offline_examController extends Controller
         $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['location_list'] = Location::where('status',1)->get();
-        $data['question_paper_list'] = Question_paper::where('status',1)->where('is_deleted',0)->get();
+        $data['question_paper_list'] = Question_paper::where('status',1)
+            ->where('is_deleted',0)
+            ->whereNotIn('id', CustomTest::questionPaperIdQuery())
+            ->get();
         return view('admin.offline_exam.edit',$data);
     }
 

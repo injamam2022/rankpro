@@ -22,13 +22,20 @@ use App\Models\Question_detail;
 use App\Models\Question_paper;
 use App\Models\Exam_user;
 use App\Models\Exam_proctoring_event;
+use App\Models\CustomTest;
 use DB;
 
 class Online_examController extends Controller
 {
     public function list(){
         $data = [];
-        $data['list'] = Exam::where('type',1)->where('is_deleted',0)->get();
+        $data['list'] = Exam::where('type',1)
+            ->where('is_deleted',0)
+            ->where(function ($q) {
+                $q->whereNull('exam_code')->orWhere('exam_code', 'not like', 'CT-%');
+            })
+            ->whereNotIn('id', CustomTest::examIdQuery())
+            ->get();
         return view('admin.online_exam.list',$data);
     }
 
@@ -37,7 +44,9 @@ class Online_examController extends Controller
         $data = [];
         $data['location_list'] = Location::where('status',1)->get();
         $data['subject_list'] = Subject::select(['id','name'])->where('status',1)->get();
-        $data['question_paper_list'] = Question_paper::where('status',1)->get();
+        $data['question_paper_list'] = Question_paper::where('status',1)
+            ->whereNotIn('id', CustomTest::questionPaperIdQuery())
+            ->get();
         return view('admin.online_exam.add',$data);
     }
 
@@ -113,7 +122,9 @@ class Online_examController extends Controller
         $data = [];
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['details'] = Exam::where('id',$request->id)->first();
-        $data['question_paper_list'] = Question_paper::where('status',1)->get();
+        $data['question_paper_list'] = Question_paper::where('status',1)
+            ->whereNotIn('id', CustomTest::questionPaperIdQuery())
+            ->get();
         return view('admin.online_exam.edit',$data);
     }
 

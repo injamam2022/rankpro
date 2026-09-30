@@ -171,21 +171,47 @@ class Exam_givenController extends Controller
         $subject_id = $request->subject_id;
         $exam_type = $request->exam_type;
 
-        $data['exam_list'] = Exam_user::select(['exams.*','exam_users.id as user_exam_id','exam_users.total_answer','exam_users.total_right_answer','exam_users.total_number','exam_users.rank','exam_users.created_at','exam_users.total_mark'])
-                                ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
-                                ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
-                                ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
-                                ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                ->leftJoin('offline_exam_questions', 'offline_exam_questions.exam_id', '=', 'exams.id')
-                                ->where('exams.is_deleted',0)
-                                ->where('exam_users.user_id',Auth::user()->id)
-                                ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                    $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                })
-                                ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                    $query->where('exams.type',$exam_type); 
-                                })->distinct()->orderBy('exams.exam_date','DESC')->get();
-        // dd($data['exam_list']);
+        $data['exam_list'] = Exam_user::select([
+                'exams.id',
+                'exams.name',
+                'exams.exam_code',
+                'exams.type',
+                'exams.exam_date',
+                'exam_users.id as user_exam_id',
+                'exam_users.total_answer',
+                'exam_users.total_right_answer',
+                'exam_users.total_number',
+                'exam_users.rank',
+                'exam_users.created_at',
+                'exam_users.total_mark',
+                'exam_users.exam_type',
+            ])
+            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
+            ->where('exams.is_deleted', 0)
+            ->where('exam_users.user_id', Auth::id())
+            ->when($subject_id !== null && $subject_id !== '', function ($query) use ($subject_id) {
+                $query->where(function ($outer) use ($subject_id) {
+                    $outer->whereExists(function ($sub) use ($subject_id) {
+                        $sub->select(DB::raw(1))
+                            ->from('question_paper_questions')
+                            ->join('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                            ->whereColumn('question_paper_questions.question_paper_id', 'exams.question_paper_id')
+                            ->where('questions.subject_id', $subject_id);
+                    })->orWhereExists(function ($sub) use ($subject_id) {
+                        $sub->select(DB::raw(1))
+                            ->from('offline_exam_questions')
+                            ->whereColumn('offline_exam_questions.exam_id', 'exams.id')
+                            ->where('offline_exam_questions.subject_id', $subject_id);
+                    });
+                });
+            })
+            ->when($exam_type !== null && $exam_type !== '', function ($query) use ($exam_type) {
+                $query->where('exams.type', $exam_type);
+            })
+            ->orderByDesc('exam_users.created_at')
+            ->paginate(15)
+            ->appends($request->query());
+
         return view('site.exam_given',$data);
     }
 

@@ -291,6 +291,7 @@
                                     {{ request()->is('admin/question') ? ' active' : '' }} {{ request()->is('admin/question/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}
+                                    {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}
 
                                     " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseQuestion" aria-expanded="false" aria-controls="collapseQuestion">
                                         <div class="nav-link-icon"><i class="material-icons">menu_book</i></div>
@@ -302,6 +303,7 @@
                                         <a class="nav-link {{ request()->is('admin/question') ? ' active' : '' }} {{ request()->is('admin/question/*') ? ' active' : '' }}" href="{{route('admin.question')}}">Question</a>
                                         <a class="nav-link {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}" href="{{route('admin.question.upload')}}">Question Upload</a>
                                         <a class="nav-link {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}" href="{{route('admin.question_paper')}}">Question Bank</a>
+                                        <a class="nav-link {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}" href="{{ route('admin.custom_test_bank') }}">Custom Test Bank</a>
                                     </nav>
                                 </div>
                             @endif
@@ -318,6 +320,7 @@
                                     {{ request()->is('admin/question-source') ? ' active' : '' }} {{ request()->is('admin/question-source/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}
+                                    {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question_type') ? ' active' : '' }} {{ request()->is('admin/question_type/*') ? ' active' : '' }}
 
                                     " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseQuestion" aria-expanded="false" aria-controls="collapseQuestion">
@@ -356,6 +359,7 @@
                                         @endif
                                         @if(isUserPermitted('question-paper-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}" href="{{route('admin.question_paper')}}">Question Bank</a>
+                                            <a class="nav-link {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}" href="{{ route('admin.custom_test_bank') }}">Custom Test Bank</a>
                                         @endif
                                     </nav>
                                 </div>

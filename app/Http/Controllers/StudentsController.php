@@ -105,6 +105,9 @@ class StudentsController extends Controller
                                              ->where('exam_statuses.user_id', Auth::user()->id);
                                     })
                                     ->where('exams.is_deleted',0)->where('exams.status',1)
+                                    ->where(function ($q) {
+                                        $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
+                                    })
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
                                         $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
                                     })
@@ -179,6 +182,9 @@ class StudentsController extends Controller
                                              ->where('exam_statuses.user_id', Auth::user()->id);
                                     })
                                     ->where('exams.is_deleted',0)->where('exams.status',1)
+                                    ->where(function ($q) {
+                                        $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
+                                    })
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
                                         $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
                                     })

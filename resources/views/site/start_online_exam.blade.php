@@ -554,6 +554,26 @@
         .questionBankList a.active,
         .questionBankList a.current { background:#3561ff; border-color:#3561ff; color:#fff; }
         .questionBankList a.gray { background:#eef0f4; border-color:#dfe3e8; color:#697286; }
+        .questionBankList a.green { background:#08aa58; border-color:#08aa58; color:#fff; }
+        .questionBankList a.red { background:#e53935; border-color:#c62828; color:#fff; }
+        .questionBankList a.yellow { background:#f6c445; border-color:#e0a800; color:#222; }
+        .examHeaderName {
+            flex: 1 1 auto;
+            min-width: 0;
+            max-width: min(420px, 36vw);
+            font-size: 13px;
+            font-weight: 600;
+            color: #17233b;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: unset;
+            margin: 0;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+        @media (max-width: 991px) {
+            .examHeaderName { max-width: min(240px, 42vw); font-size: 12px; }
+        }
         footer { display:none; }
         @media (max-width:1200px) {
             .exam-layout { padding:0 15px; }
@@ -682,6 +702,9 @@
   <div class="container-fluid h-100">
     <div class="mainHeader">
       <div class="logo dashboardMenuPL" id="logoContain"><a href="javascript:void(0);"><img src="{{ asset('') }}web/images/logo.png" class="img-fluid" alt="RankPro" id="mainLogo"></a></div>
+      <div class="examHeaderName" title="{{ $exam_detail->name ?? 'Exam' }}">
+        {{ $exam_detail->name ?? 'Online Exam' }}
+      </div>
       @if(!empty($exam_detail->is_proctored))
       <div class="proctoring-badge">Proctored · warnings <span id="proctoringViolationCount">0</span>/{{ $exam_detail->proctoring_max_violations ?? 5 }}</div>
       @endif
@@ -904,13 +927,13 @@
               condtion = false;
             }
           }else if(type == "reported"){
-            if(item.reported){
+            if(item.reported == 1 || item.reported === '1' || item.reported === true){
               condtion = true;
             }else{
               condtion = false;
             }
           }else if(type == "review_later"){
-            if(item.review_later){
+            if(item.review_later == 1 || item.review_later === '1' || item.review_later === true){
               condtion = true;
             }else{
               condtion = false;
@@ -971,13 +994,41 @@
 
       function mediaUrl(file) {
         if (!file) return '';
-        var f = String(file).trim().replace(/^\/+/, '');
+        var f = String(file).trim();
         if (/^https?:\/\//i.test(f) || /^data:/i.test(f)) return f;
+        f = f.replace(/\\/g, '/');
+        // Strip relative junk like ../../uploads/...
+        f = f.replace(/^(\.\.\/)+/, '').replace(/^\/+/, '');
         if (f.indexOf('uploads/option/') === 0) {
           f = f.replace('uploads/option/', 'uploads/question/');
         }
+        if (f.indexOf('public/uploads/') === 0) {
+          f = f.replace('public/uploads/', 'uploads/');
+        }
         if (f.indexOf('uploads/') === 0) return examAssetBase() + f;
-        return examAssetBase() + 'uploads/question/' + f;
+        // Bare filename or nested path without uploads/
+        if (f.indexOf('/') === -1 || f.indexOf('question/') === 0 || f.indexOf('option/') === 0) {
+          f = f.replace(/^option\//, 'question/');
+          if (f.indexOf('question/') !== 0) f = 'question/' + f.replace(/^question\//, '');
+          return examAssetBase() + 'uploads/' + f;
+        }
+        return examAssetBase() + 'uploads/question/' + f.split('/').pop();
+      }
+
+      function mediaUrlFallback(file) {
+        var primary = mediaUrl(file);
+        if (!primary) return '';
+        // If primary points at uploads/question, also allow uploads/option as fallback.
+        return primary.replace('/uploads/question/', '/uploads/option/');
+      }
+
+      function imgTag(src, alt) {
+        var primary = mediaUrl(src);
+        var fallback = mediaUrlFallback(src);
+        var onerr = fallback && fallback !== primary
+          ? ' onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + fallback.replace(/'/g, "\\'") + '\';}"'
+          : '';
+        return '<img src="' + primary + '" alt="' + (alt || '') + '"' + onerr + '>';
       }
 
       function fixHtmlMedia(html) {
@@ -989,14 +1040,31 @@
           if (!src) return;
           if (/^https?:\/\//i.test(src) || /^data:/i.test(src)) {
             // keep absolute
-          } else if (src.indexOf('uploads/option/') !== -1) {
-            img.setAttribute('src', examAssetBase() + src.replace(/^\/+/, '').replace('uploads/option/', 'uploads/question/'));
-          } else if (src.indexOf('uploads/') === 0 || src.indexOf('/uploads/') !== -1) {
-            var cleaned = src.replace(/^\/+/, '');
-            if (cleaned.indexOf('uploads/') === -1) cleaned = 'uploads/question/' + cleaned.split('/').pop();
-            img.setAttribute('src', examAssetBase() + cleaned.replace('uploads/option/', 'uploads/question/'));
-          } else if (src.indexOf('/') === -1) {
-            img.setAttribute('src', mediaUrl(src));
+          } else {
+            var cleaned = src.replace(/\\/g, '/').replace(/^(\.\.\/)+/, '').replace(/^\/+/, '');
+            if (cleaned.indexOf('uploads/option/') !== -1) {
+              cleaned = cleaned.replace('uploads/option/', 'uploads/question/');
+            }
+            if (cleaned.indexOf('public/uploads/') === 0) {
+              cleaned = cleaned.replace('public/uploads/', 'uploads/');
+            }
+            if (cleaned.indexOf('uploads/') === 0) {
+              img.setAttribute('src', examAssetBase() + cleaned);
+            } else if (cleaned.indexOf('/') === -1) {
+              img.setAttribute('src', mediaUrl(cleaned));
+            } else {
+              img.setAttribute('src', mediaUrl(cleaned.split('/').pop()));
+            }
+            var fallback = (img.getAttribute('src') || '').replace('/uploads/question/', '/uploads/option/');
+            if (fallback && fallback !== img.getAttribute('src')) {
+              img.setAttribute('data-fallback', fallback);
+              img.onerror = function () {
+                if (!this.dataset.fb) {
+                  this.dataset.fb = '1';
+                  this.src = this.getAttribute('data-fallback');
+                }
+              };
+            }
           }
           img.removeAttribute('width');
           img.removeAttribute('height');
@@ -1024,11 +1092,11 @@
 
       function renderOptionHtml(flag, value) {
         if (looksLikeImageFile(value)) {
-          return '<div class="answerImg"><img src="' + mediaUrl(value) + '" alt="option"></div>';
+          return '<div class="answerImg">' + imgTag(value, 'option') + '</div>';
         }
         // Flagged as image with a path-like value (no HTML)
         if ((flag == 1 || flag === true || flag === '1') && value && String(value).indexOf('<') === -1 && String(value).length > 8) {
-          return '<div class="answerImg"><img src="' + mediaUrl(value) + '" alt="option"></div>';
+          return '<div class="answerImg">' + imgTag(value, 'option') + '</div>';
         }
         return fixHtmlMedia(value || '');
       }
@@ -1036,7 +1104,7 @@
       function renderQuestionAndOption(data,number){
         var question_image = "";
         if(data.question_image){
-          question_image = `<div class="questionImg"><img src="`+mediaUrl(data.question_image)+`" alt="question"></div>`;
+          question_image = `<div class="questionImg">` + imgTag(data.question_image, 'question') + `</div>`;
         }
         document.getElementById('question_div').innerHTML = number+') '+fixHtmlMedia(data.question_text || '')+''+question_image;
         document.getElementById('option1_div').innerHTML = renderOptionHtml(data.is_option1_image, data.option1);
@@ -1110,18 +1178,30 @@
         }
       }
 
+      function questionPaletteClass(res) {
+        // Priority: reported > review later > answered > skipped > unanswered
+        if (res.reported == 1 || res.reported === '1' || res.reported === true) {
+          return 'red';
+        }
+        if (res.review_later == 1 || res.review_later === '1' || res.review_later === true) {
+          return 'yellow';
+        }
+        if (res.answer == 0 || res.answer === '0') {
+          return 'gray';
+        }
+        if (res.answer) {
+          return 'green';
+        }
+        return '';
+      }
+
       function renderQuestionList(data,type){
         var iHtml = '';
         var className = "";
         var keyName;
         var lastSubject = null;
         data.forEach(function(res,index){
-          className = "";
-          if(res.answer == 0){
-            className = "gray";
-          }else if(res.answer){
-            className = "green";
-          }
+          className = questionPaletteClass(res);
           if(typeof res.index !== 'undefined' && res.index !== null && res.index !== ''){
             keyName = res.index;
           }else{
@@ -1198,6 +1278,7 @@
         };
         saveQuestionAnswer(requestData);
         renderQuestionAndOption(globalData.question_list[globalData.question_index],globalData.question_index+1);
+        renderQuestionList(globalData.question_list,0);
         // if(globalData.question_list[globalData.question_index+1]){
         //   globalData.question_index = globalData.question_index + 1;
         //   renderQuestionAndOption(globalData.question_list[globalData.question_index],globalData.question_index+1);
@@ -1228,6 +1309,7 @@
         };
         saveQuestionAnswer(requestData);
         renderQuestionAndOption(globalData.question_list[globalData.question_index],globalData.question_index+1);
+        renderQuestionList(globalData.question_list,0);
       }
 
       function clickSaveButton(){

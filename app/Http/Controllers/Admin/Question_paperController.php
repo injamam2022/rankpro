@@ -19,6 +19,7 @@ use App\Models\Question;
 use App\Models\Question_detail;
 use App\Models\Question_type;
 use App\Models\Question_paper_question_type;
+use App\Models\CustomTest;
 
 class Question_paperController extends Controller
 {
@@ -26,9 +27,14 @@ class Question_paperController extends Controller
         $data = [];
         
         if(session()->get('admmin_is_super') == 'T'){
-            $data['list'] = Question_paper::where('is_deleted',0)->where('administrator_id',session()->get('adminAuth'))->get();
+            $data['list'] = Question_paper::where('is_deleted',0)
+                ->where('administrator_id',session()->get('adminAuth'))
+                ->whereNotIn('id', CustomTest::questionPaperIdQuery())
+                ->get();
         }else{
-            $data['list'] = Question_paper::where('is_deleted',0)->get();
+            $data['list'] = Question_paper::where('is_deleted',0)
+                ->whereNotIn('id', CustomTest::questionPaperIdQuery())
+                ->get();
         }
         
         return view('admin.question_paper.list',$data);

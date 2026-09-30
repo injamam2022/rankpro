@@ -35,8 +35,23 @@ class CustomTest extends Model
         return $this->belongsTo(Subject::class, 'subject_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function examUser()
     {
         return $this->belongsTo(Exam_user::class, 'exam_user_id');
+    }
+
+    public static function examIdQuery()
+    {
+        return static::query()->whereNotNull('exam_id')->select('exam_id');
+    }
+
+    public static function questionPaperIdQuery()
+    {
+        return static::query()->whereNotNull('question_paper_id')->select('question_paper_id');
     }
 }

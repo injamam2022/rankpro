@@ -43,6 +43,43 @@
         .calltoaction {
             display: none;
         }
+        .exam-type-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #f4ebff;
+            color: #5b4bb7;
+            vertical-align: middle;
+        }
+        .exam-given-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px 4px 8px;
+        }
+        .exam-given-pagination .pagination {
+            margin: 0;
+        }
+        .exam-given-pagination .page-link {
+            color: #3561ff;
+            border-radius: 8px;
+            margin: 0 2px;
+            border: 1px solid #e4e7ec;
+        }
+        .exam-given-pagination .page-item.active .page-link {
+            background: #3561ff;
+            border-color: #3561ff;
+            color: #fff;
+        }
+        .exam-given-meta {
+            font-size: 13px;
+            color: #667085;
+        }
     </style>
     
     @include('site.include.head_meta')
@@ -133,26 +170,47 @@
                                             </thead>
                                 
                                             <tbody>
-                                                @foreach($exam_list as $value)
+                                                @forelse($exam_list as $value)
+                                                    @php
+                                                        $isCustom = ($value->exam_type === 'CUSTOM')
+                                                            || (is_string($value->exam_code) && str_starts_with($value->exam_code, 'CT-'));
+                                                    @endphp
                                                     <tr class="clickable-row" data-href="{{ route('exam_answers_analytics',['exam_id'=>$value->user_exam_id]) }}">
-                                                        <td>{{$value->created_at}}</td>
+                                                        <td>{{ \Carbon\Carbon::parse($value->created_at)->format('Y-m-d H:i:s') }}</td>
                                                         <td>
                                                             {{$value->exam_code}}
                                                         </td>
-                                                        <td>{{$value->name}}</td>
-                                                        <!-- <td>Doppler Effect</td> -->
+                                                        <td>
+                                                            {{$value->name}}
+                                                            @if($isCustom)
+                                                                <span class="exam-type-badge">Custom Test</span>
+                                                            @endif
+                                                        </td>
                                                         <td>{{$value->rank}}</td>
                                                         <td>{{$value->total_number}} / {{$value->total_mark}}</td>
                                                         <td>
-                                                            <a href="{{route('exam_result_detail',['id'=>$value->user_exam_id])}}">
+                                                            <a href="{{route('exam_result_detail',['id'=>$value->user_exam_id])}}" onclick="event.stopPropagation();">
                                                                 <div class="omr-icon"></div>
                                                             </a>
                                                         </td>
                                                     </tr>
-                                                @endforeach
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="6" class="text-center text-muted py-4">No exams found.</td>
+                                                    </tr>
+                                                @endforelse
                                             </tbody>
                                         </table>
                                     </div>
+
+                                    @if($exam_list->total() > 0)
+                                        <div class="exam-given-pagination">
+                                            <div class="exam-given-meta">
+                                                Showing {{ $exam_list->firstItem() }}–{{ $exam_list->lastItem() }} of {{ $exam_list->total() }}
+                                            </div>
+                                            {{ $exam_list->onEachSide(1)->links('pagination::bootstrap-5') }}
+                                        </div>
+                                    @endif
                                 
                                 </div>
                               </div>

@@ -45,6 +45,7 @@
     use App\Http\Controllers\Admin\Offline_examController;
     use App\Http\Controllers\Admin\Offline_exam_resultController;
     use App\Http\Controllers\Admin\Online_examController;
+    use App\Http\Controllers\Admin\CustomTestBankController;
     use App\Http\Controllers\Admin\Exam_locationController;
     use App\Http\Controllers\Admin\CommonController;
 
@@ -517,6 +518,8 @@
         Route::get('/online_exam/proctoring', [Online_examController::class, 'proctoring'])->name('online_exam.proctoring');
         Route::get('/online_exam/proctoring_detail', [Online_examController::class, 'proctoring_detail'])->name('online_exam.proctoring_detail');
         Route::get('/online_exam/proctoring_snapshot', [Online_examController::class, 'proctoring_snapshot'])->name('online_exam.proctoring_snapshot');
+
+        Route::get('/custom-test-bank', [CustomTestBankController::class, 'list'])->name('custom_test_bank');
 
         Route::get('/ranker', [RankerController::class, 'list'])->name('ranker');
         Route::get('/ranker/add', [RankerController::class, 'add'])->name('ranker.add');

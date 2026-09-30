@@ -20,6 +20,8 @@ use App\Models\Exam_mistake_input;
 use App\Models\Mistake_input;
 use App\Models\Chapter;
 use App\Models\Exam_result;
+use App\Models\Question_paper_subject;
+use App\Models\Offline_exam_question;
 
 use DB;
 
@@ -47,6 +49,9 @@ class ResultController extends Controller
                         ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
                         ->leftJoin('offline_exam_questions', 'offline_exam_questions.exam_id', '=', 'exams.id')
                         ->where('exams.is_deleted',0)->where('exams.status',1)
+                        ->where(function ($q) {
+                            $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
+                        })
                         ->where('exams.exam_date','>=',date('Y-m-d'))
                         ->when($subject_id !== null, function ($query) use ($subject_id) {
                             $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
@@ -54,6 +59,28 @@ class ResultController extends Controller
                         ->when($exam_type !== null, function ($query) use ($exam_type) {
                             $query->where('exams.type',$exam_type); 
                         })->distinct()->orderBy('exams.exam_date','ASC')->get();
+
+        foreach ($data['upcoming_exam_list'] as $value) {
+            $value->subject_names = '';
+            if ($value->question_paper_id) {
+                $subject_list = Question_paper_subject::select(['subjects.name'])
+                    ->leftJoin('subjects', 'subjects.id', '=', 'question_paper_subjects.subject_id')
+                    ->where('question_paper_subjects.question_paper_id', $value->question_paper_id)
+                    ->get();
+            } else {
+                $subject_list = Offline_exam_question::select(['subjects.name'])
+                    ->leftJoin('subjects', 'subjects.id', '=', 'offline_exam_questions.subject_id')
+                    ->where('offline_exam_questions.exam_id', $value->id)
+                    ->groupBy('offline_exam_questions.subject_id')
+                    ->get();
+            }
+
+            foreach ($subject_list as $val) {
+                $value->subject_names = $value->subject_names
+                    ? $value->subject_names.', '.$val->name
+                    : $val->name;
+            }
+        }
 
         return view('site.trending_exam',$data);
     }

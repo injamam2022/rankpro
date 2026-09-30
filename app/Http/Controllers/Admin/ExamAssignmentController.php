@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Batch;
 use App\Models\Exam;
 use App\Models\User;
+use App\Models\CustomTest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -28,6 +29,10 @@ class ExamAssignmentController extends Controller
 
         $exams = Exam::query()
             ->where('is_deleted', 0)
+            ->where(function ($q) {
+                $q->whereNull('exam_code')->orWhere('exam_code', 'not like', 'CT-%');
+            })
+            ->whereNotIn('id', CustomTest::examIdQuery())
             ->with([
                 'batches' => function ($query) {
                     $query->with(['students' => function ($studentQuery) {
@@ -57,6 +62,10 @@ class ExamAssignmentController extends Controller
         $exam = null;
         if ($request->filled('exam_id')) {
             $exam = Exam::where('is_deleted', 0)
+                ->where(function ($q) {
+                    $q->whereNull('exam_code')->orWhere('exam_code', 'not like', 'CT-%');
+                })
+                ->whereNotIn('id', CustomTest::examIdQuery())
                 ->with(['batches', 'assignedStudents'])
                 ->findOrFail($request->exam_id);
         }

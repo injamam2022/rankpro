@@ -129,7 +129,7 @@
                                                                     <div class="row">
                                                                         <div class="col-sm-8 mb-0">
                                                                             <div class="title">{{$value->name}}</div>
-                                                                            <div class="subtitle">Human Embryology</div>
+                                                                            <div class="subtitle">{{ $value->subject_names ?? '—' }}</div>
                                                                             <div class="datetime">
                                                                                 {{\Carbon\Carbon::parse($value->exam_date)->format('jS F, Y')}} &nbsp; | &nbsp; {{\Carbon\Carbon::parse($value->exam_time)->format('g:ia')}}
                                                                             </div>
@@ -219,7 +219,7 @@
                                                                     <div class="row">
                                                                         <div class="col-sm-8 mb-0">
                                                                             <div class="title">{{$value->name}}</div>
-                                                                            <div class="subtitle">Human Embryology</div>
+                                                                            <div class="subtitle">{{ $value->subject_names ?? '—' }}</div>
                                                                             <div class="datetime">
                                                                                 {{\Carbon\Carbon::parse($value->exam_date)->format('jS F, Y')}} &nbsp; | &nbsp; {{\Carbon\Carbon::parse($value->exam_time)->format('g:ia')}}
                                                                             </div>
