@@ -97,7 +97,6 @@
                                     <div class="dashboardTitleCount">
                                         <div class="">
                                           <div class="dashboardTitle">{{ $user->first_name }} {{ strtoupper(substr($user->last_name, 0, 1)) }}, (<span>{{ $user->rankpro_id }}</span>)</div>
-                                          <div class="dashboardEmail">{{$user->email_id}}</div>
                                           @if(!empty($student_batches) && count($student_batches))
                                             <div class="dashboardBatch">
                                                 <span class="dashboardBatchLabel">Batch</span>
@@ -344,12 +343,6 @@
                                   </ul>
                               </div>
                           </div>
-                          <div class="col-12 dashboardBannerOn">
-                              <div class="dashboardBlock dashboardBanner">
-                                  <img src="{{ asset('') }}web/images/dashboardBanner_new.jpeg" class="img-fluid dashboardBannerImg" alt="">
-                                  <img src="{{ asset('') }}web/images/bannerClose_ic.png" class="img-fluid dashboardBannerClose" alt="">
-                              </div>
-                          </div>
                           <div class="col-xl-4">
                               <div class="tab-content dashboardBlock examBlock">
                                 <div class="textTitle_viewAllText">
@@ -479,6 +472,15 @@
                           </ul>
                         </div>
                       @endif
+
+                      <div class="row">
+                          <div class="col-12 dashboardBannerOn">
+                              <div class="dashboardBlock dashboardBanner">
+                                  <img src="{{ asset('') }}web/images/dashboardBanner_new.jpeg" class="img-fluid dashboardBannerImg" alt="">
+                                  <img src="{{ asset('') }}web/images/bannerClose_ic.png" class="img-fluid dashboardBannerClose" alt="">
+                              </div>
+                          </div>
+                      </div>
                       
                   </div>
               </div>

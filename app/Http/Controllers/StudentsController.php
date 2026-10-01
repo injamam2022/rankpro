@@ -10,6 +10,7 @@ use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 use App\Models\BannerDescription;
 use App\Models\User_exam;
@@ -463,17 +464,38 @@ class StudentsController extends Controller
     }
 
     public function profile(){
-        $language_id = $this->getLanguageId();
         $data = [];
         $data['user'] = Auth::user();
-        return view('site.profile',$data);
+        $data['student_batches'] = Batch::query()
+            ->select('batches.id', 'batches.name')
+            ->join('batch_user', 'batch_user.batch_id', '=', 'batches.id')
+            ->where('batch_user.user_id', Auth::id())
+            ->where(function ($q) {
+                $q->where('batches.status', 1)->orWhereNull('batches.status');
+            })
+            ->orderBy('batches.name')
+            ->distinct()
+            ->get();
+
+        return view('site.profile', $data);
     }
 
     public function update_profile(Request $request){
 
-        $validatedData = $request->validate([
+        $wantsPasswordChange = $request->filled('current_password')
+            || $request->filled('new_password')
+            || $request->filled('new_password_confirmation');
+
+        $rules = [
             'first_name' => 'required',
-        ]);
+        ];
+
+        if ($wantsPasswordChange) {
+            $rules['current_password'] = 'required';
+            $rules['new_password'] = 'required|min:6|confirmed';
+        }
+
+        $request->validate($rules);
 
         $language_id = $this->getLanguageId();
 
@@ -485,6 +507,21 @@ class StudentsController extends Controller
             // $input = $request->all();
             // dd($input);
             $insertData = [];
+
+            if ($wantsPasswordChange) {
+                $currentPassword = (string) $request->current_password;
+                $passwordMatches = Hash::check($currentPassword, $loginCheck->password)
+                    || hash_equals((string) $loginCheck->password, md5($currentPassword));
+
+                if (!$passwordMatches) {
+                    return back()
+                        ->withErrors(['current_password' => 'Current password does not match.'])
+                        ->withInput($request->except(['current_password', 'new_password', 'new_password_confirmation', 'profileImage', 'certificate']));
+                }
+
+                $insertData['password'] = Hash::make($request->new_password);
+            }
+
             if ($image = $request->file('profileImage')){
                 $insertData['profile_img'] = time().'.'.$image->getClientOriginalExtension();
 
@@ -565,7 +602,11 @@ class StudentsController extends Controller
             $insertData['linkedin_link'] = $request->linkedin_link;
 
             $loginCheck->update($insertData);
-            toastr()->success('Profile updated successfully.');
+            if ($wantsPasswordChange) {
+                toastr()->success('Profile and password updated successfully.');
+            } else {
+                toastr()->success('Profile updated successfully.');
+            }
         }else{
             toastr()->warning('Something wrong please try again later');
         }

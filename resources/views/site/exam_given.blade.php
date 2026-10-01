@@ -80,6 +80,31 @@
             font-size: 13px;
             color: #667085;
         }
+        .exam-id-link {
+            color: #3561ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .exam-id-link:hover {
+            text-decoration: underline;
+        }
+        .exam-analytics-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #3561ff;
+            color: #fff;
+            text-decoration: none;
+            font-size: 15px;
+            line-height: 1;
+        }
+        .exam-analytics-btn:hover {
+            background: #274bd6;
+            color: #fff;
+        }
     </style>
     
     @include('site.include.head_meta')
@@ -166,6 +191,7 @@
                                                     <th>Rank</th>
                                                     <th>Score</th>
                                                     <th>OMR</th>
+                                                    <th>Action</th>
                                                 </tr>
                                             </thead>
                                 
@@ -174,11 +200,12 @@
                                                     @php
                                                         $isCustom = ($value->exam_type === 'CUSTOM')
                                                             || (is_string($value->exam_code) && str_starts_with($value->exam_code, 'CT-'));
+                                                        $analyticsUrl = route('exam_answers_analytics', ['exam_id' => $value->user_exam_id]);
                                                     @endphp
-                                                    <tr class="clickable-row" data-href="{{ route('exam_answers_analytics',['exam_id'=>$value->user_exam_id]) }}">
+                                                    <tr>
                                                         <td>{{ \Carbon\Carbon::parse($value->created_at)->format('Y-m-d H:i:s') }}</td>
                                                         <td>
-                                                            {{$value->exam_code}}
+                                                            <a href="{{ $analyticsUrl }}" class="exam-id-link">{{$value->exam_code}}</a>
                                                         </td>
                                                         <td>
                                                             {{$value->name}}
@@ -189,14 +216,19 @@
                                                         <td>{{$value->rank}}</td>
                                                         <td>{{$value->total_number}} / {{$value->total_mark}}</td>
                                                         <td>
-                                                            <a href="{{route('exam_result_detail',['id'=>$value->user_exam_id])}}" onclick="event.stopPropagation();">
+                                                            <a href="{{route('exam_result_detail',['id'=>$value->user_exam_id])}}">
                                                                 <div class="omr-icon"></div>
+                                                            </a>
+                                                        </td>
+                                                        <td>
+                                                            <a href="{{ $analyticsUrl }}" class="exam-analytics-btn" title="View Answers Analytics" aria-label="View Answers Analytics">
+                                                                <i class="fas fa-chart-bar"></i>
                                                             </a>
                                                         </td>
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="6" class="text-center text-muted py-4">No exams found.</td>
+                                                        <td colspan="7" class="text-center text-muted py-4">No exams found.</td>
                                                     </tr>
                                                 @endforelse
                                             </tbody>
@@ -255,15 +287,6 @@
     </script>
 
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.clickable-row').forEach(function (row) {
-                row.addEventListener('click', function () {
-                    window.location = this.dataset.href;
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>

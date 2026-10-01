@@ -106,6 +106,7 @@
                                 <div class="tab-pane fade show active">
                                     <div class="textTitle_viewAllText">
                                         <div class="dashboardTitle dashboardTitle3">Answers <span>Analytics</span> @if($subject_details) ({{$subject_details->name}}) @endif</div>
+                                        @include('site.include.analytics_exam_select')
                                     </div>
                                     <div class="row resultCardRow">
                                         <div class="col-md-4 resultCardCol">

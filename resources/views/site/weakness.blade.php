@@ -106,6 +106,7 @@
                                 <div class="tab-pane fade show active">
                                     <div class="textTitle_viewAllText">
                                         <div class="dashboardTitle dashboardTitle3">Weakness</div>
+                                        @include('site.include.analytics_exam_select')
                                     </div>
                                     <div class="row strengthRow">
                                         <div class="col-0 strengthCol">

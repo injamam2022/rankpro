@@ -11,6 +11,26 @@
         $xp_points = $auth_data->xp_points;
     }
 
+    $menuExamId = $exam_id ?? request('exam_id');
+
+    $onExamInsightPages = request()->is('exam-answers-analytics*')
+        || request()->is('exam-strength*')
+        || request()->is('exam-weakness*')
+        || request()->is('exam-progress-report*')
+        || request()->is('exam-personal-coach*');
+
+    $showExamSub = !empty($menuExamId) || $onExamInsightPages;
+    $examSubOpen = $showExamSub && (
+        $onExamInsightPages
+        || request()->is('exam-given')
+        || request()->is('exam-given/*')
+    );
+
+    $insightsOpen = request()->is('answers-analytics*')
+        || request()->is('strength*')
+        || request()->is('weakness*')
+        || request()->is('progress-report*')
+        || request()->is('personal-coach*');
 ?>
     <div class="menuBarBtn menuBarBtnClose">
         <i class="fas fa-times"></i>
@@ -22,15 +42,20 @@
       </a>
     </div>
     <div class="dashboardAvatarBlockAll dashboardMenuPL">
-        <div class="dashboardAvatarBlock">
+        <a href="{{ route('profile') }}" class="dashboardAvatarBlock dashboardAvatarLink" title="View &amp; edit profile">
             <div class="dashboardAvatar">
-                <a href="{{ route('profile') }}">
-                    <img src="{{asset('')}}uploads/profileImage/{{$auth_data->profile_img}}" class="img-fluid" alt="" style="object-fit: contain;">
-                </a>
+                @if(!empty($auth_data->profile_img))
+                    <img src="{{ asset('') }}uploads/profileImage/{{ $auth_data->profile_img }}" class="img-fluid" alt="Profile" style="object-fit: cover;">
+                @else
+                    <img src="{{ asset('') }}web/images/dashboardCheck.png" class="img-fluid" alt="Profile" style="object-fit: contain; opacity:.35;">
+                @endif
             </div>
-            <div class="dashboardName" style="word-break: break-word;">{{$user_name}}</div>
+            <div class="dashboardAvatarMeta">
+                <div class="dashboardName" style="word-break: break-word;">{{ $user_name }}</div>
+                <div class="dashboardProfileHint">My Profile</div>
+            </div>
             <img src="{{ asset('') }}web/images/dashboardCheck.png" class="img-fluid dashboardCheck" alt="">
-        </div>
+        </a>
         <div>
             <div class="dashboardXp">
                 <!-- Xp points: <span>{{$xp_points}}</span> -->
@@ -65,66 +90,79 @@
         </div>
     </div>
     <ul class="dashboardMenu dashboardMenuMain dashboardMenuPL list-unstyled mb-0">
-        <li class="{{ request()->is('dashboard') ? ' active' : '' }} {{ request()->is('dashboard/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('dashboard') || request()->is('dashboard/*') ? 'active' : '' }}">
             <a href="{{ route('dashboard') }}"><img src="{{ asset('') }}web/images/d_layout_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Dashboard</span></a>
         </li>
 
-        <li class="{{ request()->is('notice') ? ' active' : '' }} {{ request()->is('notice/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('notice') || request()->is('notice/*') ? 'active' : '' }}">
             <a href="{{ route('notice') }}"><img src="{{ asset('') }}web/images/d_notice_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Notices</span></a>
         </li>
 
-        <li class="{{ request()->is('custom-test') || request()->is('custom-test/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('custom-test') || request()->is('custom-test/*') ? 'active' : '' }}">
             <a href="{{ route('custom_test') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Custom Test</span></a>
         </li>
 
-        <li class="{{ request()->is('exam-given') ? ' active' : '' }} {{ request()->is('exam-given/*') ? ' active' : '' }}">
-            <a href="{{ route('exam_given') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Exams Given</span></a>
-            @if(request()->is('exam-answers-analytics') || request()->is('exam-strength') || request()->is('exam-weakness') || request()->is('exam-progress-report') || request()->is('exam-personal-coach'))
-                <ul class="dashboardMenu dashboardMenuPL dashboardMenuSub list-unstyled mb-0">
-                    <li class="{{ request()->is('exam-answers-analytics') ? ' active' : '' }} {{ request()->is('exam-answers-analytics/*') ? ' active' : '' }}">
-                        <a href="{{ route('exam_answers_analytics',['exam_id'=>$exam_id]) }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
+        <li class="menuHasSub {{ ($examSubOpen || request()->is('exam-given') || request()->is('exam-given/*')) ? 'active' : '' }} {{ $examSubOpen ? 'open' : '' }}">
+            <div class="menuItemRow">
+                <a href="{{ route('exam_given') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Exams Given</span></a>
+                @if($showExamSub)
+                    <button type="button" class="menuCollapseBtn" aria-label="Toggle Exams Given submenu">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                @endif
+            </div>
+            @if($showExamSub)
+                <ul class="dashboardMenu dashboardMenuPL dashboardMenuSub list-unstyled mb-0 {{ $examSubOpen ? 'is-open' : '' }}">
+                    <li class="{{ request()->is('exam-answers-analytics*') ? 'active' : '' }}">
+                        <a href="{{ route('exam_answers_analytics', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
                     </li>
-                    <li class="{{ request()->is('exam-strength') ? ' active' : '' }} {{ request()->is('exam-strength/*') ? ' active' : '' }}">
-                        <a href="{{ route('exam_strength',['exam_id'=>$exam_id]) }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
+                    <li class="{{ request()->is('exam-strength*') ? 'active' : '' }}">
+                        <a href="{{ route('exam_strength', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
                     </li>
-                    <li class="{{ request()->is('exam-weakness') ? ' active' : '' }} {{ request()->is('exam-weakness/*') ? ' active' : '' }}">
-                        <a href="{{ route('exam_weakness',['exam_id'=>$exam_id]) }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
+                    <li class="{{ request()->is('exam-weakness*') ? 'active' : '' }}">
+                        <a href="{{ route('exam_weakness', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
                     </li>
-                    <li class="{{ request()->is('exam-progress-report') ? ' active' : '' }} {{ request()->is('exam-progress-report/*') ? ' active' : '' }}">
-                        <a href="{{ route('exam_progress_report',['exam_id'=>$exam_id]) }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
+                    <li class="{{ request()->is('exam-progress-report*') ? 'active' : '' }}">
+                        <a href="{{ route('exam_progress_report', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
                     </li>
-                    <li class="{{ request()->is('exam-personal-coach') ? ' active' : '' }} {{ request()->is('exam-personal-coach/*') ? ' active' : '' }}">
-                        <a href="{{ route('exam_personal_coach',['exam_id'=>$exam_id]) }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
+                    <li class="{{ request()->is('exam-personal-coach*') ? 'active' : '' }}">
+                        <a href="{{ route('exam_personal_coach', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
                     </li>
                 </ul>
             @endif
         </li>
 
-        <li class="{{ request()->is('upcoming-exam') ? ' active' : '' }} {{ request()->is('upcoming-exam/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('upcoming-exam') || request()->is('upcoming-exam/*') ? 'active' : '' }}">
             <a href="{{ route('upcoming_exam') }}"><img src="{{ asset('') }}web/images/d_upcoming_ex_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Upcoming Exam</span></a>
         </li>
 
-        <li class="{{ request()->is('answers-analytics') ? ' active' : '' }} {{ request()->is('answers-analytics/*') ? ' active' : '' }}">
-            <a href="{{ route('answers_analytics') }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
+        <li class="menuHasSub {{ $insightsOpen ? 'active open' : '' }}">
+            <div class="menuItemRow">
+                <a href="javascript:void(0)" class="menuCollapseTrigger"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Insights</span></a>
+                <button type="button" class="menuCollapseBtn" aria-label="Toggle Insights submenu">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <ul class="dashboardMenu dashboardMenuPL dashboardMenuSub list-unstyled mb-0 {{ $insightsOpen ? 'is-open' : '' }}">
+                <li class="{{ request()->is('answers-analytics*') ? 'active' : '' }}">
+                    <a href="{{ route('answers_analytics') }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
+                </li>
+                <li class="{{ request()->is('strength*') ? 'active' : '' }}">
+                    <a href="{{ route('strength') }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
+                </li>
+                <li class="{{ request()->is('weakness*') ? 'active' : '' }}">
+                    <a href="{{ route('weakness') }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
+                </li>
+                <li class="{{ request()->is('progress-report*') ? 'active' : '' }}">
+                    <a href="{{ route('progress_report') }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
+                </li>
+                <li class="{{ request()->is('personal-coach*') ? 'active' : '' }}">
+                    <a href="{{ route('personal_coach') }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
+                </li>
+            </ul>
         </li>
 
-        <li class="{{ request()->is('strength') ? ' active' : '' }} {{ request()->is('strength/*') ? ' active' : '' }}">
-            <a href="{{ route('strength') }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
-        </li>
-
-        <li class="{{ request()->is('weakness') ? ' active' : '' }} {{ request()->is('weakness/*') ? ' active' : '' }}">
-            <a href="{{ route('weakness') }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
-        </li>
-
-        <li class="{{ request()->is('progress-report') ? ' active' : '' }} {{ request()->is('progress-report/*') ? ' active' : '' }}">
-            <a href="{{ route('progress_report') }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
-        </li>
-
-        <li class="{{ request()->is('personal-coach') ? ' active' : '' }} {{ request()->is('personal-coach/*') ? ' active' : '' }}">
-            <a href="{{ route('personal_coach') }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
-        </li>
-
-        <li class="{{ request()->is('common_confusion') ? ' active' : '' }} {{ request()->is('common_confusion/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('common_confusion') || request()->is('common_confusion/*') ? 'active' : '' }}">
             <a href="{{ route('common_confusion') }}"><img src="{{ asset('') }}web/images/d_conf_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Mistake Monitor</span></a>
         </li>
 
@@ -132,34 +170,52 @@
             <a href="#"><img src="{{ asset('') }}web/images/d_ai_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>RankPro AI</span></a>
         </li>
 
-        <li class="{{ request()->is('air') ? ' active' : '' }} {{ request()->is('air/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('air') || request()->is('air/*') ? 'active' : '' }}">
             <a href="{{ route('air') }}"><img src="{{ asset('') }}web/images/d_air_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>AIR</span></a>
         </li>
-        <li class="{{ request()->is('rankers-for-rankers') ? ' active' : '' }} {{ request()->is('rankers-for-rankers/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('rankers-for-rankers') || request()->is('rankers-for-rankers/*') ? 'active' : '' }}">
             <a href="{{ route('rankers_for_rankers') }}"><img src="{{ asset('') }}web/images/d_one_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>1 to 1 Ranker Motivation</span></a>
         </li>
-        <li class="{{ request()->is('report-problem') ? ' active' : '' }} {{ request()->is('report-problem/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('report-problem') || request()->is('report-problem/*') ? 'active' : '' }}">
             <a href="{{ route('report_problem') }}"><img src="{{ asset('') }}web/images/d_headset_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Report a problem</span></a>
         </li>
 
-        <li class="{{ request()->is('plans') ? ' active' : '' }} {{ request()->is('plans/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('plans') || request()->is('plans/*') ? 'active' : '' }}">
             <a href="{{ route('plans') }}"><img src="{{ asset('') }}web/images/d_upgrade_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Upgrade</span></a>
         </li>
 
+        <li class="{{ request()->is('profile') || request()->is('profile/*') ? 'active' : '' }}">
+            <a href="{{ route('profile') }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Profile</span></a>
+        </li>
 
-
-        <!--<li class="{{ request()->is('profile') ? ' active' : '' }} {{ request()->is('profile/*') ? ' active' : '' }}">-->
-        <!--    <a href="{{ route('profile') }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Profile</span></a>-->
-        <!--</li>-->
-        <!--<li class="{{ request()->is('result') ? ' active' : '' }} {{ request()->is('result/*') ? ' active' : '' }}">-->
-        <!--    <a href="{{ route('result') }}"><img src="{{ asset('') }}web/images/d_mission_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Result</span></a>-->
-        <!--</li>-->
-        <!-- <li class="{{ request()->is('terms-and-condition') ? ' active' : '' }} {{ request()->is('terms-and-condition/*') ? ' active' : '' }}">-->
-        <!--    <a href="{{ route('terms_and_condition') }}"><img src="{{ asset('') }}web/images/d_terms_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Terms & Conditions</span></a>-->
-        <!--</li>-->
-
-
-        <li class="{{ request()->is('logout') ? ' active' : '' }} {{ request()->is('logout/*') ? ' active' : '' }}">
+        <li class="{{ request()->is('logout') || request()->is('logout/*') ? 'active' : '' }}">
             <a href="{{ route('logout') }}"><img src="{{ asset('') }}web/images/d_exit_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Logout</span></a>
         </li>
     </ul>
+
+    <script>
+      (function () {
+        function toggleMenuItem(li) {
+          if (!li) return;
+          var sub = li.querySelector(':scope > .dashboardMenuSub');
+          if (!sub) return;
+          var open = li.classList.toggle('open');
+          sub.classList.toggle('is-open', open);
+        }
+
+        document.querySelectorAll('.dashboardMenuMain .menuCollapseBtn').forEach(function (btn) {
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMenuItem(btn.closest('li.menuHasSub'));
+          });
+        });
+
+        document.querySelectorAll('.dashboardMenuMain .menuCollapseTrigger').forEach(function (link) {
+          link.addEventListener('click', function (e) {
+            e.preventDefault();
+            toggleMenuItem(link.closest('li.menuHasSub'));
+          });
+        });
+      })();
+    </script>

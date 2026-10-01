@@ -628,7 +628,24 @@ class Exam_givenController extends Controller
                         ->where('exams.is_deleted',0)
                         ->where('exam_users.exam_id', $data['exam_user']->exam_id)->count();
 
+        $data['analytics_exam_list'] = $this->getAnalyticsExamList();
+
         return view('site.exam_answers_analytics',$data);
+    }
+
+    protected function getAnalyticsExamList()
+    {
+        return Exam_user::select([
+                'exam_users.id as user_exam_id',
+                'exam_users.created_at',
+                'exams.name',
+                'exams.exam_code',
+            ])
+            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
+            ->where('exam_users.user_id', Auth::id())
+            ->where('exams.is_deleted', 0)
+            ->orderByDesc('exam_users.created_at')
+            ->get();
     }
 
     public function strength(Request $request){
@@ -698,6 +715,7 @@ class Exam_givenController extends Controller
                                     ->first();
         }
         // dd($data['chapter_list']);
+        $data['analytics_exam_list'] = $this->getAnalyticsExamList();
         return view('site.exam_strength',$data);
     }
 
@@ -851,6 +869,7 @@ class Exam_givenController extends Controller
                                     ->first();
         }
 
+        $data['analytics_exam_list'] = $this->getAnalyticsExamList();
         return view('site.exam_weakness',$data);
     }
 
@@ -1038,6 +1057,7 @@ class Exam_givenController extends Controller
         $data['hard_details'] = $this->progressReportQuestionLevel('',3,$exam_id,$data['subject_id']);
         // dd($data['exam_detail']);
 
+        $data['analytics_exam_list'] = $this->getAnalyticsExamList();
         return view('site.exam_progress_report',$data);
     }
 

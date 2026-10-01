@@ -71,7 +71,17 @@
                           <div class="col-xl-12">
                               <div class="dashboardBlock">
                                   <div class="dashboardTitle">Profile</div>
-                                  <div class="dashboardEmail">{{$user->email_id}}</div>
+                                  <div class="dashboardEmail">
+                                    RankPro ID: {{ $user->rankpro_id ?: $user->id }}
+                                    @if($user->email_id) &nbsp;|&nbsp; {{ $user->email_id }} @endif
+                                  </div>
+                                  @if(!empty($student_batches) && $student_batches->count())
+                                    <div class="mb-3" style="display:flex;flex-wrap:wrap;gap:8px;">
+                                      @foreach($student_batches as $batch)
+                                        <span class="badge rounded-pill" style="background:#eef2ff;color:#3b4cca;font-weight:500;padding:6px 12px;">{{ $batch->name }}</span>
+                                      @endforeach
+                                    </div>
+                                  @endif
 
                                   <form class="registrationForm" action="{{route('update_profile')}}" method="POST" enctype="multipart/form-data" onsubmit="return validationFun();">
                                     @csrf
@@ -80,7 +90,7 @@
                                           @if($user->profile_img)
                                             <img src="{{asset('')}}uploads/profileImage/{{$user->profile_img}}" class="img-fluid" alt="" id="avatarPreview">
                                           @else
-                                            <img src="https://randomuser.me/api/portraits/women/2.jpg" class="img-fluid" alt="" id="avatarPreview">
+                                            <img src="{{ asset('') }}web/images/dashboardCheck.png" class="img-fluid" alt="" id="avatarPreview" style="opacity:.4;object-fit:contain;padding:18px;">
                                           @endif
                                         
                                       </div>
@@ -109,7 +119,7 @@
                                             {{$user->mobile_number}}
                                           </div>
                                           <label class="form-check-label">
-                                              <input class="form-check-input" type="checkbox" id="is_whatsapp" name="is_whatsapp"> Is Whatsapp available on this number?
+                                              <input class="form-check-input" type="checkbox" id="is_whatsapp" name="is_whatsapp" value="1" @checked((int) $user->is_whatsapp === 1)> Is Whatsapp available on this number?
                                           </label>
                                         </div>
                                       </div>
@@ -276,6 +286,38 @@
                                         </div>
                                       </div> -->
                                     </div>
+
+                                    <div class="mt-4 mb-2">
+                                      <div class="dashboardTitle" style="font-size:18px;">Change Password</div>
+                                      <div class="dashboardEmail" style="font-size:13px;">Leave blank if you do not want to change your password.</div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-md-4">
+                                        <div class="form-group">
+                                          <label for="current_password">Current Password</label>
+                                          <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Current Password" autocomplete="current-password">
+                                        </div>
+                                      </div>
+                                      <div class="col-md-4">
+                                        <div class="form-group">
+                                          <label for="new_password">New Password</label>
+                                          <input type="password" class="form-control" id="new_password" name="new_password" placeholder="New Password" autocomplete="new-password">
+                                        </div>
+                                      </div>
+                                      <div class="col-md-4">
+                                        <div class="form-group">
+                                          <label for="new_password_confirmation">Confirm New Password</label>
+                                          <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" placeholder="Confirm New Password" autocomplete="new-password">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    @error('current_password')
+                                      <div class="alert alert-danger py-2">{{ $message }}</div>
+                                    @enderror
+                                    @error('new_password')
+                                      <div class="alert alert-danger py-2">{{ $message }}</div>
+                                    @enderror
+
                                     <div class="text-center">
                                       <button type="submit" class="btn btn-primary">Save</button>
                                     </div>
@@ -511,7 +553,30 @@
             successFlag = false;
           }
         }*/
-        
+
+        var currentPassword = document.getElementById('current_password');
+        var newPassword = document.getElementById('new_password');
+        var confirmPassword = document.getElementById('new_password_confirmation');
+        if (currentPassword && newPassword && confirmPassword) {
+          var anyPasswordFilled = currentPassword.value || newPassword.value || confirmPassword.value;
+          [currentPassword, newPassword, confirmPassword].forEach(function (el) {
+            el.classList.remove('dangerBoader');
+          });
+          if (anyPasswordFilled) {
+            if (!currentPassword.value) {
+              currentPassword.classList.add('dangerBoader');
+              successFlag = false;
+            }
+            if (!newPassword.value || newPassword.value.length < 6) {
+              newPassword.classList.add('dangerBoader');
+              successFlag = false;
+            }
+            if (!confirmPassword.value || confirmPassword.value !== newPassword.value) {
+              confirmPassword.classList.add('dangerBoader');
+              successFlag = false;
+            }
+          }
+        }
 
         return successFlag;
       }

@@ -115,6 +115,7 @@
                                 <div class="tab-pane fade show active">
                                     <div class="textTitle_viewAllText">
                                         <div class="dashboardTitle dashboardTitle3">Progress <span>Report</span> <span class="dashboardTitleMute" style="color: #f20b81;">(Last 5 Exam)</span></div>
+                                        @include('site.include.analytics_exam_select')
                                     </div>
                                     <div class="row resultCardRow" style="margin-bottom: -26px;">
                                         <div class="col-md-4 resultCardCol">

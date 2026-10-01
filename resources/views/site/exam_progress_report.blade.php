@@ -112,6 +112,7 @@
                                             Progress <span>Report</span> 
                                             <!-- <span class="dashboardTitleMute" style="color: #f20b81;">(Last 5 Exam)</span> -->
                                         </div>
+                                        @include('site.include.analytics_exam_select')
                                     </div>
                                     <div class="row resultCardRow" style="margin-bottom: -26px;">
                                         <div class="col-md-6 resultCardCol">
