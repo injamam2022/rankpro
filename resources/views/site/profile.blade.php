@@ -38,10 +38,63 @@
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/dashboard.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/form.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" rel="stylesheet">
 
     <style type="text/css">
       .dangerBoader{
         border: 1px solid red !important;
+      }
+      .profileCropModal .modal-dialog {
+        max-width: 560px;
+      }
+      .profileCropModal .modal-content {
+        border-radius: 14px;
+        border: none;
+        overflow: hidden;
+      }
+      .profileCropModal .modal-header {
+        border-bottom: 1px solid #ececec;
+        padding: 14px 18px;
+      }
+      .profileCropModal .modal-title {
+        font-weight: 600;
+        font-size: 18px;
+      }
+      .profileCropModal .modal-body {
+        padding: 16px 18px 8px;
+      }
+      .profileCropStage {
+        width: 100%;
+        height: min(52vh, 360px);
+        background: #1f1f1f;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .profileCropStage img {
+        display: block;
+        max-width: 100%;
+      }
+      .profileCropTools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 14px;
+      }
+      .profileCropTools .btn {
+        min-width: 44px;
+        border-radius: 8px;
+      }
+      .profileCropHint {
+        text-align: center;
+        color: #666;
+        font-size: 13px;
+        margin: 10px 0 0;
+      }
+      .profileCropModal .modal-footer {
+        border-top: 1px solid #ececec;
+        padding: 12px 18px 16px;
+        gap: 8px;
       }
     </style>
     @include('site.include.head_meta')
@@ -86,18 +139,21 @@
                                   <form class="registrationForm" action="{{route('update_profile')}}" method="POST" enctype="multipart/form-data" onsubmit="return validationFun();">
                                     @csrf
                                     <div class="formAvatar text-center">
-                                      <div class="formAvatarImg">
-                                          @if($user->profile_img)
-                                            <img src="{{asset('')}}uploads/profileImage/{{$user->profile_img}}" class="img-fluid" alt="" id="avatarPreview">
-                                          @else
-                                            <img src="{{ asset('') }}web/images/dashboardCheck.png" class="img-fluid" alt="" id="avatarPreview" style="opacity:.4;object-fit:contain;padding:18px;">
-                                          @endif
-                                        
+                                      <div class="formAvatarImg" id="avatarClickArea" role="button" tabindex="0" title="Change profile picture" style="cursor:pointer;">
+                                          @php
+                                            $profileImgName = $user->profile_img ? basename(str_replace('\\', '/', $user->profile_img)) : '';
+                                            $profileImgUrl = $profileImgName !== ''
+                                              ? asset('uploads/profileImage/'.$profileImgName)
+                                              : asset('web/images/dashboardCheck.png');
+                                          @endphp
+                                          <img src="{{ $profileImgUrl }}" class="img-fluid" alt="Profile" id="avatarPreview" @if($profileImgName === '') style="opacity:.4;object-fit:contain;padding:18px;" @endif>
                                       </div>
-                                      <img src="{{ asset('') }}web/images/form/cam_ic.png" class="img-fluid cam_ic" alt="" id="uploadTrigger">
+                                      <img src="{{ asset('') }}web/images/form/cam_ic.png" class="img-fluid cam_ic" alt="Upload" id="uploadTrigger" title="Change profile picture">
                                     </div>
-                                    <input type="file" name="profileImage" id="profileImage" accept="image/*"
-                                                  style="display: none;">
+                                    <input type="file" name="profileImage" id="profileImage" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" style="display: none;">
+                                    @error('profileImage')
+                                      <div class="text-danger text-center mb-2">{{ $message }}</div>
+                                    @enderror
                                     <div class="row">
                                       <div class="col-md-6">
                                         <div class="form-group">
@@ -114,10 +170,8 @@
                                       </div>
                                       <div class="col-md-6">
                                         <div class="form-group">
-                                          <label for="number">Phone</label>
-                                          <div class="form-control">
-                                            {{$user->mobile_number}}
-                                          </div>
+                                          <label for="mobile_number">Phone</label>
+                                          <input type="text" class="form-control" id="mobile_number" value="{{ $user->mobile_number }}" placeholder="Not set" readonly disabled>
                                           <label class="form-check-label">
                                               <input class="form-check-input" type="checkbox" id="is_whatsapp" name="is_whatsapp" value="1" @checked((int) $user->is_whatsapp === 1)> Is Whatsapp available on this number?
                                           </label>
@@ -125,10 +179,8 @@
                                       </div>
                                       <div class="col-md-6">
                                         <div class="form-group">
-                                          <label for="email">Email</label>
-                                          <div class="form-control">
-                                            {{$user->email_id}}
-                                          </div>
+                                          <label for="email_id">Email</label>
+                                          <input type="text" class="form-control" id="email_id" value="{{ $user->email_id }}" placeholder="Not set" readonly disabled>
                                         </div>
                                       </div>
                                       <div class="col-md-12">
@@ -175,10 +227,9 @@
                                       </div>
                                       <div class="col-md-6">
                                         <div class="form-group">
-                                          <label for="text">Father's Name</label>
-                                          <div class="form-control">
-                                            {{$user->father_full_name}}
-                                          </div>
+                                          <label for="father_full_name">Father's Name</label>
+                                          <input type="text" class="form-control" id="father_full_name" value="{{ $user->father_full_name }}" placeholder="Not set" readonly disabled>
+                                          <small class="form-text text-muted">Contact support to update this field.</small>
                                         </div>
                                       </div>
                                      <!--  <div class="col-md-6">
@@ -189,10 +240,9 @@
                                       </div> -->
                                       <div class="col-md-6">
                                         <div class="form-group">
-                                          <label for="text">Father's Contact No</label>
-                                          <div class="form-control">
-                                            {{$user->father_mobile_number}}
-                                          </div>
+                                          <label for="father_mobile_number">Father's Contact No</label>
+                                          <input type="text" class="form-control" id="father_mobile_number" value="{{ $user->father_mobile_number }}" placeholder="Not set" readonly disabled>
+                                          <small class="form-text text-muted">Used for parent login — contact support to update.</small>
                                         </div>
                                       </div>
                                       <div class="col-md-6">
@@ -338,10 +388,38 @@
     @include('site.include.call_to_action')
     @include('site.include.back_to_top')
 
+    <div class="modal fade profileCropModal" id="profileCropModal" tabindex="-1" aria-labelledby="profileCropModalLabel" aria-hidden="true" data-bs-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="profileCropModalLabel">Edit profile photo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="profileCropClose"></button>
+          </div>
+          <div class="modal-body">
+            <div class="profileCropStage">
+              <img id="profileCropImage" alt="Crop preview">
+            </div>
+            <div class="profileCropTools">
+              <button type="button" class="btn btn-outline-secondary" id="profileCropZoomIn" title="Zoom in"><i class="fas fa-search-plus"></i></button>
+              <button type="button" class="btn btn-outline-secondary" id="profileCropZoomOut" title="Zoom out"><i class="fas fa-search-minus"></i></button>
+              <button type="button" class="btn btn-outline-secondary" id="profileCropRotateLeft" title="Rotate left"><i class="fas fa-undo"></i></button>
+              <button type="button" class="btn btn-outline-secondary" id="profileCropRotateRight" title="Rotate right"><i class="fas fa-redo"></i></button>
+              <button type="button" class="btn btn-outline-secondary" id="profileCropReset" title="Reset"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <p class="profileCropHint">Drag to reposition. Use zoom &amp; rotate to fit your face in the circle.</p>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal" id="profileCropCancel">Cancel</button>
+            <button type="button" class="btn btn-primary" id="profileCropApply">Use photo</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script src="{{ asset('') }}web/lib/wow/wow.min.js"></script>
     <script src="{{ asset('') }}web/lib/waypoints/waypoints.min.js"></script>
     <script src="{{ asset('') }}web/lib/counterup/counterup.min.js"></script>
@@ -358,8 +436,152 @@
       const allowedTypes = ["application/pdf", "image/jpeg"];
       const maxSize1 = 1024 * 1024; // 2MB in bytes
       const maxSize2 = 512 * 1024; // 2MB in bytes
-      $('#uploadTrigger').on('click', function () {
-          $('#profileImage').click();
+      var profileCropper = null;
+      var profileCropModal = null;
+      var profileObjectUrl = null;
+      var profileCropApplied = false;
+      var committedProfileFile = null;
+
+      function destroyProfileCropper() {
+          if (profileCropper) {
+              profileCropper.destroy();
+              profileCropper = null;
+          }
+          if (profileObjectUrl) {
+              URL.revokeObjectURL(profileObjectUrl);
+              profileObjectUrl = null;
+          }
+          $('#profileCropImage').attr('src', '');
+      }
+
+      function setProfileInputFile(file) {
+          var input = document.getElementById('profileImage');
+          if (!input) return false;
+          try {
+              var dt = new DataTransfer();
+              if (file) {
+                  dt.items.add(file);
+              }
+              input.files = dt.files;
+              return true;
+          } catch (err) {
+              return false;
+          }
+      }
+
+      function openProfilePicker() {
+          $('#profileImage').trigger('click');
+      }
+
+      $('#uploadTrigger, #avatarClickArea').on('click', openProfilePicker);
+      $('#avatarClickArea').on('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openProfilePicker();
+          }
+      });
+
+      $('#profileImage').on('change', function () {
+          var file = this.files && this.files[0];
+          if (!file) return;
+          if (!/^image\//.test(file.type)) {
+              alert('Please choose an image file (JPG, PNG, WEBP, or GIF).');
+              setProfileInputFile(committedProfileFile);
+              return;
+          }
+          if (file.size > 5 * 1024 * 1024) {
+              alert('Profile image must be 5MB or smaller.');
+              setProfileInputFile(committedProfileFile);
+              return;
+          }
+
+          // Keep picker empty until user confirms crop; restore prior file if they cancel.
+          this.value = '';
+          destroyProfileCropper();
+          profileCropApplied = false;
+          profileObjectUrl = URL.createObjectURL(file);
+          $('#profileCropImage').attr('src', profileObjectUrl);
+
+          if (!profileCropModal) {
+              profileCropModal = new bootstrap.Modal(document.getElementById('profileCropModal'));
+          }
+          profileCropModal.show();
+      });
+
+      $('#profileCropModal').on('shown.bs.modal', function () {
+          var image = document.getElementById('profileCropImage');
+          if (profileCropper) {
+              profileCropper.destroy();
+          }
+          profileCropper = new Cropper(image, {
+              aspectRatio: 1,
+              viewMode: 1,
+              dragMode: 'move',
+              autoCropArea: 0.9,
+              background: false,
+              responsive: true,
+              restore: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false
+          });
+      });
+
+      $('#profileCropModal').on('hidden.bs.modal', function () {
+          destroyProfileCropper();
+          if (!profileCropApplied) {
+              setProfileInputFile(committedProfileFile);
+          }
+          profileCropApplied = false;
+      });
+
+      $('#profileCropZoomIn').on('click', function () {
+          if (profileCropper) profileCropper.zoom(0.1);
+      });
+      $('#profileCropZoomOut').on('click', function () {
+          if (profileCropper) profileCropper.zoom(-0.1);
+      });
+      $('#profileCropRotateLeft').on('click', function () {
+          if (profileCropper) profileCropper.rotate(-90);
+      });
+      $('#profileCropRotateRight').on('click', function () {
+          if (profileCropper) profileCropper.rotate(90);
+      });
+      $('#profileCropReset').on('click', function () {
+          if (profileCropper) profileCropper.reset();
+      });
+
+      $('#profileCropApply').on('click', function () {
+          if (!profileCropper) return;
+          var canvas = profileCropper.getCroppedCanvas({
+              width: 600,
+              height: 600,
+              imageSmoothingEnabled: true,
+              imageSmoothingQuality: 'high'
+          });
+          if (!canvas) return;
+
+          canvas.toBlob(function (blob) {
+              if (!blob) {
+                  alert('Could not process this image. Please try another photo.');
+                  return;
+              }
+              var croppedFile = new File([blob], 'profile_' + Date.now() + '.jpg', {
+                  type: 'image/jpeg',
+                  lastModified: Date.now()
+              });
+              if (!setProfileInputFile(croppedFile)) {
+                  alert('Your browser could not attach the edited photo. Please try again or use another browser.');
+                  return;
+              }
+              committedProfileFile = croppedFile;
+              profileCropApplied = true;
+              $('#avatarPreview').attr('src', URL.createObjectURL(blob)).css({ opacity: 1, objectFit: 'cover', padding: 0 });
+              profileCropModal.hide();
+          }, 'image/jpeg', 0.92);
       });
 
       var fileFlag = {
@@ -388,12 +610,10 @@
         }else{
           document.getElementById('last_name').classList.remove('dangerBoader');
         }
-        data.address = document.getElementById('address').value;
-        if(!data.address){
-          document.getElementById('address').classList.add('dangerBoader');
-          successFlag = false;
-        }else{
-          document.getElementById('address').classList.remove('dangerBoader');
+        // Address is optional — do not block profile / photo save when empty.
+        var addressEl = document.getElementById('address');
+        if (addressEl) {
+          addressEl.classList.remove('dangerBoader');
         }
         // data.father_full_name = document.getElementById('father_full_name').value;
         // if(!data.father_full_name){

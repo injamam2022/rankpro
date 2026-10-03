@@ -245,7 +245,7 @@
                                                                             <a class="btn btn-reject ">Reject</a>
                                                                         @endif
                                                                     </div>
-                                                                    <a href="{{ route('start_exam',['id'=>$value->id]) }}" class="btn btn-test" onclick="return confirm('{{ !empty($value->is_proctored) ? 'This exam is proctored. Camera and fullscreen are required. Do you want to start?' : 'Do you want to start exam' }}');">Take Test Now</a>
+                                                                    <a href="{{ route('start_exam',['id'=>$value->id]) }}" class="btn btn-test" onclick="openStartExamConfirm(this.href, @json($value->name), {{ !empty($value->is_proctored) ? 'true' : 'false' }}); return false;">Take Test Now</a>
                                                                 </div>
                                                         
                                                             </div>
@@ -391,6 +391,7 @@
         @endforeach
     @endif
 
+    @include('site.include.start_exam_confirm_modal')
 </body>
 
 </html>

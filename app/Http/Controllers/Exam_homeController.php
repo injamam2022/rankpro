@@ -376,7 +376,8 @@ class Exam_homeController extends Controller
         $data['list'] = Exam_result::select([
                                         DB::raw('COALESCE(question_details.question_text, offline_exam_questions.question_text) as question_text'),
                                         DB::raw('COALESCE(questions.difficulty_level, offline_exam_questions.difficulty_level) as difficulty_level'),
-                                        DB::raw('COALESCE(questions.id, offline_exam_questions.sub_topic_id) as id'),
+                                        DB::raw('COALESCE(questions.id, offline_exam_questions.id) as id'),
+                                        DB::raw('MIN(COALESCE(question_paper_questions.question_number, offline_exam_questions.question_number)) as question_number'),
                                         DB::raw('SUM(exam_results.result) as total_result')
                                     ])
                                     ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
@@ -387,7 +388,7 @@ class Exam_homeController extends Controller
                                     ->where('exam_results.result', '>=',1)
                                     ->whereRaw('COALESCE(questions.sub_topic_id, offline_exam_questions.sub_topic_id) = ?', [$sub_topic_id])
                                     ->groupBy(DB::raw('COALESCE(questions.id, offline_exam_questions.id)'))
-                                    ->orderBy('total_result', 'asc')
+                                    ->orderBy('question_number', 'asc')
                                     ->get();
 
         foreach($data['list'] as $key => $value){
@@ -544,7 +545,8 @@ class Exam_homeController extends Controller
         $data['list'] = Exam_result::select([
                                         DB::raw('COALESCE(question_details.question_text, offline_exam_questions.question_text) as question_text'),
                                         DB::raw('COALESCE(questions.difficulty_level, offline_exam_questions.difficulty_level) as difficulty_level'),
-                                        DB::raw('COALESCE(questions.id, offline_exam_questions.sub_topic_id) as id'),
+                                        DB::raw('COALESCE(questions.id, offline_exam_questions.id) as id'),
+                                        DB::raw('MIN(COALESCE(question_paper_questions.question_number, offline_exam_questions.question_number)) as question_number'),
                                         DB::raw('SUM(exam_results.result) as total_result')
                                     ])
                                     ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
@@ -555,7 +557,7 @@ class Exam_homeController extends Controller
                                     ->where('exam_results.result', '<',1)
                                     ->whereRaw('COALESCE(questions.sub_topic_id, offline_exam_questions.sub_topic_id) = ?', [$sub_topic_id])
                                     ->groupBy(DB::raw('COALESCE(questions.id, offline_exam_questions.id)'))
-                                    ->orderBy('total_result', 'asc')
+                                    ->orderBy('question_number', 'asc')
                                     ->get();
 
         foreach($data['list'] as $key => $value){

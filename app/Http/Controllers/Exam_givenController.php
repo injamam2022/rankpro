@@ -25,6 +25,7 @@ use App\Models\Mistake_input;
 use App\Models\Exam_mistake_input;
 use App\Models\Exam_type;
 use App\Models\Question_type;
+use App\Models\Batch;
 
 use DB;
 
@@ -53,7 +54,7 @@ class Exam_givenController extends Controller
 
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
-        
+
         // $data['exam_list'] = Exam_user::select([
         //                         'exam_users.user_id',
         //                         DB::raw('SUM(exam_users.total_mark) as total_mark'),
@@ -69,13 +70,13 @@ class Exam_givenController extends Controller
         //                     ->leftJoin('users', 'users.id', '=', 'exam_users.user_id')
         //                     ->where('exams.is_deleted',0)
         //                     ->when($subject_id !== null, function ($query) use ($subject_id) {
-        //                         $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+        //                         $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
         //                     })
         //                     ->when($exam_type !== null, function ($query) use ($exam_type) {
-        //                         $query->where('exams.type',$exam_type); 
+        //                         $query->where('exams.type',$exam_type);
         //                     })
         //                     ->groupBy('exam_users.user_id');
-                            
+
         $data['exam_list'] = Exam_user::select([
                                 'exam_users.user_id',
                                 DB::raw('SUM(exam_users.total_mark) as total_mark'),
@@ -111,7 +112,7 @@ class Exam_givenController extends Controller
                                 });
                             })
                             ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                $query->where('exams.type',$exam_type); 
+                                $query->where('exams.type',$exam_type);
                             })
                             ->where('exams.is_deleted',0)
                             ->groupBy('exam_users.user_id');
@@ -129,9 +130,9 @@ class Exam_givenController extends Controller
         }
 
         $data['exam_list'] = $data['exam_list']->orderBy('total_result','desc')->get();
-        
+
         // dd($data['exam_list']);
-        
+
         foreach($data['exam_list'] as $key => $value){
             $subjectList = [];
 
@@ -220,7 +221,17 @@ class Exam_givenController extends Controller
         $exam_user_id = $request->id;
         $user_id = Auth::user()->id;
         $data = [];
-        $data['offline_exam'] = Exam_user::select(['exams.*','exam_users.id as user_exam_id','exam_users.total_answer','exam_users.total_right_answer','exam_users.total_number','exam_users.proctoring_status'])
+        $data['offline_exam'] = Exam_user::select([
+                                'exams.*',
+                                'exam_users.id as user_exam_id',
+                                'exam_users.total_answer',
+                                'exam_users.total_right_answer',
+                                'exam_users.total_number',
+                                'exam_users.total_mark',
+                                'exam_users.percentage',
+                                'exam_users.rank',
+                                'exam_users.proctoring_status',
+                            ])
                                 ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
                                 ->where('exam_users.id',$exam_user_id)->first();
         if($data['offline_exam']->question_paper_id){
@@ -231,18 +242,58 @@ class Exam_givenController extends Controller
             $data['exam_question'] = Offline_exam_question::select(['offline_exam_questions.*'])
                 ->where('offline_exam_questions.exam_id',$data['offline_exam']->id)->get();
         }
-            
 
-        $data['exam_id'] = str_pad($data['offline_exam']->exam_code, 3, '0', STR_PAD_LEFT);
 
-        $data['user_id'] = str_pad($user_id, 8, '0', STR_PAD_LEFT);
+        $examCode = (string) ($data['offline_exam']->exam_code ?? '');
+        $data['is_custom_test'] = str_starts_with($examCode, 'CT-');
+        // Custom tests use CT- codes; TEST ID bubbles are not used on the OMR.
+        $data['exam_id'] = $data['is_custom_test']
+            ? ''
+            : str_pad($examCode, 3, '0', STR_PAD_LEFT);
+        // Real RankPro OMR Candidate ID = rankpro_id (not internal users.id), 10-digit pad.
+        $student = Auth::user();
+        $candidateId = preg_replace('/\D+/', '', (string) ($student->rankpro_id ?? ''));
+        if ($candidateId === '') {
+            $candidateId = (string) $user_id;
+        }
+        $data['user_id'] = str_pad($candidateId, 10, '0', STR_PAD_LEFT);
+        if (strlen($data['user_id']) > 10) {
+            $data['user_id'] = substr($data['user_id'], -10);
+        }
+        $data['student'] = $student;
+        $data['student_batch'] = Batch::query()
+            ->select('batches.name')
+            ->join('batch_user', 'batch_user.batch_id', '=', 'batches.id')
+            ->where('batch_user.user_id', $user_id)
+            ->where(function ($q) {
+                $q->where('batches.status', 1)->orWhereNull('batches.status');
+            })
+            ->orderBy('batches.name')
+            ->pluck('name')
+            ->implode(', ');
+        $data['declaration_text'] = trim((string) ($data['offline_exam']->result_declaration ?? '')) !== ''
+            ? $data['offline_exam']->result_declaration
+            : 'I hereby declare that all the particulars stated in this answer sheet have been filled up by me. I have neither received help from any other candidate nor given help to any other candidate in any manner. I understand that if it is found later that I have violated any of these rules, my candidature is liable to be cancelled.';
+
         $data['answer_list1'] = [];
         $data['answer_list2'] = [];
         $data['answer_list3'] = [];
         $data['answer_list4'] = [];
-        // dd(count($data['exam_question']));
-        $total_qus_count = (int) (count($data['exam_question']) / 4);
+
+        // Real OMR sheet: 45 Qs per column (180 total). Fill col 1 fully, then 2, 3, 4.
+        // Only stretch row height when an exam has more than 180 questions.
+        $totalQuestions = count($data['exam_question']);
+        $rowsPerCol = 45;
+        if ($totalQuestions > 180) {
+            $rowsPerCol = (int) ceil($totalQuestions / 4);
+        }
         $question_count = 0;
+        $correctCount = 0;
+        $wrongCount = 0;
+        $answeredCount = 0;
+        $skippedCount = 0;
+        $reportedCount = 0;
+
         foreach ($data['exam_question'] as $key => $value) {
             $exam_result = Exam_result::where('user_id', $user_id)
                 ->where('exam_user_id', $exam_user_id)
@@ -266,6 +317,9 @@ class Exam_givenController extends Controller
             $value->class_name4 = "";
 
             if($exam_result){
+                if (!empty($exam_result->reported)) {
+                    $reportedCount++;
+                }
                 if($exam_result->answer){
                     $value->user_answer = $exam_result->answer;
                     if(!empty($exam_result->answer)){
@@ -278,6 +332,16 @@ class Exam_givenController extends Controller
                 $value->exam_result_id = $exam_result->id;
             }else{
                 $value->exam_result_id = "";
+            }
+
+            if ($result === '1') {
+                $correctCount++;
+                $answeredCount++;
+            } elseif ($result === '0') {
+                $wrongCount++;
+                $answeredCount++;
+            } else {
+                $skippedCount++;
             }
 
             if($result == "1"){
@@ -336,19 +400,38 @@ class Exam_givenController extends Controller
             $question_count = $question_count + 1;
             $value->question_count = $question_count;
             $value->result = $result;
-            
 
-            if(count($data['answer_list1']) < $total_qus_count){
-                array_push($data['answer_list1'], $value);
-            }else if(count($data['answer_list2']) < $total_qus_count){
-                array_push($data['answer_list2'], $value);
-            }else if(count($data['answer_list3']) < $total_qus_count){
-                array_push($data['answer_list3'], $value);
-            }else{
-                array_push($data['answer_list4'], $value);
+            $colIndex = $rowsPerCol > 0 ? (int) floor(($question_count - 1) / $rowsPerCol) : 0;
+            if ($colIndex > 3) {
+                $colIndex = 3;
+            }
+
+            if ($colIndex === 0) {
+                $data['answer_list1'][] = $value;
+            } elseif ($colIndex === 1) {
+                $data['answer_list2'][] = $value;
+            } elseif ($colIndex === 2) {
+                $data['answer_list3'][] = $value;
+            } else {
+                $data['answer_list4'][] = $value;
             }
         }
-        
+
+        $scoreValue = $data['offline_exam']->total_number;
+        $scoreTotal = $data['offline_exam']->total_mark;
+        $data['omr_scorecard'] = [
+            'score' => $scoreValue !== null && $scoreValue !== '' ? $scoreValue : ($correctCount * 4 - $wrongCount),
+            'total_mark' => $scoreTotal !== null && $scoreTotal !== '' ? $scoreTotal : ($totalQuestions * 4),
+            'percentage' => $data['offline_exam']->percentage,
+            'rank' => $data['offline_exam']->rank,
+            'total' => $totalQuestions,
+            'answered' => $answeredCount,
+            'correct' => $correctCount,
+            'wrong' => $wrongCount,
+            'skipped' => $skippedCount,
+            'reported' => $reportedCount,
+        ];
+
         // dd($data['answer_list4'][0]);
         return view('site.exam_result_detail',$data);
     }
@@ -368,7 +451,7 @@ class Exam_givenController extends Controller
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['mistake_input_list'] = Mistake_input::where('status',1)->get();
-        
+
         $subject_id = $request->subject_id;
 
         $data['exam_user'] = Exam_user::select(['exams.*','exam_users.id as user_exam_id','exam_users.total_answer','exam_users.total_right_answer','exam_users.total_number'])
@@ -387,7 +470,7 @@ class Exam_givenController extends Controller
                                             ->on('exam_mistake_inputs.user_id', '=', 'exam_results.user_id');
                                     })
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->where('questions.subject_id', $subject_id); 
+                                        $query->where('questions.subject_id', $subject_id);
                                     })
                                     ->where('exam_results.exam_user_id',$user_exam_id)->orderBy('question_paper_questions.id','ASC')
                                     ->where('exam_results.result','<',1)
@@ -403,7 +486,7 @@ class Exam_givenController extends Controller
                                             ->on('exam_mistake_inputs.user_id', '=', 'exam_results.user_id');
                                     })
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->where('offline_exam_questions.subject_id', $subject_id); 
+                                        $query->where('offline_exam_questions.subject_id', $subject_id);
                                     })
                                     ->where('exam_results.exam_user_id',$user_exam_id)
                                     ->where('exam_results.result','<',1)
@@ -440,7 +523,7 @@ class Exam_givenController extends Controller
     }
 
     public function mistake_monitor_output(Request $request){
-        
+
         dd("Check link");
         return view('site.mistake_monitor_output',$data);
     }
@@ -462,7 +545,7 @@ class Exam_givenController extends Controller
                         ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                         ->where('exam_results.exam_id', $exam_id)
                         ->when($subject_id !== null, function ($query) use ($subject_id) {
-                            $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                            $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                         });
         if($type){
             $return = $return->whereRaw('COALESCE(questions.difficulty_level, offline_exam_questions.difficulty_level) = ?', [$type]);
@@ -496,7 +579,7 @@ class Exam_givenController extends Controller
                 ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
                 ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                 ->when($subject_id !== null, function ($query) use ($subject_id) {
-                    $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                    $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                 })
                 ->where('exam_results.exam_id', $exam_user_id);
         if($type){
@@ -545,7 +628,7 @@ class Exam_givenController extends Controller
                         ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                         ->where('exam_results.user_id', Auth::id())
                         ->when($subject_id !== null, function ($query) use ($subject_id) {
-                            $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                            $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                         })
                         ->where('exam_results.exam_user_id', $exam_user_id);
         if($type){
@@ -576,7 +659,7 @@ class Exam_givenController extends Controller
         $data['subject_list'] = Subject::where('status',1)->get();
 
         $data['exam_user'] = Exam_user::where('id',$data['exam_id'])->first();
-        
+
         $data['topper_data'] = $this->getToperResultList('',$data['exam_type'],$data['subject_id'],$data['exam_user']->exam_id);
         $data['average_data'] = $this->getAvgResultList('',$data['exam_type'],$data['subject_id'],$data['exam_user']->exam_id);
         $data['you_data'] = $this->getYourResultList('',$data['exam_type'],$data['subject_id'],$data['exam_id']);
@@ -586,12 +669,12 @@ class Exam_givenController extends Controller
         $data['avg_easy_toper_list'] = $this->getAvgResultList(1,$data['exam_type'],$data['subject_id'],$data['exam_user']->exam_id);
         $data['my_easy_toper_list'] = $this->getYourResultList(1,$data['exam_type'],$data['subject_id'],$data['exam_id']);
 
-        
+
         $data['medium_toper_list'] = $this->getToperResultList(2,$data['exam_type'],$data['subject_id'],$data['exam_user']->exam_id);
         $data['avg_medium_toper_list'] = $this->getAvgResultList(2,$data['exam_type'],$data['subject_id'],$data['exam_user']->exam_id);
         $data['my_medium_toper_list'] = $this->getYourResultList(2,$data['exam_type'],$data['subject_id'],$data['exam_id']);
 
-        
+
         $data['hard_toper_list'] = $this->getToperResultList(3,$data['exam_type'],$data['subject_id'],$data['exam_user']->exam_id);
         $data['avg_hard_toper_list'] = $this->getAvgResultList(3,$data['exam_type'],$data['subject_id'],$data['exam_user']->exam_id);
         $data['my_hard_toper_list'] = $this->getYourResultList(3,$data['exam_type'],$data['subject_id'],$data['exam_id']);
@@ -605,7 +688,7 @@ class Exam_givenController extends Controller
                                     FROM exam_users
                                     LEFT JOIN exams ON exams.id = exam_users.exam_id
                                     WHERE exams.is_deleted = 0 AND
-                                    exam_users.exam_id = ? 
+                                    exam_users.exam_id = ?
                                     GROUP BY exam_users.user_id
                                 ) as totals
                                 WHERE total_number > (
@@ -668,7 +751,7 @@ class Exam_givenController extends Controller
                                     ->where('exam_results.result', '>=',1)
                                     ->whereRaw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) IS NOT NULL')
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                                     })
                                     ->where('exam_results.exam_user_id', $data['exam_id'])
                                     ->groupBy(DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id)'))
@@ -681,11 +764,11 @@ class Exam_givenController extends Controller
         }
         $exam_id = $data['exam_id'];
         $total_count = Exam_result::where('exam_results.user_id', Auth::id())->where('exam_results.exam_user_id', $data['exam_id'])->count();
-        
+
         $data['silly_percentage'] = $this->progressReportAnswerType(1,3,$exam_id,$data['subject_id'],$total_count);
         $data['wrong_percentage'] = $this->progressReportAnswerType(1,2,$exam_id,$data['subject_id'],$total_count);
         $data['irrelevant_percentage'] = $this->progressReportAnswerType(1,4,$exam_id,$data['subject_id'],$total_count);
-        
+
         $data['easy_details'] = $this->progressReportQuestionLevel(1,1,$exam_id,$data['subject_id']);
         $data['medium_details'] = $this->progressReportQuestionLevel(1,2,$exam_id,$data['subject_id']);
         $data['hard_details'] = $this->progressReportQuestionLevel(1,3,$exam_id,$data['subject_id']);
@@ -708,7 +791,7 @@ class Exam_givenController extends Controller
                                     ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                                     ->where('exam_results.user_id', Auth::id())
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                                     })
                                     ->whereRaw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id) = ?', [$value->id])
                                     ->groupBy(DB::raw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id)'))
@@ -777,11 +860,13 @@ class Exam_givenController extends Controller
         $chapter_id = $request->chapter_id;
         $topic_id = $request->topic_id;
         $sub_topic_id = $request->sub_topic_id;
+        $exam_user_id = $request->exam_id;
         $data = [];
         $data['list'] = Exam_result::select([
                                         DB::raw('COALESCE(question_details.question_text, offline_exam_questions.question_text) as question_text'),
                                         DB::raw('COALESCE(questions.difficulty_level, offline_exam_questions.difficulty_level) as difficulty_level'),
-                                        DB::raw('COALESCE(questions.id, offline_exam_questions.sub_topic_id) as id'),
+                                        DB::raw('COALESCE(questions.id, offline_exam_questions.id) as id'),
+                                        DB::raw('MIN(COALESCE(question_paper_questions.question_number, offline_exam_questions.question_number)) as question_number'),
                                         DB::raw('SUM(exam_results.result) as total_result')
                                     ])
                                     ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
@@ -790,9 +875,12 @@ class Exam_givenController extends Controller
                                     ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                                     ->where('exam_results.user_id', Auth::id())
                                     ->where('exam_results.result', '>=',1)
+                                    ->when($exam_user_id, function ($query) use ($exam_user_id) {
+                                        $query->where('exam_results.exam_user_id', $exam_user_id);
+                                    })
                                     ->whereRaw('COALESCE(questions.sub_topic_id, offline_exam_questions.sub_topic_id) = ?', [$sub_topic_id])
                                     ->groupBy(DB::raw('COALESCE(questions.id, offline_exam_questions.id)'))
-                                    ->orderBy('total_result', 'asc')
+                                    ->orderBy('question_number', 'asc')
                                     ->get();
 
         foreach($data['list'] as $key => $value){
@@ -823,7 +911,7 @@ class Exam_givenController extends Controller
                                     ->whereRaw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) IS NOT NULL')
                                     ->where('exam_results.exam_user_id', $data['exam_id'])
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                                     })
                                     ->groupBy(DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id)'))
                                     ->orderBy('total_result', 'asc')
@@ -835,11 +923,11 @@ class Exam_givenController extends Controller
         }
         $exam_id = $data['exam_id'];
         $total_count = Exam_result::where('exam_results.user_id', Auth::id())->where('exam_results.exam_user_id', $data['exam_id'])->count();
-        
+
         $data['silly_percentage'] = $this->progressReportAnswerType(2,3,$exam_id,$data['subject_id'],$total_count);
         $data['wrong_percentage'] = $this->progressReportAnswerType(2,2,$exam_id,$data['subject_id'],$total_count);
         $data['irrelevant_percentage'] = $this->progressReportAnswerType(2,4,$exam_id,$data['subject_id'],$total_count);
-        
+
         $data['easy_details'] = $this->progressReportQuestionLevel(2,1,$exam_id,$data['subject_id']);
         $data['medium_details'] = $this->progressReportQuestionLevel(2,2,$exam_id,$data['subject_id']);
         $data['hard_details'] = $this->progressReportQuestionLevel(2,3,$exam_id,$data['subject_id']);
@@ -862,7 +950,7 @@ class Exam_givenController extends Controller
                                     ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                                     ->where('exam_results.user_id', Auth::id())
                                     ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                                     })
                                     ->whereRaw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id) = ?', [$value->id])
                                     ->groupBy(DB::raw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id)'))
@@ -932,11 +1020,13 @@ class Exam_givenController extends Controller
         $chapter_id = $request->chapter_id;
         $topic_id = $request->topic_id;
         $sub_topic_id = $request->sub_topic_id;
+        $exam_user_id = $request->exam_id;
         $data = [];
         $data['list'] = Exam_result::select([
                                         DB::raw('COALESCE(question_details.question_text, offline_exam_questions.question_text) as question_text'),
                                         DB::raw('COALESCE(questions.difficulty_level, offline_exam_questions.difficulty_level) as difficulty_level'),
-                                        DB::raw('COALESCE(questions.id, offline_exam_questions.sub_topic_id) as id'),
+                                        DB::raw('COALESCE(questions.id, offline_exam_questions.id) as id'),
+                                        DB::raw('MIN(COALESCE(question_paper_questions.question_number, offline_exam_questions.question_number)) as question_number'),
                                         DB::raw('SUM(exam_results.result) as total_result')
                                     ])
                                     ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
@@ -945,9 +1035,12 @@ class Exam_givenController extends Controller
                                     ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                                     ->where('exam_results.user_id', Auth::id())
                                     ->where('exam_results.result', '<',1)
+                                    ->when($exam_user_id, function ($query) use ($exam_user_id) {
+                                        $query->where('exam_results.exam_user_id', $exam_user_id);
+                                    })
                                     ->whereRaw('COALESCE(questions.sub_topic_id, offline_exam_questions.sub_topic_id) = ?', [$sub_topic_id])
                                     ->groupBy(DB::raw('COALESCE(questions.id, offline_exam_questions.id)'))
-                                    ->orderBy('total_result', 'asc')
+                                    ->orderBy('question_number', 'asc')
                                     ->get();
 
         foreach($data['list'] as $key => $value){
@@ -970,7 +1063,7 @@ class Exam_givenController extends Controller
                                 ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                                 ->whereRaw('COALESCE(questions.difficulty_level, offline_exam_questions.difficulty_level) = ?', [$type])
                                 ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                                     })
                                 ->where('exam_results.user_id', Auth::id())
                                 ->where('exam_results.exam_user_id', $exam_id)
@@ -996,7 +1089,7 @@ class Exam_givenController extends Controller
         if($question_type == 1){
             $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result > 0) THEN 1 END) as result')]);
         }else if($question_type == 2){
-            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result < 1) THEN 1 END) as result')]);         
+            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result < 1) THEN 1 END) as result')]);
         }else{
             $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result < 1) THEN 1 END) as result')]);
         }
@@ -1006,7 +1099,7 @@ class Exam_givenController extends Controller
                         ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                         ->where('exam_results.user_id', Auth::id())
                         ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
+                                $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
                             })
                         ->where('exam_results.exam_user_id', $exam_id)
                         ->whereRaw("
@@ -1047,11 +1140,11 @@ class Exam_givenController extends Controller
         $exam_id = $data['exam_id'];
         $data['exam_detail'] = Exam_user::where('id',$exam_id)->first();
         $total_count = Exam_result::where('exam_results.user_id', Auth::id())->where('exam_results.exam_user_id', $data['exam_id'])->count();
-        
+
         $data['silly_percentage'] = $this->progressReportAnswerType('',3,$exam_id,$data['subject_id'],$total_count);
         $data['wrong_percentage'] = $this->progressReportAnswerType('',2,$exam_id,$data['subject_id'],$total_count);
         $data['irrelevant_percentage'] = $this->progressReportAnswerType('',4,$exam_id,$data['subject_id'],$total_count);
-        
+
         $data['easy_details'] = $this->progressReportQuestionLevel('',1,$exam_id,$data['subject_id']);
         $data['medium_details'] = $this->progressReportQuestionLevel('',2,$exam_id,$data['subject_id']);
         $data['hard_details'] = $this->progressReportQuestionLevel('',3,$exam_id,$data['subject_id']);
@@ -1073,5 +1166,5 @@ class Exam_givenController extends Controller
     }
 
 
-    
+
 }

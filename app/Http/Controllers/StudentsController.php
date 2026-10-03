@@ -488,6 +488,7 @@ class StudentsController extends Controller
 
         $rules = [
             'first_name' => 'required',
+            'profileImage' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
         ];
 
         if ($wantsPasswordChange) {
@@ -522,19 +523,27 @@ class StudentsController extends Controller
                 $insertData['password'] = Hash::make($request->new_password);
             }
 
-            if ($image = $request->file('profileImage')){
-                $insertData['profile_img'] = time().'.'.$image->getClientOriginalExtension();
+            if ($request->hasFile('profileImage')) {
+                $image = $request->file('profileImage');
+                $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
+                $filename = 'profile_' . $user_id . '_' . time() . '.' . $extension;
+                $destinationPath = public_path('uploads/profileImage');
 
+                if (!is_dir($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
+                }
 
-                $destinationPath = public_path('/uploads/profileImage');
-                $image->move($destinationPath, $insertData['profile_img']);
+                $image->move($destinationPath, $filename);
+                $insertData['profile_img'] = $filename;
 
-                if($loginCheck->profile_img){
-                    if (file_exists(public_path($loginCheck->profile_img))) {
-                        unlink(public_path($loginCheck->profile_img));
+                $oldImg = (string) ($loginCheck->profile_img ?? '');
+                if ($oldImg !== '') {
+                    $oldBasename = basename(str_replace('\\', '/', $oldImg));
+                    $oldPath = $destinationPath . DIRECTORY_SEPARATOR . $oldBasename;
+                    if (is_file($oldPath)) {
+                        @unlink($oldPath);
                     }
                 }
-                // $insertData['profile_img'] = 'uploads/profileImage/'.$insertData['profile_img'];
             }
             if ($image = $request->file('certificate')){
                 $insertData['certificate'] = time().'.'.$image->getClientOriginalExtension();

@@ -72,6 +72,42 @@
                                     This exam was submitted automatically after repeated proctoring warnings.
                                   </div>
                                 @endif
+                                  <div class="resultOmrSheetBrand">
+                                    <img src="{{ asset('') }}web/images/logo-dashboard.png" alt="Rank Pro" class="resultOmrSheetLogo">
+                                    @if(!empty($omr_scorecard))
+                                      <div class="omrScoreCard" aria-label="Score card">
+                                        <div class="omrScoreCard__score">
+                                          <span class="omrScoreCard__scoreLabel">Score</span>
+                                          <span class="omrScoreCard__scoreValue">{{ $omr_scorecard['score'] }}<small>/{{ $omr_scorecard['total_mark'] }}</small></span>
+                                          @if($omr_scorecard['percentage'] !== null && $omr_scorecard['percentage'] !== '')
+                                            <span class="omrScoreCard__pct">{{ rtrim(rtrim(number_format((float) $omr_scorecard['percentage'], 2, '.', ''), '0'), '.') }}%</span>
+                                          @endif
+                                        </div>
+                                        <div class="omrScoreCard__stats">
+                                          <div class="omrScoreCard__stat omrScoreCard__stat--answered">
+                                            <span class="omrScoreCard__num">{{ $omr_scorecard['answered'] }}</span>
+                                            <span class="omrScoreCard__lbl">Answered</span>
+                                          </div>
+                                          <div class="omrScoreCard__stat omrScoreCard__stat--correct">
+                                            <span class="omrScoreCard__num">{{ $omr_scorecard['correct'] }}</span>
+                                            <span class="omrScoreCard__lbl">Correct</span>
+                                          </div>
+                                          <div class="omrScoreCard__stat omrScoreCard__stat--wrong">
+                                            <span class="omrScoreCard__num">{{ $omr_scorecard['wrong'] }}</span>
+                                            <span class="omrScoreCard__lbl">Wrong</span>
+                                          </div>
+                                          <div class="omrScoreCard__stat omrScoreCard__stat--skipped">
+                                            <span class="omrScoreCard__num">{{ $omr_scorecard['skipped'] }}</span>
+                                            <span class="omrScoreCard__lbl">Skipped</span>
+                                          </div>
+                                          <div class="omrScoreCard__stat omrScoreCard__stat--reported">
+                                            <span class="omrScoreCard__num">{{ $omr_scorecard['reported'] }}</span>
+                                            <span class="omrScoreCard__lbl">Reported</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    @endif
+                                  </div>
                                   <div class="resultOmrTitle">{{$offline_exam->result_title}}</div>
                                   <div class="resultOmrText">{{$offline_exam->result_description}}</div>
                                   <div class="resultOmrSubject">{{$offline_exam->name}}</div>
@@ -80,386 +116,82 @@
                                     <div class="row">
                                       <div class="col-4">
                                         <div class="omrSheetIdInfo_scroll">
-                                          <div class="omrSheetIdInfo">
+                                          <div class="omrSheetIdInfo {{ !empty($is_custom_test) ? 'omrSheetIdInfo--noTestId' : '' }}">
                                             <div class="omrSheetId_candidate">
                                               <div class="omrSheetDetailsTitle">CANDIDATE ID</div>
-                                              <div class="omrSheetIdField">
-                                                <div class="answerFillBoxAll">
-                                                  <div class="answerFillBox">{{$user_id[0]}}</div>
-                                                  <div class="answerFillBox">{{$user_id[1]}}</div>
-                                                  <div class="answerFillBox">{{$user_id[2]}}</div>
-                                                  <div class="answerFillBox">{{$user_id[3]}}</div>
-                                                  <div class="answerFillBox">{{$user_id[4]}}</div>
-                                                  <div class="answerFillBox">{{$user_id[5]}}</div>
-                                                  <div class="answerFillBox">{{$user_id[6]}}</div>
-                                                  <div class="answerFillBox">{{$user_id[7]}}</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($user_id[1] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($user_id[2] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($user_id[3] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($user_id[4] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($user_id[5] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($user_id[6] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($user_id[7] == 0) candidateId_fill @endif">0</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($user_id[1] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($user_id[2] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($user_id[3] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($user_id[4] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($user_id[5] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($user_id[6] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($user_id[7] == 1) candidateId_fill @endif">1</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($user_id[1] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($user_id[2] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($user_id[3] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($user_id[4] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($user_id[5] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($user_id[6] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($user_id[7] == 2) candidateId_fill @endif">2</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($user_id[1] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($user_id[2] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($user_id[3] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($user_id[4] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($user_id[5] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($user_id[6] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($user_id[7] == 3) candidateId_fill @endif">3</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($user_id[1] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($user_id[2] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($user_id[3] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($user_id[4] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($user_id[5] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($user_id[6] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($user_id[7] == 4) candidateId_fill @endif">4</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($user_id[1] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($user_id[2] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($user_id[3] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($user_id[4] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($user_id[5] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($user_id[6] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($user_id[7] == 5) candidateId_fill @endif">5</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($user_id[1] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($user_id[2] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($user_id[3] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($user_id[4] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($user_id[5] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($user_id[6] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($user_id[7] == 6) candidateId_fill @endif">6</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($user_id[1] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($user_id[2] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($user_id[3] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($user_id[4] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($user_id[5] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($user_id[6] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($user_id[7] == 7) candidateId_fill @endif">7</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($user_id[1] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($user_id[2] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($user_id[3] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($user_id[4] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($user_id[5] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($user_id[6] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($user_id[7] == 8) candidateId_fill @endif">8</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($user_id[0] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($user_id[1] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($user_id[2] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($user_id[3] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($user_id[4] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($user_id[5] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($user_id[6] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($user_id[7] == 9) candidateId_fill @endif">9</div>
-                                                </div>
-                                              </div>
+                                              @include('site.include.omr_digit_grid', ['code' => $user_id, 'length' => 10])
                                             </div>
-                                            <div class="omrSheetId_test">
-                                              <div class="omrSheetDetailsTitle">TEST ID</div>
-                                              <div class="omrSheetIdField">
-                                                <div class="answerFillBoxAll">
-                                                  <div class="answerFillBox">{{$exam_id[0]}}</div>
-                                                  <div class="answerFillBox">{{$exam_id[1]}}</div>
-                                                  <div class="answerFillBox">{{$exam_id[2]}}</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($exam_id[1] == 0) candidateId_fill @endif">0</div>
-                                                  <div class="bubble @if($exam_id[2] == 0) candidateId_fill @endif">0</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($exam_id[1] == 1) candidateId_fill @endif">1</div>
-                                                  <div class="bubble @if($exam_id[2] == 1) candidateId_fill @endif">1</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($exam_id[1] == 2) candidateId_fill @endif">2</div>
-                                                  <div class="bubble @if($exam_id[2] == 2) candidateId_fill @endif">2</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($exam_id[1] == 3) candidateId_fill @endif">3</div>
-                                                  <div class="bubble @if($exam_id[2] == 3) candidateId_fill @endif">3</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($exam_id[1] == 4) candidateId_fill @endif">4</div>
-                                                  <div class="bubble @if($exam_id[2] == 4) candidateId_fill @endif">4</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($exam_id[1] == 5) candidateId_fill @endif">5</div>
-                                                  <div class="bubble @if($exam_id[2] == 5) candidateId_fill @endif">5</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($exam_id[1] == 6) candidateId_fill @endif">6</div>
-                                                  <div class="bubble @if($exam_id[2] == 6) candidateId_fill @endif">6</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($exam_id[1] == 7) candidateId_fill @endif">7</div>
-                                                  <div class="bubble @if($exam_id[2] == 7) candidateId_fill @endif">7</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($exam_id[1] == 8) candidateId_fill @endif">8</div>
-                                                  <div class="bubble @if($exam_id[2] == 8) candidateId_fill @endif">8</div>
-                                                </div>
-                                                <div class="answer-bubbles">
-                                                  <div class="bubble @if($exam_id[0] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($exam_id[1] == 9) candidateId_fill @endif">9</div>
-                                                  <div class="bubble @if($exam_id[2] == 9) candidateId_fill @endif">9</div>
-                                                </div>
+                                            @if(empty($is_custom_test))
+                                              <div class="omrSheetId_test">
+                                                <div class="omrSheetDetailsTitle">TEST ID</div>
+                                                @include('site.include.omr_digit_grid', ['code' => $exam_id, 'length' => 3])
                                               </div>
-                                            </div>
+                                            @endif
                                           </div>
                                         </div>
 
                                         <div class="omrSheetId_candidate omrSheetId_batch">
-                                          <div class="omrSheetDetailsTitle">Candidate Batch</div>
-                                          <div class="omrSheetIdField"></div>
+                                          <div class="omrSheetDetailsTitle">Candidate's Batch</div>
+                                          <div class="omrSheetIdField omrSheetId_batchValue">{{ $student_batch ?? '' }}</div>
                                         </div>
 
                                         <div class="omrSheetId_candidate omrSheetId_batch">
                                           <div class="omrSheetDetailsTitle">DECLARATION BY THE CANDIDATE</div>
                                           <div class="omrSheetIdField">
-                                            <div class="omrSheetId_batchText">{{$offline_exam->result_declaration}} </div>
-                                            <div class="omrSheetId_batchText pt-5" style="font-weight: 600;">Signature with time (in running handwriting)</div>
+                                            <div class="omrSheetId_batchText">{{ $declaration_text }}</div>
                                           </div>
                                         </div>
 
-                                        <div class="omrSheetId_candidate omrSheetId_batch">
+                                        <div class="omrSheetId_candidate omrSheetId_batch omrSheetId_sign">
                                           <div class="omrSheetIdField">
-                                            <div class="omrSheetId_batchText pt-5" style="font-weight: 600;">Candidate’s Name (In running handwriting)</div>
+                                            <div class="omrSheetId_signLine"></div>
+                                            <div class="omrSheetId_batchText omrFieldLabel">Signature with time (in running handwriting)</div>
                                           </div>
                                         </div>
 
-                                        <div class="omrSheetId_candidate omrSheetId_batch">
-                                          <div class="omrSheetIdField"></div>
+                                        <div class="omrSheetId_candidate omrSheetId_batch omrSheetId_sign">
+                                          <div class="omrSheetIdField">
+                                            <div class="omrSheetId_filledValue">{{ trim(($student->first_name ?? '').' '.($student->last_name ?? '')) }}</div>
+                                            <div class="omrSheetId_batchText omrFieldLabel">Candidate's Name (In running handwriting)</div>
+                                          </div>
+                                        </div>
+
+                                        <div class="omrSheetId_candidate omrSheetId_batch omrSheetId_sign">
+                                          <div class="omrSheetIdField">
+                                            <div class="omrSheetId_filledValue">{{ $student->address ?? '' }}</div>
+                                            <div class="omrSheetId_batchText omrFieldLabel">City's Name</div>
+                                          </div>
+                                        </div>
+
+                                        <div class="omrSheetId_candidate omrSheetId_batch omrSheetId_sign">
+                                          <div class="omrSheetIdField">
+                                            <div class="omrSheetId_signLine"></div>
+                                            <div class="omrSheetId_batchText omrFieldLabel">Hall No./Room</div>
+                                          </div>
+                                        </div>
+
+                                        <div class="omrSheetId_candidate omrSheetId_batch omrSheetId_sign">
+                                          <div class="omrSheetIdField">
+                                            <div class="omrSheetId_filledValue">{{ $student->father_full_name ?? '' }}</div>
+                                            <div class="omrSheetId_batchText omrFieldLabel">Father's Name (In running handwriting)</div>
+                                          </div>
+                                        </div>
+
+                                        <div class="omrSheetId_candidate omrSheetId_batch omrSheetId_sign">
+                                          <div class="omrSheetIdField">
+                                            <div class="omrSheetId_signLine"></div>
+                                            <div class="omrSheetId_batchText omrFieldLabel">Signature of the Invigilator's with time</div>
+                                          </div>
                                         </div>
                                       </div>
                                       <div class="col-8">
                                         <div class="omrSheet_scroll">
                                           <div class="omrSheet_ansAll">
-                                            <div class="omrSheet_ruleText">SECTION-A Attempt all 35 Questions in each subject</div>
                                             <div class="omrSheet_ans">
-                                              <div class="omrSheetIdInfo">
-                                                <div class="omrSheetId_test">
-                                                  <div class="omrSheetDetailsTitle">Q.NO.</div>
-                                                  <div class="omrSheetIdField">
-                                                    @foreach($answer_list1 as $value)
-                                                      <div class="answer-bubbles">
-                                                        <div class="bubble bubble_count">{{$value->question_count}}</div>
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                                <div class="omrSheetId_candidate">
-                                                  <div class="omrSheetDetailsTitle">Answer</div>
-                                                  <div class="omrSheetIdField">
-                                                    @foreach($answer_list1 as $value)
-                                                      <div class="answer-bubbles">
-                                                        @if($value->class_name1 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name1}}" @if($value->answer == 1 || $value->user_answer == 1) onclick="openModal('{{$value->video_link}}');" @endif>1</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name1}}">1</a>
-                                                        @endif
-                                                        @if($value->class_name2 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name2}}" @if($value->answer == 2 || $value->user_answer == 2) onclick="openModal('{{$value->video_link}}');" @endif>2</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name2}}">2</a>
-                                                        @endif
-                                                        @if($value->class_name3 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name3}}" @if($value->answer == 3 || $value->user_answer == 3) onclick="openModal('{{$value->video_link}}');" @endif>3</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name3}}">3</a>
-                                                        @endif
-                                                        @if($value->class_name4 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name4}}" @if($value->answer == 4 || $value->user_answer == 4) onclick="openModal('{{$value->video_link}}');" @endif>4</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name4}}">4</a>
-                                                        @endif
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                              </div>
-                                              <div class="omrSheetIdInfo">
-                                                <div class="omrSheetId_test">
-                                                  <div class="omrSheetDetailsTitle">Q.NO.</div>
-                                                  <div class="omrSheetIdField">
-                                                    @foreach($answer_list2 as $value)
-                                                      <div class="answer-bubbles">
-                                                        <div class="bubble bubble_count">{{$value->question_count}}</div>
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                                <div class="omrSheetId_candidate">
-                                                  <div class="omrSheetDetailsTitle">Answer</div>
-                                                  <div class="omrSheetIdField">
-                                                    @foreach($answer_list2 as $value)
-                                                      <div class="answer-bubbles">
-                                                        @if($value->class_name1 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name1}}" @if($value->answer == 1 || $value->user_answer == 1) onclick="openModal('{{$value->video_link}}');" @endif>1</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name1}}">1</a>
-                                                        @endif
-                                                        @if($value->class_name2 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name2}}" @if($value->answer == 2 || $value->user_answer == 2) onclick="openModal('{{$value->video_link}}');" @endif>2</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name2}}">2</a>
-                                                        @endif
-                                                        @if($value->class_name3 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name3}}" @if($value->answer == 3 || $value->user_answer == 3) onclick="openModal('{{$value->video_link}}');" @endif>3</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name3}}">3</a>
-                                                        @endif
-                                                        @if($value->class_name4 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name4}}" @if($value->answer == 4 || $value->user_answer == 4) onclick="openModal('{{$value->video_link}}');" @endif>4</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name4}}">4</a>
-                                                        @endif
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                              </div>
-                                              <div class="omrSheetIdInfo">
-                                                <div class="omrSheetId_test">
-                                                  <div class="omrSheetDetailsTitle">Q.NO.</div>
-                                                  <div class="omrSheetIdField">
-                                                    @foreach($answer_list3 as $value)
-                                                      <div class="answer-bubbles">
-                                                        <div class="bubble bubble_count">{{$value->question_count}}</div>
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                                <div class="omrSheetId_candidate">
-                                                  <div class="omrSheetDetailsTitle">Answer</div>
-                                                  <div class="omrSheetIdField">
-                                                    @foreach($answer_list3 as $value)
-                                                      <div class="answer-bubbles">
-                                                        @if($value->class_name1 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name1}}" @if($value->answer == 1 || $value->user_answer == 1) onclick="openModal('{{$value->video_link}}');" @endif>1</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name1}}">1</a>
-                                                        @endif
-                                                        @if($value->class_name2 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name2}}" @if($value->answer == 2 || $value->user_answer == 2) onclick="openModal('{{$value->video_link}}');" @endif>2</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name2}}">2</a>
-                                                        @endif
-                                                        @if($value->class_name3 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name3}}" @if($value->answer == 3 || $value->user_answer == 3) onclick="openModal('{{$value->video_link}}');" @endif>3</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name3}}">3</a>
-                                                        @endif
-                                                        @if($value->class_name4 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name4}}" @if($value->answer == 4 || $value->user_answer == 4) onclick="openModal('{{$value->video_link}}');" @endif>4</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name4}}">4</a>
-                                                        @endif
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                              </div>
-                                              <div class="omrSheetIdInfo">
-                                                <div class="omrSheetId_test">
-                                                  <div class="omrSheetDetailsTitle">Q.NO.</div>
-                                                  <div class="omrSheetIdField">
-                                                    @foreach($answer_list4 as $value)
-                                                      <div class="answer-bubbles">
-                                                        <div class="bubble bubble_count">{{$value->question_count}}</div>
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                                <div class="omrSheetId_candidate">
-                                                  <div class="omrSheetDetailsTitle">Answer</div>
-                                                  <div class="omrSheetIdField">
-
-                                                    @foreach($answer_list4 as $value)
-                                                      <div class="answer-bubbles">
-                                                        @if($value->class_name1 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name1}}" @if($value->answer == 1 || $value->user_answer == 1) onclick="openModal('{{$value->video_link}}');" @endif>1</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name1}}">1</a>
-                                                        @endif
-                                                        @if($value->class_name2 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name2}}" @if($value->answer == 2 || $value->user_answer == 2) onclick="openModal('{{$value->video_link}}');" @endif>2</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name2}}">2</a>
-                                                        @endif
-                                                        @if($value->class_name3 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name3}}" @if($value->answer == 3 || $value->user_answer == 3) onclick="openModal('{{$value->video_link}}');" @endif>3</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name3}}">3</a>
-                                                        @endif
-                                                        @if($value->class_name4 != 'candidateId_fill_red')
-                                                          <div class="bubble {{$value->class_name4}}" @if($value->answer == 4 || $value->user_answer == 4) onclick="openModal('{{$value->video_link}}');" @endif>4</div>
-                                                        @else
-                                                          <a href="{{route('mistake_monitor_input',['user_exam_id'=>$offline_exam->user_exam_id,'id'=>$value->exam_result_id])}}" class="bubble {{$value->class_name4}}">4</a>
-                                                        @endif
-                                                      </div>
-                                                    @endforeach
-                                                    
-                                                  </div>
-                                                </div>
-                                              </div>
+                                              @include('site.include.omr_answer_column', ['answers' => $answer_list1, 'userExamId' => $offline_exam->user_exam_id])
+                                              @include('site.include.omr_answer_column', ['answers' => $answer_list2, 'userExamId' => $offline_exam->user_exam_id])
+                                              @include('site.include.omr_answer_column', ['answers' => $answer_list3, 'userExamId' => $offline_exam->user_exam_id])
+                                              @include('site.include.omr_answer_column', ['answers' => $answer_list4, 'userExamId' => $offline_exam->user_exam_id])
                                             </div>
                                           </div>
                                         </div>
@@ -519,8 +251,8 @@
         $("#examVideo iframe").attr("src", $("#examVideo iframe").attr("src"));
       });
     </script>
-    
-    
+
+
 
     <script type="text/javascript">
       function openModal(video_link) {

@@ -430,7 +430,8 @@
         topic_index:"",
         subtopic_id:"",
         subtopic_index:"",
-        question_id:""
+        question_id:"",
+        exam_id: "{{ $exam_id ?? '' }}"
       }
 
       function openChapter(chapter_id,index) {
@@ -511,6 +512,7 @@
           data.sub_topic_id = sub_topic_id;
           data.topic_id = globalData.topic_id;
           data.chapter_id = globalData.chapter_id;
+          data.exam_id = globalData.exam_id;
 
           globalData.sub_topic_id = sub_topic_id;
           globalData.subtopic_index = index;
@@ -531,19 +533,13 @@
                 }else{
                   difficulty_level = "Hard";
                 }
-                //<div class="question-img">
-                  //<img src="https://loremflickr.com/200/200/physics" class="img-fluid" alt="">
-                //</div>
-                //<span class="timespan">56 sec.</span>
+                var qNumber = val.question_number ? val.question_number : s_number;
                 role_modal_body = role_modal_body + `<a href="#" class="question-card">
-                        
-                    
                         <div class="question-content">
                           <div class="question-title">
-                            Q`+s_number+`. `+val.question_text+`
+                            Q`+qNumber+`. `+val.question_text+`
                           </div>
                           <div class="question-meta">
-                            
                             <span class="difficulty">`+difficulty_level+`</span>
                           </div>
                         </div>

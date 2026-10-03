@@ -402,7 +402,10 @@
                                         </div>
                                         <div class="examSchedule-r-col">
                                             <ul class="list-unstyled mb-0 examScheduleUl">
-                                                <li>{{$value->location_name}}</li>
+                                                <a href="{{ route('start_exam', ['id' => $value->id]) }}"
+                                                   onclick="openStartExamConfirm(this.href, @json($value->name), {{ !empty($value->is_proctored) ? 'true' : 'false' }}); return false;">
+                                                    <li class="notReleasedDate">Take Test</li>
+                                                </a>
                                             </ul>
                                         </div>
                                     </div>
@@ -711,6 +714,7 @@
             }
         });
     </script>
+    @include('site.include.start_exam_confirm_modal')
 </body>
 
 </html>

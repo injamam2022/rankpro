@@ -519,6 +519,9 @@ ul.examScheduleUl li.ndf {
   width: 70%;
   border: 1px solid #000;
 }
+.omrSheetIdInfo--noTestId .omrSheetId_candidate {
+  width: 100%;
+}
 .omrSheetId_test {
   width: calc(30% - 8px);
   margin-left: 8px;
@@ -569,16 +572,65 @@ ul.examScheduleUl li.ndf {
 .omrSheetId_candidate .answerFillBox {
   width: 12.5%;
 }
+.omrDigitGrid .answerFillBoxAll {
+  display: grid;
+  grid-template-columns: repeat(var(--omr-cols, 8), minmax(0, 1fr));
+}
+.omrDigitGrid .answerFillBox {
+  width: 100%;
+  font-size: 13px;
+}
+.omrDigitGrid .omrDigitGrid__row,
+.omrDigitGrid .answer-bubbles {
+  display: grid;
+  grid-template-columns: repeat(var(--omr-cols, 8), minmax(0, 1fr));
+  justify-items: center;
+  margin-top: 4px;
+}
+.omrDigitGrid .bubble {
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
+  line-height: 14px;
+}
 .omrSheetId_batch {
   width: 100%;
   margin-top: 12px;
 }
 .omrSheetId_batch .omrSheetIdField {
-  min-height: 73px;
+  min-height: 56px;
+}
+.omrSheetId_batch.omrSheetId_sign .omrSheetIdField {
+  min-height: 52px;
+  padding-top: 10px;
+  padding-bottom: 8px;
+}
+.omrSheetId_batchValue {
+  min-height: 48px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
 }
 .omrSheetId_batchText {
-  font-size: 14px;
+  font-size: 12px;
   color: #000;
+  line-height: 1.45;
+}
+.omrFieldLabel {
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  margin-top: 6px;
+}
+.omrSheetId_filledValue {
+  min-height: 22px;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #cfcfcf;
+  padding-bottom: 4px;
+}
+.omrSheetId_signLine {
+  min-height: 28px;
+  border-bottom: 1px solid #cfcfcf;
 }
 .candidateId_fill {
   background: #000;
@@ -618,8 +670,9 @@ ul.examScheduleUl li.ndf {
   margin-right: -9px;
 }
 .omrSheet_ans {
-  width: calc(100% - 37px);
+  width: 100%;
   display: flex;
+  gap: 0;
 }
 .omrSheet_ans .omrSheetIdInfo {
   width: 25%;
@@ -631,12 +684,194 @@ ul.examScheduleUl li.ndf {
 .omrSheet_ansAll {
   display: flex;
   height: 100%;
+  align-items: stretch;
 }
 .bubble.bubble_count {
   border: none;
+  font-weight: 600;
+  font-size: 12px;
+  width: 22px;
+  height: 22px;
 }
 .omrSheet_ans .omrSheetIdField {
   padding: 2px;
+}
+.resultOmrSheetBrand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.resultOmrSheetLogo {
+  height: 36px;
+  width: auto;
+  flex-shrink: 0;
+}
+.omrScoreCard {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.omrScoreCard__score {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #f28ab8;
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-width: 110px;
+  box-shadow: 0 1px 0 rgba(242, 138, 184, 0.25);
+}
+.omrScoreCard__scoreLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #c2185b;
+  line-height: 1.1;
+}
+.omrScoreCard__scoreValue {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.15;
+}
+.omrScoreCard__scoreValue small {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  margin-left: 2px;
+}
+.omrScoreCard__pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+}
+.omrScoreCard__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: stretch;
+}
+.omrScoreCard__stat {
+  min-width: 68px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid #ead6e0;
+  background: #fff7fb;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.omrScoreCard__num {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #111;
+}
+.omrScoreCard__lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  margin-top: 2px;
+}
+.omrScoreCard__stat--answered {
+  border-color: #2e318b;
+  background: #eef0ff;
+}
+.omrScoreCard__stat--answered .omrScoreCard__num { color: #2e318b; }
+.omrScoreCard__stat--correct {
+  border-color: #2eb573;
+  background: #eaf8f0;
+}
+.omrScoreCard__stat--correct .omrScoreCard__num { color: #1f8a56; }
+.omrScoreCard__stat--wrong {
+  border-color: #ff0101;
+  background: #ffecec;
+}
+.omrScoreCard__stat--wrong .omrScoreCard__num { color: #d10000; }
+.omrScoreCard__stat--skipped {
+  border-color: #b0b0b0;
+  background: #f5f5f5;
+}
+.omrScoreCard__stat--skipped .omrScoreCard__num { color: #555; }
+.omrScoreCard__stat--reported {
+  border-color: #e67e22;
+  background: #fff4e8;
+}
+.omrScoreCard__stat--reported .omrScoreCard__num { color: #c45f0a; }
+.omrAnswerCol {
+  width: 25%;
+  border: 1px solid #000;
+  margin-left: -1px;
+  background: #fff7fb;
+}
+.omrAnswerCol:first-child {
+  margin-left: 0;
+}
+.omrAnswerCol__head {
+  display: flex;
+}
+.omrAnswerCol__qHead {
+  width: 28%;
+  border-right: 1px solid #000;
+  font-size: 13px;
+  padding: 6px 2px;
+}
+.omrAnswerCol__aHead {
+  width: 72%;
+  font-size: 13px;
+  padding: 6px 2px;
+}
+.omrAnswerCol__body {
+  padding: 2px 0 6px;
+}
+.omrAnswerRow {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 1px 0;
+}
+.omrAnswerRow--band {
+  background: rgba(251, 181, 217, 0.18);
+}
+.omrAnswerRow--group-end {
+  margin-bottom: 14px;
+  padding-bottom: 2px;
+}
+.omrAnswerRow__qno {
+  width: 28%;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  border-right: 1px solid #000;
+  box-sizing: border-box;
+}
+.omrAnswerRow__opts {
+  width: 72%;
+  margin-top: 0;
+  justify-content: space-evenly;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+.omrAnswerRow__opts .bubble {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  line-height: 18px;
+  text-decoration: none;
+  color: #000;
 }
 .examVideoClose_ic {
   position: absolute;
