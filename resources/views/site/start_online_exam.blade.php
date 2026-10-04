@@ -356,6 +356,11 @@
             height:auto !important;
             overflow:visible !important;
         }
+        /* Keep "1)" on the same line as the opening words of the question. */
+        #question_div > p:first-child {
+            display:inline;
+            margin:0;
+        }
         .questionImg { margin-top:12px; clear:both; }
         .answerImg { width:100%; }
         .optionsDiv {
@@ -1137,12 +1142,59 @@
         return fixHtmlMedia(value || '');
       }
 
+      function prefixQuestionHtml(html, number) {
+        var prefix = number + ') ';
+        var wrap = document.createElement('div');
+        wrap.innerHTML = html || '';
+
+        function isEmpty(node) {
+          if (!node) return true;
+          if (node.nodeType === 3) {
+            return !String(node.textContent || '').replace(/\u00a0/g, ' ').trim();
+          }
+          if (node.nodeType !== 1) return true;
+          if (node.tagName === 'BR') return true;
+          if (/^(P|DIV|SPAN|FONT)$/.test(node.tagName)) {
+            var text = String(node.textContent || '').replace(/\u00a0/g, ' ').trim();
+            return !text && !node.querySelector('img, table, svg, math, iframe');
+          }
+          return false;
+        }
+
+        function place(node) {
+          var child = node.firstChild;
+          while (child && isEmpty(child)) {
+            var next = child.nextSibling;
+            node.removeChild(child);
+            child = next;
+          }
+          if (!child) return false;
+          if (child.nodeType === 3) {
+            child.textContent = prefix + String(child.textContent || '').replace(/^[\s\u00a0]+/, '');
+            return true;
+          }
+          if (child.nodeType === 1 && /^(P|DIV|SPAN|FONT|STRONG|B|EM|I|U|SUB|SUP|H[1-6]|LI|LABEL|A)$/.test(child.tagName)) {
+            if (place(child)) return true;
+          }
+          if (child.nodeType === 1) {
+            child.insertAdjacentText('beforebegin', prefix);
+            return true;
+          }
+          return false;
+        }
+
+        if (!place(wrap)) {
+          wrap.insertAdjacentText('afterbegin', prefix);
+        }
+        return wrap.innerHTML;
+      }
+
       function renderQuestionAndOption(data,number){
         var question_image = "";
         if(data.question_image){
           question_image = `<div class="questionImg">` + imgTag(data.question_image, 'question') + `</div>`;
         }
-        document.getElementById('question_div').innerHTML = number+') '+fixHtmlMedia(data.question_text || '')+''+question_image;
+        document.getElementById('question_div').innerHTML = prefixQuestionHtml(fixHtmlMedia(data.question_text || '') + question_image, number);
         document.getElementById('option1_div').innerHTML = renderOptionHtml(data.is_option1_image, data.option1);
         document.getElementById('option2_div').innerHTML = renderOptionHtml(data.is_option2_image, data.option2);
         document.getElementById('option3_div').innerHTML = renderOptionHtml(data.is_option3_image, data.option3);
