@@ -122,8 +122,8 @@
                                               @include('site.include.omr_digit_grid', ['code' => $user_id, 'length' => 10])
                                             </div>
                                             @if(empty($is_custom_test))
-                                              <div class="omrSheetId_test">
-                                                <div class="omrSheetDetailsTitle">TEST ID</div>
+                                            <div class="omrSheetId_test">
+                                              <div class="omrSheetDetailsTitle">TEST ID</div>
                                                 @include('site.include.omr_digit_grid', ['code' => $exam_id, 'length' => 3])
                                               </div>
                                             @endif
