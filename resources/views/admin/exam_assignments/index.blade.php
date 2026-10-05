@@ -46,6 +46,10 @@
     }
     .ta-exam-meta strong { color: #101828; font-weight: 500; }
 
+    .ta-schedule { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    @media (max-width: 575px) {
+        .ta-schedule { grid-template-columns: 1fr; }
+    }
     .ta-section { margin-top: 1.15rem; }
     .ta-section-title {
         font-size: .8125rem; font-weight: 500; color: #101828; margin-bottom: .5rem;
@@ -355,7 +359,7 @@
     <div class="ta-header d-flex flex-wrap justify-content-between align-items-end gap-2">
         <div>
             <h1>Test Assignments</h1>
-            <p class="ta-sub">Assign a test to batches or individual students. Unassigned tests stay hidden.</p>
+            <p class="ta-sub">Assign a test to batches or individual students, and set when it opens. Assigned students receive it in the portal from that start time.</p>
         </div>
         <a class="ta-link" href="{{ route('admin.batches') }}">Manage batches -></a>
     </div>
@@ -397,6 +401,49 @@
                 <form method="post" action="{{ route('admin.exam_assignments.save') }}" id="assignment-form">
                     @csrf
                     <input type="hidden" name="exam_id" value="{{ $exam->id }}">
+
+                    @php
+                        $startDateValue = old('exam_date', $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('Y-m-d') : '');
+                        $startTimeValue = old('exam_time', $exam->exam_time ? \Carbon\Carbon::parse($exam->exam_time)->format('H:i') : '');
+                        if (old('exam_end_date') !== null || old('exam_end_time') !== null) {
+                            $endDateValue = old('exam_end_date');
+                            $endTimeValue = old('exam_end_time');
+                        } elseif ($exam->exam_end_date) {
+                            $endDateValue = \Carbon\Carbon::parse($exam->exam_end_date)->format('Y-m-d');
+                            $endTimeValue = $exam->exam_end_time ? \Carbon\Carbon::parse($exam->exam_end_time)->format('H:i') : '';
+                        } elseif ($startDateValue) {
+                            $suggestedEnd = \Carbon\Carbon::parse($startDateValue.' '.($startTimeValue ?: '00:00'));
+                            $minutes = (int) ($exam->total_time_for_exam ?: 0);
+                            $suggestedEnd = $minutes > 0 ? $suggestedEnd->addMinutes($minutes) : $suggestedEnd->addHours(3);
+                            $endDateValue = $suggestedEnd->format('Y-m-d');
+                            $endTimeValue = $suggestedEnd->format('H:i');
+                        } else {
+                            $endDateValue = '';
+                            $endTimeValue = '';
+                        }
+                    @endphp
+                    <div class="ta-section">
+                        <div class="ta-section-title">Start and end</div>
+                        <div class="ta-schedule">
+                            <div>
+                                <label class="ta-label" for="exam_date">Start date</label>
+                                <input class="ta-input" id="exam_date" type="date" name="exam_date" required value="{{ $startDateValue }}">
+                            </div>
+                            <div>
+                                <label class="ta-label" for="exam_time">Start time</label>
+                                <input class="ta-input" id="exam_time" type="time" name="exam_time" required value="{{ $startTimeValue }}">
+                            </div>
+                            <div>
+                                <label class="ta-label" for="exam_end_date">End date</label>
+                                <input class="ta-input" id="exam_end_date" type="date" name="exam_end_date" required value="{{ $endDateValue }}">
+                            </div>
+                            <div>
+                                <label class="ta-label" for="exam_end_time">End time</label>
+                                <input class="ta-input" id="exam_end_time" type="time" name="exam_end_time" required value="{{ $endTimeValue }}">
+                            </div>
+                        </div>
+                        <p class="ta-hint" style="margin-top:.55rem;">Students see this test in the portal from the start time until the end time.</p>
+                    </div>
 
                     <div class="ta-section">
                         <div class="ta-section-title">Batches</div>
@@ -516,6 +563,20 @@
                                     <div class="ta-assign-name">{{ $row->name }}</div>
                                     <div class="ta-assign-meta">
                                         <span class="ta-pill ta-pill-muted">{{ $row->exam_code }}</span>
+                                        @if($row->exam_date)
+                                            <span class="ta-pill ta-pill-muted">
+                                                {{ \Carbon\Carbon::parse($row->exam_date)->format('d M Y') }}
+                                                @if($row->exam_time)
+                                                    {{ \Carbon\Carbon::parse($row->exam_time)->format('g:ia') }}
+                                                @endif
+                                                @if($row->exam_end_date)
+                                                    – {{ \Carbon\Carbon::parse($row->exam_end_date)->format('d M Y') }}
+                                                    @if($row->exam_end_time)
+                                                        {{ \Carbon\Carbon::parse($row->exam_end_time)->format('g:ia') }}
+                                                    @endif
+                                                @endif
+                                            </span>
+                                        @endif
                                         <span class="ta-pill">{{ $row->batches_count }} batches</span>
                                         <span class="ta-pill">{{ $row->unique_students_count }} students</span>
                                     </div>

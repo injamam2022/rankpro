@@ -52,6 +52,13 @@ class CustomTest extends Model
 
     public static function questionPaperIdQuery()
     {
-        return static::query()->whereNotNull('question_paper_id')->select('question_paper_id');
+        // Only hide the paper that was created with the custom test.
+        // A later admin paper can reuse the same id after the original row is removed,
+        // and that paper must still appear in Question Bank.
+        return static::query()
+            ->join('question_papers as qp', 'qp.id', '=', 'custom_tests.question_paper_id')
+            ->whereNotNull('custom_tests.question_paper_id')
+            ->whereRaw('ABS(TIMESTAMPDIFF(SECOND, qp.created_at, custom_tests.created_at)) <= 120')
+            ->select('custom_tests.question_paper_id');
     }
 }

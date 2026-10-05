@@ -77,7 +77,11 @@
                                         <img src="{{asset('uploads/exam/' . ($value->exam_logo ?? 'default.png')) }}" class="img-fluid">
                                           
                                           <p>{!! $value->name !!}</p>
+                                          @if($value->canBeStarted())
                                           <a href="{{ route('start_exam',['id'=>$value->id]) }}" onclick="openStartExamConfirm(this.href, @json(strip_tags($value->name)), {{ !empty($value->is_proctored) ? 'true' : 'false' }}); return false;">Start Exam</a>
+                                          @else
+                                          <span>Starts {{ \Carbon\Carbon::parse($value->exam_date.' '.$value->exam_time)->format('j M, g:i A') }}</span>
+                                          @endif
                                       </div>
                                   </div>
                               </div>

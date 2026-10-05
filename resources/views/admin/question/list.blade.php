@@ -58,6 +58,32 @@
         .pagination nav {
             width: 100%;
         }
+
+        .question-duplicate td {
+            background-color: #fff6df !important;
+        }
+
+        .duplicate-flag {
+            display: inline-block;
+            background: #f0ad00;
+            color: #1f1600;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-bottom: 6px;
+        }
+
+        .duplicate-links {
+            font-size: 12px;
+            color: #8a5a00;
+            margin-bottom: 6px;
+        }
+
+        .duplicate-links a {
+            color: #8a5a00;
+            font-weight: 700;
+        }
     </style>
 @endsection
 
@@ -116,6 +142,17 @@
                     <button class="btn btn-primary" type="submit" style="margin-top: 25px;">Search</button>
                 </div>
             </div>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="mb-0" style="font-weight: 600;">
+                    <input type="checkbox" name="duplicates" value="1" @if(!empty($duplicates)) checked @endif onchange="this.form.submit()">
+                    Show duplicates only
+                </label>
+                @if(!empty($duplicate_count))
+                    <span style="background:#fff3cd;color:#856404;border:1px solid #ffe69c;border-radius:4px;padding:4px 10px;font-size:13px;">
+                        {{ $duplicate_count }} duplicate {{ $duplicate_count == 1 ? 'question' : 'questions' }}
+                    </span>
+                @endif
+            </div>
         </form>
         <table class="table table-striped">
             <thead>
@@ -131,11 +168,25 @@
             <tbody>
                 @if(count($list)>0)
                     @foreach ($list as $key=>$row)
-                        <tr>
+                        <tr class="{{ !empty($row->is_duplicate) ? 'question-duplicate' : '' }}">
                             <td>{{$row->subject_name}}</td>
                             <td>{{$row->chapter_name}}</td>
                             <td>{{$row->source_name}}</td>
                             <td>
+                                @if(!empty($row->is_duplicate))
+                                    <div>
+                                        <span class="duplicate-flag">Duplicate</span>
+                                    </div>
+                                    <div class="duplicate-links">
+                                        Same question as
+                                        @foreach(array_slice($row->duplicate_ids, 0, 6) as $dupId)
+                                            <a href="{{ route('admin.question.edit', ['id' => $dupId]) }}">#{{ $dupId }}</a>@if(!$loop->last), @endif
+                                        @endforeach
+                                        @if(count($row->duplicate_ids) > 6)
+                                            +{{ count($row->duplicate_ids) - 6 }} more
+                                        @endif
+                                    </div>
+                                @endif
                                 {!!$row->question_text!!}
 
 

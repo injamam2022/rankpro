@@ -109,13 +109,13 @@ class StudentsController extends Controller
                                     ->where(function ($q) {
                                         $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
                                     })
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
+                                    ->when(filled($subject_id), function ($query) use ($subject_id) {
                                         $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
                                     })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
+                                    ->when(filled($exam_type), function ($query) use ($exam_type) {
                                         $query->where('exams.type',$exam_type); 
                                     })
-                                    ->where('exams.exam_date','>=',date('Y-m-d'))
+                                    ->listedForStudentPortal()
                                     ->distinct()->orderBy('exams.exam_date','ASC')->take(5)->get();
 
         $data['leader_board'] = Exam_user::select(['exam_users.*',DB::raw('AVG(exam_users.percentage) as total_result'),DB::raw('SUM(exam_users.total_mark) as total_mark'),DB::raw('SUM(exam_users.total_number) as total_number'),'users.first_name','users.last_name','users.profile_img','users.rankpro_id',DB::raw('count(*) as total_exam')])
@@ -186,13 +186,13 @@ class StudentsController extends Controller
                                     ->where(function ($q) {
                                         $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
                                     })
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
+                                    ->when(filled($subject_id), function ($query) use ($subject_id) {
                                         $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
                                     })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
+                                    ->when(filled($exam_type), function ($query) use ($exam_type) {
                                         $query->where('exams.type',$exam_type); 
                                     })
-                                    ->where('exams.exam_date','>=',date('Y-m-d'))
+                                    ->listedForStudentPortal()
                                     ->where('exams.is_trending',1)->distinct()->orderBy('exams.exam_date','ASC')->take(5)->get();
                             
         $data['dashboard_banner'] = Dashboard_banner::where('status',1)->get();

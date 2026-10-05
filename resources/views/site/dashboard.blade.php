@@ -397,15 +397,30 @@
                                         <div class="examSchedule-l-col">
                                             <ul class="list-unstyled mb-0 examScheduleUl">
                                                 <li>{{$value->name}}</li>
-                                                <li>{{\Carbon\Carbon::parse($value->exam_date)->format('d M Y')}}</li>
+                                                <li>
+                                                    {{ \Carbon\Carbon::parse($value->exam_date)->format('d M Y') }}
+                                                    @if($value->exam_time)
+                                                        {{ \Carbon\Carbon::parse($value->exam_time)->format('g:ia') }}
+                                                    @endif
+                                                    @if($value->exam_end_date)
+                                                        – {{ \Carbon\Carbon::parse($value->exam_end_date)->format('d M Y') }}
+                                                        @if($value->exam_end_time)
+                                                            {{ \Carbon\Carbon::parse($value->exam_end_time)->format('g:ia') }}
+                                                        @endif
+                                                    @endif
+                                                </li>
                                             </ul>
                                         </div>
                                         <div class="examSchedule-r-col">
                                             <ul class="list-unstyled mb-0 examScheduleUl">
+                                                @if($value->canBeStarted())
                                                 <a href="{{ route('start_exam', ['id' => $value->id]) }}"
                                                    onclick="openStartExamConfirm(this.href, @json($value->name), {{ !empty($value->is_proctored) ? 'true' : 'false' }}); return false;">
                                                     <li class="notReleasedDate">Take Test</li>
                                                 </a>
+                                                @else
+                                                    <li class="notReleasedDate">Starts {{ \Carbon\Carbon::parse($value->exam_time)->format('g:i A') }}</li>
+                                                @endif
                                             </ul>
                                         </div>
                                     </div>

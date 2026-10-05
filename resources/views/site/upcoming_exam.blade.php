@@ -131,7 +131,15 @@
                                                                             <div class="title">{{$value->name}}</div>
                                                                             <div class="subtitle">{{$value->subject_names}}</div>
                                                                             <div class="datetime">
-                                                                                {{\Carbon\Carbon::parse($value->exam_date)->format('jS F, Y')}} &nbsp; | &nbsp; {{\Carbon\Carbon::parse($value->exam_time)->format('g:ia')}}
+                                                                                {{ \Carbon\Carbon::parse($value->exam_date)->format('jS F, Y') }}
+                                                                                &nbsp; | &nbsp;
+                                                                                {{ \Carbon\Carbon::parse($value->exam_time)->format('g:ia') }}
+                                                                                @if($value->exam_end_date)
+                                                                                    &nbsp; – &nbsp;
+                                                                                    {{ \Carbon\Carbon::parse($value->exam_end_date)->format('jS F, Y') }}
+                                                                                    &nbsp; | &nbsp;
+                                                                                    {{ \Carbon\Carbon::parse($value->exam_end_time ?: '23:59:59')->format('g:ia') }}
+                                                                                @endif
                                                                             </div>
                                                                         </div>
                                                             
@@ -221,7 +229,15 @@
                                                                             <div class="title">{{$value->name}}</div>
                                                                             <div class="subtitle">{{ $value->subject_names ?: '—' }}</div>
                                                                             <div class="datetime">
-                                                                                {{\Carbon\Carbon::parse($value->exam_date)->format('jS F, Y')}} &nbsp; | &nbsp; {{\Carbon\Carbon::parse($value->exam_time)->format('g:ia')}}
+                                                                                {{ \Carbon\Carbon::parse($value->exam_date)->format('jS F, Y') }}
+                                                                                &nbsp; | &nbsp;
+                                                                                {{ \Carbon\Carbon::parse($value->exam_time)->format('g:ia') }}
+                                                                                @if($value->exam_end_date)
+                                                                                    &nbsp; – &nbsp;
+                                                                                    {{ \Carbon\Carbon::parse($value->exam_end_date)->format('jS F, Y') }}
+                                                                                    &nbsp; | &nbsp;
+                                                                                    {{ \Carbon\Carbon::parse($value->exam_end_time ?: '23:59:59')->format('g:ia') }}
+                                                                                @endif
                                                                             </div>
                                                                         </div>
                                                             
@@ -245,7 +261,11 @@
                                                                             <a class="btn btn-reject ">Reject</a>
                                                                         @endif
                                                                     </div>
-                                                                    <a href="{{ route('start_exam',['id'=>$value->id]) }}" class="btn btn-test" onclick="openStartExamConfirm(this.href, @json($value->name), {{ !empty($value->is_proctored) ? 'true' : 'false' }}); return false;">Take Test Now</a>
+                                                                    @if($value->canBeStarted())
+                                                                        <a href="{{ route('start_exam',['id'=>$value->id]) }}" class="btn btn-test" onclick="openStartExamConfirm(this.href, @json($value->name), {{ !empty($value->is_proctored) ? 'true' : 'false' }}); return false;">Take Test Now</a>
+                                                                    @else
+                                                                        <span class="btn btn-test" style="opacity:.7;cursor:default;">Starts {{ \Carbon\Carbon::parse($value->exam_date.' '.$value->exam_time)->format('j M, g:i A') }}</span>
+                                                                    @endif
                                                                 </div>
                                                         
                                                             </div>
