@@ -47,6 +47,11 @@
   width: 100%;
   height: 100%;
 }
+.formAvatarImg img.avatar-placeholder {
+  object-fit: cover;
+  object-position: center top;
+  background: linear-gradient(180deg, #e8eeff 0%, #f3e9ff 100%);
+}
 .formAvatar {
   position: relative;
   margin: 10px 0px;
@@ -284,6 +289,21 @@ a.formTexts {
   }
 }
 
+@media (max-width:991px) {
+  .authShell .authVisualSignup {
+    position: relative;
+    top: 0;
+    margin-top: 24px;
+    min-height: 360px;
+  }
+  .authShell .authVisualMsg h3 {
+    font-size: 22px;
+  }
+  .authShell .signupLeft {
+    padding: 8px 8px 12px;
+  }
+}
+
 @media (max-width:575px) {
 	
 }
@@ -296,4 +316,307 @@ a.formTexts {
 
 @media(max-width:413px) {
 	
+}
+
+/* Auth pages: login, signup, forgot / reset password */
+.authContainer {
+  max-width: 1360px;
+  width: 100%;
+}
+@media (min-width: 1200px) {
+  .authContainer.container {
+    max-width: 1360px;
+  }
+}
+.authShell.formBlock {
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 22px 50px rgba(53, 97, 255, 0.14);
+  width: 100%;
+}
+.authShell .formTitle {
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+.authShell .formTitle.text-left {
+  text-align: left;
+}
+.authShell .formTexts {
+  color: #3f3f46;
+}
+.authShell .formTexts a {
+  color: #3561ff;
+}
+.authShell .auth-lead {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #52525b;
+  margin: 8px 0 4px;
+}
+.authShell .required-note {
+  text-align: center;
+  font-size: 13px;
+  color: #71717a;
+  margin: 2px 0 8px;
+}
+.authShell .req {
+  color: #e11d48;
+  font-weight: 700;
+  margin-left: 2px;
+}
+.authShell .form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #27272a;
+  margin-bottom: 6px;
+}
+.authShell .field-hint {
+  font-size: 12px;
+  color: #71717a;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.authShell .form-group .form-control {
+  height: 46px;
+  background: #fff;
+  border: 1px solid #e4e7f0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.authShell .form-group .form-control:focus {
+  border-color: #3561ff;
+  box-shadow: 0 0 0 4px rgba(53, 97, 255, 0.12);
+  outline: none;
+}
+.authShell .form-control.is-invalid {
+  border-color: #e11d48;
+  background-image: none;
+  padding-right: 16px;
+}
+.authShell .invalid-feedback {
+  font-size: 12px;
+  padding-left: 8px;
+}
+.authShell .auth-input {
+  position: relative;
+}
+.authShell .auth-input .form-control {
+  padding-left: 42px;
+}
+.authShell .auth-input.has-toggle .form-control {
+  padding-right: 42px;
+}
+.authShell .field-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8b93a7;
+  font-size: 15px;
+  line-height: 1;
+  pointer-events: none;
+}
+.authShell .pw-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #71717a;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.authShell .pw-toggle:hover {
+  color: #3561ff;
+  background: #eef2ff;
+}
+.authShell .forgot-link {
+  display: block;
+  text-align: right;
+  margin-top: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #3561ff;
+  text-decoration: none;
+}
+.authShell .forgot-link:hover {
+  text-decoration: underline;
+}
+.authShell .btnRegister {
+  margin-top: 26px;
+  border: 0;
+  background: linear-gradient(180deg, #4c78ff 0%, #2f55f5 100%);
+  box-shadow: 0 10px 22px rgba(53, 97, 255, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.authShell .btnRegister:hover {
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(53, 97, 255, 0.34);
+}
+.authShell .loginLeft .btnRegister {
+  margin-top: 18px;
+}
+.authShell .formAvatarImg {
+  border: 4px solid #fff;
+  box-shadow: 0 10px 24px rgba(53, 97, 255, 0.18);
+}
+.authShell .wa-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #e6e8f0;
+  border-radius: 12px;
+  color: #27272a;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.authShell .wa-check .form-check-input {
+  margin: 2px 0 0;
+  float: none;
+  flex-shrink: 0;
+}
+.authShell .loginImg,
+.authShell .authVisual {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  height: 100%;
+  min-height: 460px;
+  background: #eef2ff;
+}
+.authShell .loginImg img,
+.authShell .authVisual > img {
+  border-radius: 18px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 460px;
+  object-fit: cover;
+  object-position: center;
+}
+.authShell .authVisual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.08) 20%, rgba(15, 23, 42, 0.72) 100%);
+  pointer-events: none;
+}
+.authShell .authVisualMsg {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 24px;
+  z-index: 2;
+  color: #fff;
+}
+.authShell .authVisualTag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.authShell .authVisualMsg h3 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+}
+.authShell .authVisualMsg p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 320px;
+}
+.authShell.formBlockSignup {
+  padding: 28px 28px 32px;
+}
+.authShell .signupLeft {
+  padding: 12px 28px 20px 20px;
+}
+.authShell.formBlockLogin {
+  padding: 24px;
+}
+.authShell .signupLeft .formTitle {
+  text-align: left;
+}
+.authShell .signupLeft .required-note {
+  text-align: left;
+  margin: 0 0 8px;
+}
+.authShell .authVisualSignup {
+  position: sticky;
+  top: 100px;
+  min-height: 620px;
+}
+.authShell .loginRight {
+  height: 100%;
+  min-height: 100%;
+}
+.authShell .authVisual {
+  min-height: 560px;
+}
+.authShell .authVisual > img {
+  min-height: 560px;
+}
+.authShell .back-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #3f3f46;
+  text-decoration: none;
+}
+.authShell .back-link:hover {
+  color: #3561ff;
+}
+.auth-alert {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 12px 0 6px;
+}
+.auth-alert.error {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+.auth-alert.success {
+  background: #ecfdf3;
+  color: #067647;
+  border: 1px solid #abefc6;
+}
+.auth-alert div + div {
+  margin-top: 4px;
+}
+
+@media (max-width: 575px) {
+  .authShell.formBlock {
+    padding: 28px 18px 36px;
+  }
+  .authShell .btnRegister,
+  .authShell .loginLeft .btnRegister {
+    width: 100%;
+  }
+  .authShell .formTexts.forgotPasswordText,
+  .authShell .auth-lead {
+    width: 100%;
+  }
 }

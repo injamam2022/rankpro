@@ -57,161 +57,108 @@
     <!-- Navbar End -->
 
     <section id="formAll" class="topbannerA">
-        <div class="container">
+        <div class="container authContainer">
           <div class="row justify-content-center">
-            <div class="col-xl-10">
-              <div class="formBlock">
-                <div class="formTitle">Create an account</div>
-                <div class="formTexts">Already Have an Account? <a href="{{ route('login') }}">Log in</a></div>
+            <div class="col-12">
+              <div class="formBlock formBlockLogin authShell formBlockSignup">
+                <div class="row align-items-stretch g-4">
+                  <div class="col-lg-6">
+                    <div class="loginLeft signupLeft">
+                      <div class="formTitle text-left">Create an account</div>
+                      <div class="formTexts text-left">Already have an account? <a href="{{ route('login') }}">Log in</a></div>
+                      <div class="required-note text-start"><span class="req">*</span> Required fields</div>
 
-                <form class="registrationForm" action="" method="POST" enctype="multipart/form-data">
-                  @csrf
-                  <div class="formAvatar">
-                    <div class="formAvatarImg">
-                      <img src="https://randomuser.me/api/portraits/women/2.jpg" class="img-fluid" alt="" id="avatarPreview">
+                      <form class="registrationForm" id="registerForm" action="" method="POST" enctype="multipart/form-data" novalidate>
+                        @csrf
+                        <div class="formAvatar">
+                          <div class="formAvatarImg">
+                            <img src="{{ asset('web/images/form/signup-avatar.jpg') }}" class="img-fluid avatar-placeholder" alt="Upload profile photo" id="avatarPreview">
+                          </div>
+                          <img src="{{ asset('') }}web/images/form/cam_ic.png" class="img-fluid cam_ic" alt="" id="uploadTrigger">
+                        </div>
+                        <input type="file" name="profileImage" id="profileImage" accept="image/*" style="display: none;">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="first_name">First name <span class="req" aria-hidden="true">*</span></label>
+                              <input type="text" class="form-control" id="first_name" placeholder="First name" name="first_name" autocomplete="given-name" required>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="last_name">Last name <span class="req" aria-hidden="true">*</span></label>
+                              <input type="text" class="form-control" id="last_name" placeholder="Last name" name="last_name" autocomplete="family-name" required>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="mobile_number">Phone <span class="req" aria-hidden="true">*</span></label>
+                              <input type="tel" class="form-control" id="mobile_number" placeholder="10-digit phone number" name="mobile_number" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" required>
+                              <div class="field-hint">We'll send an OTP to this number for verification.</div>
+                              <label class="wa-check" for="is_whatsapp">
+                                  <input class="form-check-input" type="checkbox" id="is_whatsapp" name="is_whatsapp">
+                                  <span>WhatsApp is available on this number</span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="email_id">Email <span class="req" aria-hidden="true">*</span></label>
+                              <input type="email" class="form-control" id="email_id" placeholder="Email" name="email_id" autocomplete="email" required>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="password">Password <span class="req" aria-hidden="true">*</span></label>
+                              <div class="auth-input has-toggle">
+                                <span class="field-icon"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" placeholder="At least 4 characters" name="password" minlength="4" autocomplete="new-password" required>
+                                <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="password_confirmation">Confirm password <span class="req" aria-hidden="true">*</span></label>
+                              <div class="auth-input has-toggle">
+                                <span class="field-icon"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password_confirmation" placeholder="Confirm password" name="password_confirmation" minlength="4" autocomplete="new-password" required>
+                                <button type="button" class="pw-toggle" data-target="password_confirmation" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="father_full_name">Father's name</label>
+                              <input type="text" class="form-control" id="father_full_name" placeholder="Father's name" name="father_full_name">
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="father_mobile_number">Father's contact no</label>
+                              <input type="tel" class="form-control" id="father_mobile_number" placeholder="Father's contact no" name="father_mobile_number" inputmode="numeric">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="text-center">
+                          <button type="button" class="btn btnRegister" id="registerBtn">Register</button>
+                        </div>
+                      </form>
                     </div>
-                    <img src="{{ asset('') }}web/images/form/cam_ic.png" class="img-fluid cam_ic" alt="" id="uploadTrigger">
                   </div>
-                  <input type="file" name="profileImage" id="profileImage" accept="image/*"
-                                style="display: none;">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">First Name</label>
-                        <input type="text" class="form-control" id="first_name" placeholder="First Name" name="first_name">
+                  <div class="col-lg-6">
+                    <div class="loginRight">
+                      <div class="authVisual authVisualSignup">
+                        <img src="{{ asset('web/images/form/neet-auth-side.jpg') }}" class="img-fluid" alt="NEET exam preparation">
+                        <div class="authVisualMsg">
+                          <span class="authVisualTag">Join RankPro</span>
+                          <h3>Start your NEET journey today</h3>
+                          <p>Get mock tests, detailed analysis, and mentor support built for NEET aspirants.</p>
+                        </div>
                       </div>
                     </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Last Name</label>
-                        <input type="text" class="form-control" id="last_name" placeholder="Last Name" name="last_name">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="number">Phone (we will send you OTP for verification)</label>
-                        <input type="number" class="form-control" id="mobile_number" placeholder="Phone" name="mobile_number">
-                        
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" id="is_whatsapp" name="is_whatsapp"> Is Whatsapp available on this number?
-                        </label>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control" id="email_id" placeholder="Email" name="email_id">
-                      </div>
-                    </div>
-                    <!-- <div class="col-md-12">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Address (as per Adhaar)</label>
-                        <input type="text" class="form-control" id="address" placeholder="Address" name="address">
-                      </div>
-                    </div> -->
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="password">Password</label>
-                        <input type="password" class="form-control" id="password" placeholder="Password" name="password">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="password">Confirm Password</label>
-                        <input type="password" class="form-control" id="password_confirmation" placeholder="Confirm Password" name="password_confirmation">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Father's Name</label>
-                        <input type="text" class="form-control" id="father_full_name" placeholder="Father's Name" name="father_full_name">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Father's Contact No</label>
-                        <input type="text" class="form-control" id="father_mobile_number" placeholder="Father's Contact No" name="father_mobile_number">
-                      </div>
-                    </div>
-                    <!-- <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Father's Occupation</label>
-                        <input type="text" class="form-control" id="father_occupation" placeholder="Father's Occupation" name="father_occupation">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Father's Contact No</label>
-                        <input type="text" class="form-control" id="father_mobile_number" placeholder="Father's Contact No" name="father_mobile_number">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Father's Qualification</label>
-                        <input type="text" class="form-control" id="father_qualification" placeholder="Father's Qualification" name="father_qualification">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Mother's Name</label>
-                        <input type="text" class="form-control" id="mother_full_name" placeholder="Mother's Name" name="mother_full_name">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Mother's Occupation</label>
-                        <input type="text" class="form-control" id="mother_occupation" placeholder="Mother's Occupation" name="mother_occupation">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Mother's Contact No</label>
-                        <input type="text" class="form-control" id="mother_mobile_number" placeholder="Mother's Contact No" name="mother_mobile_number">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Mother's Qualification</label>
-                        <input type="text" class="form-control" id="mother_qualification" placeholder="Mother's Qualification" name="mother_qualification">
-                      </div>
-                    </div>
-                    <div class="col-md-12">
-                      <div class="form-group wow fadeInUp">
-                        <label class="labelText">Read <a href="#">Terms & Conditions of RankPro</a></label>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Qualification Details</label>
-                        <input type="text" class="form-control" id="qualification_details" placeholder="Qualification Details" name="qualification_details">
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Certificate</label>
-                        <input type="file" class="form-control" id="certificate" placeholder="Drag and Drop files here" name="certificate" style="height: auto;">
-                        <label>PDF or JPG max upload file size: 1mb</label>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Guardian Signature</label>
-                        <input type="file" class="form-control" id="guardian_signature" placeholder="Drag and Drop files here" name="guardian_signature" style="height: auto;">
-                        <label>PDF or JPG max upload file size: 50kb</label>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group wow fadeInUp">
-                        <label for="text">Student Signature</label>
-                        <input type="file" class="form-control" id="student_signature" placeholder="Drag and Drop files here" name="student_signature" style="height: auto;">
-                        <label>PDF or JPG max upload file size: 50kb</label>
-                      </div>
-                    </div> -->
                   </div>
-                  <div class="text-center wow fadeInUp">
-                    <div class="btn btnRegister" id="registerBtn">Register</div>
-                  </div>
-                </form>
+                </div>
               </div>
             </div>
           </div>
@@ -343,12 +290,72 @@
             let emailId = "";
             var g_user_id = "";
 
+            $(document).on("click", ".pw-toggle", function () {
+                var input = $("#" + $(this).data("target"));
+                var icon = $(this).find("i");
+                if (input.attr("type") === "password") {
+                    input.attr("type", "text");
+                    icon.removeClass("bi-eye").addClass("bi-eye-slash");
+                    $(this).attr("aria-label", "Hide password");
+                } else {
+                    input.attr("type", "password");
+                    icon.removeClass("bi-eye-slash").addClass("bi-eye");
+                    $(this).attr("aria-label", "Show password");
+                }
+            });
+
+            function showFieldError(selector, message) {
+                var field = $(selector);
+                field.addClass("is-invalid");
+                var target = field.closest(".auth-input");
+                if (!target.length) {
+                    target = field;
+                }
+                target.siblings(".invalid-feedback").remove();
+                target.after('<div class="invalid-feedback d-block">' + message + '</div>');
+            }
+
             $("#registerBtn").click(function(e) {
                 e.preventDefault();
+                var form = document.getElementById("registerForm");
+                $(".registrationForm .is-invalid").removeClass("is-invalid");
+                $(".registrationForm .invalid-feedback").remove();
+
+                if (!form.checkValidity()) {
+                    if (!$("#first_name").val().trim()) {
+                        showFieldError("#first_name", "First name is required.");
+                    }
+                    if (!$("#last_name").val().trim()) {
+                        showFieldError("#last_name", "Last name is required.");
+                    }
+                    if (!/^[0-9]{10}$/.test($("#mobile_number").val().trim())) {
+                        showFieldError("#mobile_number", "Enter a valid 10-digit phone number.");
+                    }
+                    if (!$("#email_id").val().trim() || !$("#email_id")[0].checkValidity()) {
+                        showFieldError("#email_id", "Enter a valid email address.");
+                    }
+                    if ($("#password").val().length < 4) {
+                        showFieldError("#password", "Password must be at least 4 characters.");
+                    }
+                    if (!$("#password_confirmation").val()) {
+                        showFieldError("#password_confirmation", "Confirm your password.");
+                    }
+                    var firstInvalid = $(".registrationForm .is-invalid").first();
+                    if (firstInvalid.length) {
+                        firstInvalid.trigger("focus");
+                    }
+                    return;
+                }
+
+                if ($("#password").val() !== $("#password_confirmation").val()) {
+                    showFieldError("#password_confirmation", "Passwords do not match.");
+                    $("#password_confirmation").trigger("focus");
+                    return;
+                }
+
                 emailId = $("#email_id").val();
                 $("#otpPhoneNumber").text($("#mobile_number").val());
-                // $("#hiddenEmail").val(emailId);
-                let formData = new FormData($("form")[0]);
+                let formData = new FormData(form);
             
                 $.ajax({
                     url: "{{ route('admissionstore') }}",
@@ -373,21 +380,15 @@
                         console.error(xhr);
                         if (xhr.responseJSON) {
                             if (xhr.responseJSON.message === "This email address is already registered.") {
-                                $("#email_id").addClass("is-invalid");
-                                $("#email_id").siblings(".invalid-feedback").remove();
-                                $("#email_id").after('<div class="invalid-feedback">' + xhr.responseJSON.message + '</div>');
-                            }else if (xhr.responseJSON.message === "This phone number is already registered.") {
-                                $("#mobile_number").addClass("is-invalid");
-                                $("#mobile_number").siblings(".invalid-feedback").remove();
-                                $("#mobile_number").after('<div class="invalid-feedback">' + xhr.responseJSON.message + '</div>');
+                                showFieldError("#email_id", xhr.responseJSON.message);
+                            } else if (xhr.responseJSON.message === "This phone number is already registered.") {
+                                showFieldError("#mobile_number", xhr.responseJSON.message);
                             } else if (xhr.responseJSON.errors) {
-                                $(".form-control").each(function() {
+                                $(".registrationForm .form-control").each(function() {
                                     let fieldName = $(this).attr("name");
                                     let error = xhr.responseJSON.errors[fieldName];
                                     if (error) {
-                                        $(this).addClass("is-invalid");
-                                        $(this).siblings(".invalid-feedback").remove();
-                                        $(this).after('<div class="invalid-feedback">' + error[0] + '</div>');
+                                        showFieldError(this, error[0]);
                                     } else {
                                         $(this).removeClass("is-invalid");
                                     }
@@ -446,7 +447,7 @@
             $('#profileImage').on('change', function (event) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    $('#avatarPreview').attr('src', e.target.result);
+                    $('#avatarPreview').attr('src', e.target.result).removeClass('avatar-placeholder');
                 };
                 reader.readAsDataURL(event.target.files[0]);
             });

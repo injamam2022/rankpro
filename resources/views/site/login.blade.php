@@ -57,41 +57,62 @@
     <!-- Navbar End -->
 
     <section id="formAll" class="topbannerA">
-        <div class="container">
+        <div class="container authContainer">
           <div class="row justify-content-center">
-            <div class="col-xl-10">
-              <div class="formBlock formBlockLogin">
+            <div class="col-12">
+              <div class="formBlock formBlockLogin authShell">
                 <div class="row align-items-center">
                   <div class="col-md-6">
                     <div class="loginLeft">
                       <div class="formTitle text-left">Welcome back!</div>
-                      <div class="formTexts text-left">Don't Have an Account? <a href="{{ route('signup') }}">Sign up now</a></div>
+                      <div class="formTexts text-left">Don't have an account? <a href="{{ route('signup') }}">Sign up now</a></div>
 
-                      <form action="{{ route('login.submit') }}"  method="POST">
+                      @if (session('success'))
+                        <div class="auth-alert success" role="alert">{{ session('success') }}</div>
+                      @endif
+                      @if (session('error'))
+                        <div class="auth-alert error" role="alert">{{ session('error') }}</div>
+                      @endif
+
+                      <form action="{{ route('login.submit') }}" method="POST">
                         @csrf
-                        <div class="row">
-                          <div class="col-md-12">
-                            <div class="form-group wow fadeInUp">
-                              <input type="text" class="form-control" id="email_id" placeholder="Email Or Phone Number" name="email_id">
-                            </div>
+                        <div class="form-group">
+                          <label for="email_id">Email or phone <span class="req" aria-hidden="true">*</span></label>
+                          <div class="auth-input">
+                            <span class="field-icon"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control @error('email_id') is-invalid @enderror" id="email_id" placeholder="Email or phone number" name="email_id" value="{{ old('email_id') }}" autocomplete="username" required>
                           </div>
-                          <div class="col-md-12">
-                            <div class="form-group wow fadeInUp">
-                              <input type="password" class="form-control" id="password" placeholder="Enter Your Password" name="password">
-                            </div>
-                            <a href="{{ route('password.forgot') }}" class="formTexts wow fadeInUp">Forgot Password?</a>
-                          </div>
+                          @error('email_id')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                          @enderror
                         </div>
-                        <div class="text-center wow fadeInUp">
-                          <button type="submit" class="btn btnRegister mt-0 w-100">Log In</button>
+                        <div class="form-group">
+                          <label for="password">Password <span class="req" aria-hidden="true">*</span></label>
+                          <div class="auth-input has-toggle">
+                            <span class="field-icon"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Enter your password" name="password" autocomplete="current-password" required>
+                            <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                          </div>
+                          @error('password')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                          @enderror
+                          <a href="{{ route('password.forgot') }}" class="forgot-link">Forgot password?</a>
+                        </div>
+                        <div class="text-center">
+                          <button type="submit" class="btn btnRegister w-100">Log In</button>
                         </div>
                       </form>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="loginRight">
-                      <div class="loginImg">
-                        <img src="{{ asset('') }}web/images/form/loginImg.png" class="img-fluid" alt="">
+                      <div class="authVisual">
+                        <img src="{{ asset('web/images/form/neet-auth-side.jpg') }}" class="img-fluid" alt="NEET exam preparation">
+                        <div class="authVisualMsg">
+                          <span class="authVisualTag">NEET Prep</span>
+                          <h3>Continue your NEET journey</h3>
+                          <p>Mock tests, analysis, and mentor support — all in one place.</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -117,6 +138,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
     <!-- Template Javascript -->
     <script src="{{ asset('') }}web/js/main.js"></script>
+    <script>
+        $(document).on("click", ".pw-toggle", function () {
+            var input = $("#" + $(this).data("target"));
+            var icon = $(this).find("i");
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+                icon.removeClass("bi-eye").addClass("bi-eye-slash");
+                $(this).attr("aria-label", "Hide password");
+            } else {
+                input.attr("type", "password");
+                icon.removeClass("bi-eye-slash").addClass("bi-eye");
+                $(this).attr("aria-label", "Show password");
+            }
+        });
+    </script>
     <script>
         $(document).ready(function () {
 

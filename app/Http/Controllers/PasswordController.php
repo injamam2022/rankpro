@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
 class PasswordController extends Controller
@@ -20,12 +21,15 @@ class PasswordController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
+        ], [
+            'email.required' => 'Enter the email on your account.',
+            'email.email' => 'Enter a valid email address.',
         ]);
 
-        $user = User::where('email_id', $request->email)->first();
+        $user = User::where('email_id', $request->email)->where('status', 1)->first();
 
         if (!$user) {
-            return back()->withErrors(['email' => 'The email address does not exist.']);
+            return back()->withInput()->withErrors(['email' => 'We could not find an account with that email.']);
         }
 
         $verificationCode = rand(1000, 9999);
@@ -34,15 +38,29 @@ class PasswordController extends Controller
         $user->verification_code_expiry = now()->addMinutes(10);
         $user->save();
 
-        Mail::send('emails.verification_code', ['verificationCode' => $verificationCode], function ($message) use ($user) {
-            $message->to($user->email_id)
-                    ->subject('Password Reset Verification Code');
-        });
-        return redirect()->route('password.verify')->with('success', 'Verification code sent to your email!');
+        try {
+            Mail::send('emails.verification_code', ['verificationCode' => $verificationCode], function ($message) use ($user) {
+                $message->to($user->email_id)
+                        ->subject('RankPro password reset code');
+            });
+        } catch (\Exception $e) {
+            Log::error('Password reset email failed: ' . $e->getMessage());
+            return back()->withInput()->withErrors(['email' => 'We could not send the email right now. Please try again in a moment.']);
+        }
+
+        session(['password_reset_email' => $user->email_id]);
+
+        return redirect()->route('password.verify')->with('success', 'Verification code sent to your email.');
     }
 
     public function showVerificationForm()
     {
+        if (!session('password_reset_email')) {
+            return redirect()->route('password.forgot')->withErrors([
+                'email' => 'Enter your email first so we can send a verification code.',
+            ]);
+        }
+
         return view('site.password.verify-code');
     }
 
@@ -50,9 +68,20 @@ class PasswordController extends Controller
     {
         $request->validate([
             'verification_code' => 'required|numeric|digits:4',
+        ], [
+            'verification_code.required' => 'Enter the 4-digit code from your email.',
+            'verification_code.digits' => 'The code must be 4 digits.',
         ]);
 
-        $user = User::where('verification_code', $request->verification_code)
+        $email = session('password_reset_email');
+        if (!$email) {
+            return redirect()->route('password.forgot')->withErrors([
+                'email' => 'Enter your email first so we can send a verification code.',
+            ]);
+        }
+
+        $user = User::where('email_id', $email)
+                    ->where('verification_code', $request->verification_code)
                     ->where('verification_code_expiry', '>', now())
                     ->first();
 
@@ -61,7 +90,9 @@ class PasswordController extends Controller
             return redirect()->route('password.reset', ['user_id' => $hashedUserId]);
         }
 
-        return back()->with('error', 'Invalid or expired verification code.');
+        return back()->withErrors([
+            'verification_code' => 'That code is invalid or has expired.',
+        ])->withInput();
     }
 
     public function showResetPasswordForm(Request $request)
@@ -79,7 +110,11 @@ class PasswordController extends Controller
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'password' => 'required|confirmed',
+            'password' => 'required|string|min:4|confirmed',
+        ], [
+            'password.required' => 'Enter a new password.',
+            'password.min' => 'Password must be at least 4 characters.',
+            'password.confirmed' => 'Passwords do not match.',
         ]);
         $userId = $request->user_id;
         $user = User::find($userId);
@@ -97,6 +132,8 @@ class PasswordController extends Controller
         $user->verification_code_expiry = null;
         $user->save();
 
-        return redirect()->route('login')->with('success', 'Password successfully reset!');
+        session()->forget('password_reset_email');
+
+        return redirect()->route('login')->with('success', 'Password updated. You can log in with your new password.');
     }
 }

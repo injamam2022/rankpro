@@ -211,6 +211,9 @@ class AdmissionController extends Controller
         $request->validate([
             'email_id'    => 'required',
             'password'    => 'required|string',
+        ], [
+            'email_id.required' => 'Enter your email or phone number.',
+            'password.required' => 'Enter your password.',
         ]);
 
         $user_detail = User::where('status',1)->where('email_id', $request->email_id)

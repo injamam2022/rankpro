@@ -54,41 +54,61 @@
     <!-- Navbar End -->
 
     <section id="formAll" class="topbannerA">
-    <div class="container">
+    <div class="container authContainer">
       <div class="row justify-content-center">
-        <div class="col-xl-10">
-          <div class="formBlock formBlockLogin">
+        <div class="col-12">
+          <div class="formBlock formBlockLogin authShell">
             <div class="row align-items-center">
               <div class="col-md-6">
                 <div class="loginLeft">
-                  <div class="formTitle text-left">Reset Password</div>
-                  <br>
+                  <div class="formTitle text-left">Reset password</div>
+                  <p class="auth-lead">Choose a new password for your account.</p>
+
+                  @if (session('error'))
+                    <div class="auth-alert error" role="alert">{{ session('error') }}</div>
+                  @endif
+                  @if ($errors->any())
+                    <div class="auth-alert error" role="alert">
+                      @foreach ($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                      @endforeach
+                    </div>
+                  @endif
 
                   <form action="{{ route('password.update') }}" method="POST">
                     @csrf
                     <input type="hidden" name="user_id" value="{{ $user->id }}">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="form-group wow fadeInLeft">
-                          <input type="password" class="form-control" id="password" placeholder="New Password" name="password" required>
-                        </div>
-                      </div>
-                      <div class="col-md-12">
-                        <div class="form-group wow fadeInLeft">
-                          <input type="password" class="form-control" id="password_confirmation" placeholder="Confirm Password" name="password_confirmation" required>
-                        </div>
+                    <div class="form-group">
+                      <label for="password">New password <span class="req" aria-hidden="true">*</span></label>
+                      <div class="auth-input has-toggle">
+                        <span class="field-icon"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="At least 4 characters" name="password" minlength="4" autocomplete="new-password" required>
+                        <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
                       </div>
                     </div>
-                    <div class="text-center wow fadeInUp">
-                      <button type="submit" class="btn btnRegister mt-4 w-100">Submit</button>
+                    <div class="form-group">
+                      <label for="password_confirmation">Confirm password <span class="req" aria-hidden="true">*</span></label>
+                      <div class="auth-input has-toggle">
+                        <span class="field-icon"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="password_confirmation" placeholder="Confirm password" name="password_confirmation" minlength="4" autocomplete="new-password" required>
+                        <button type="button" class="pw-toggle" data-target="password_confirmation" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                      </div>
+                    </div>
+                    <div class="text-center">
+                      <button type="submit" class="btn btnRegister w-100">Update password</button>
                     </div>
                   </form>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="loginRight">
-                  <div class="loginImg">
-                    <img src="{{ asset('') }}web/images/form/loginImg.png" class="img-fluid" alt="">
+                  <div class="authVisual">
+                    <img src="{{ asset('web/images/form/neet-auth-side.jpg') }}" class="img-fluid" alt="NEET exam preparation">
+                    <div class="authVisualMsg">
+                      <span class="authVisualTag">New Password</span>
+                      <h3>Set a strong password and continue</h3>
+                      <p>Once updated, you can log in and keep preparing for NEET without delay.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -113,6 +133,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
     <!-- Template Javascript -->
     <script src="{{ asset('') }}web/js/main.js"></script>
+    <script>
+        $(document).on("click", ".pw-toggle", function () {
+            var input = $("#" + $(this).data("target"));
+            var icon = $(this).find("i");
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+                icon.removeClass("bi-eye").addClass("bi-eye-slash");
+                $(this).attr("aria-label", "Hide password");
+            } else {
+                input.attr("type", "password");
+                icon.removeClass("bi-eye-slash").addClass("bi-eye");
+                $(this).attr("aria-label", "Show password");
+            }
+        });
+    </script>
     <script>
         $(document).ready(function () {
 

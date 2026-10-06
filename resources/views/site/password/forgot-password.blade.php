@@ -54,35 +54,52 @@
     <!-- Navbar End -->
 
     <section id="formAll" class="topbannerA">
-    <div class="container">
+    <div class="container authContainer">
       <div class="row justify-content-center">
-        <div class="col-xl-10">
-          <div class="formBlock formBlockLogin">
+        <div class="col-12">
+          <div class="formBlock formBlockLogin authShell">
             <div class="row align-items-center">
               <div class="col-md-6">
                 <div class="loginLeft">
-                  <div class="formTitle text-left">Forgot Password</div>
-                  <div class="formTexts text-left forgotPasswordText">No warries, we'll send you a auto generated password to your email id.</div>
+                  <div class="formTitle text-left">Forgot password</div>
+                  <p class="auth-lead">Enter the email on your RankPro account. We'll send a 4-digit code so you can choose a new password.</p>
+
+                  @if (session('error'))
+                    <div class="auth-alert error" role="alert">{{ session('error') }}</div>
+                  @endif
+                  @if ($errors->any())
+                    <div class="auth-alert error" role="alert">
+                      @foreach ($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                      @endforeach
+                    </div>
+                  @endif
 
                   <form action="{{ route('password.sendCode') }}" method="POST">
                     @csrf
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="form-group wow fadeInUp">
-                          <input type="email" class="form-control" id="email" placeholder="Email" name="email" required>
-                        </div>
+                    <div class="form-group">
+                      <label for="email">Email <span class="req" aria-hidden="true">*</span></label>
+                      <div class="auth-input">
+                        <span class="field-icon"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" placeholder="Email" name="email" value="{{ old('email') }}" autocomplete="email" required>
                       </div>
                     </div>
-                    <div class="text-center wow fadeInUp">
-                      <button type="submit" class="btn btnRegister mt-4 w-100">Submit</button>
+                    <div class="text-center">
+                      <button type="submit" class="btn btnRegister w-100">Send code</button>
                     </div>
                   </form>
+                  <a href="{{ route('login') }}" class="back-link"><i class="bi bi-arrow-left"></i> Back to login</a>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="loginRight">
-                  <div class="loginImg">
-                    <img src="{{ asset('') }}web/images/form/loginImg.png" class="img-fluid" alt="">
+                  <div class="authVisual">
+                    <img src="{{ asset('web/images/form/neet-auth-side.jpg') }}" class="img-fluid" alt="NEET exam preparation">
+                    <div class="authVisualMsg">
+                      <span class="authVisualTag">Password Help</span>
+                      <h3>Reset and get back to NEET prep</h3>
+                      <p>We'll email you a short code so you can set a new password safely.</p>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -54,35 +54,55 @@
     <!-- Navbar End -->
 
     <section id="formAll" class="topbannerA">
-    <div class="container">
+    <div class="container authContainer">
       <div class="row justify-content-center">
-        <div class="col-xl-10">
-          <div class="formBlock formBlockLogin">
+        <div class="col-12">
+          <div class="formBlock formBlockLogin authShell">
             <div class="row align-items-center">
               <div class="col-md-6">
                 <div class="loginLeft">
-                  <div class="formTitle text-left">Verify Code</div>
-                  <br>
+                  <div class="formTitle text-left">Check your email</div>
+                  <p class="auth-lead">Enter the 4-digit code sent to <strong>{{ session('password_reset_email') }}</strong>. It expires in 10 minutes.</p>
+
+                  @if (session('success'))
+                    <div class="auth-alert success" role="alert">{{ session('success') }}</div>
+                  @endif
+                  @if (session('error'))
+                    <div class="auth-alert error" role="alert">{{ session('error') }}</div>
+                  @endif
+                  @if ($errors->any())
+                    <div class="auth-alert error" role="alert">
+                      @foreach ($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                      @endforeach
+                    </div>
+                  @endif
 
                   <form action="{{ route('password.verifyCode') }}" method="POST">
                     @csrf
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="form-group wow fadeInUp">
-                          <input type="text" class="form-control" id="verification_code" placeholder="Verification Code" name="verification_code" required>
-                        </div>
+                    <div class="form-group">
+                      <label for="verification_code">Verification code <span class="req" aria-hidden="true">*</span></label>
+                      <div class="auth-input">
+                        <span class="field-icon"><i class="bi bi-shield-check"></i></span>
+                        <input type="text" class="form-control @error('verification_code') is-invalid @enderror" id="verification_code" placeholder="4-digit code" name="verification_code" value="{{ old('verification_code') }}" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="one-time-code" required>
                       </div>
                     </div>
-                    <div class="text-center wow fadeInUp">
-                      <button type="submit" class="btn btnRegister mt-4 w-100">Submit</button>
+                    <div class="text-center">
+                      <button type="submit" class="btn btnRegister w-100">Verify code</button>
                     </div>
                   </form>
+                  <a href="{{ route('password.forgot') }}" class="back-link">Didn't get it? Send a new code</a>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="loginRight">
-                  <div class="loginImg">
-                    <img src="{{ asset('') }}web/images/form/loginImg.png" class="img-fluid" alt="">
+                  <div class="authVisual">
+                    <img src="{{ asset('web/images/form/neet-auth-side.jpg') }}" class="img-fluid" alt="NEET exam preparation">
+                    <div class="authVisualMsg">
+                      <span class="authVisualTag">Almost there</span>
+                      <h3>Verify your email to continue</h3>
+                      <p>Enter the 4-digit code and you'll be ready to choose a new password.</p>
+                    </div>
                   </div>
                 </div>
               </div>

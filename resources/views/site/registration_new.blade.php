@@ -17,8 +17,8 @@
                             @csrf
                             <div class="formAvatar">
                                 <div class="formAvatarImg">
-                                    <img id="avatarPreview" src="https://randomuser.me/api/portraits/women/2.jpg"
-                                        class="img-fluid" alt="">
+                                    <img id="avatarPreview" src="{{ asset('web/images/form/signup-avatar.jpg') }}"
+                                        class="img-fluid avatar-placeholder" alt="Upload profile photo">
                                     <img src="{{ asset('') }}web/img/cam_ic.png" class="img-fluid cam_ic"
                                         alt="" id="uploadTrigger">
                                 </div>
