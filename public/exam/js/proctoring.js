@@ -35,6 +35,24 @@
         prevGray: null,
         referenceGray: null,
         referenceReady: false,
+        recognitionReady: false,
+        fullLandmarksReady: false,
+        tinyLandmarksReady: false,
+        profileDescriptor: null,
+        profileLoadAttempted: false,
+        sessionDescriptor: null,
+        identityVerified: false,
+        identityMismatchStreak: 0,
+        earHistory: [],
+        blinkCount: 0,
+        lastBlinkAt: 0,
+        lastLandmarkPoint: null,
+        landmarkMotionScore: 0,
+        stagnantStreak: 0,
+        noBlinkStreak: 0,
+        verifyTimer: null,
+        verifyingIdentity: false,
+        identityLocked: false,
 
         init: function (config) {
             this.config = config || {};
@@ -55,16 +73,34 @@
 
             if (cameraBtn) {
                 cameraBtn.addEventListener('click', function () {
+                    if (cameraBtn.disabled || self.stream) {
+                        return;
+                    }
                     self.requestCamera();
                 });
             }
             if (startBtn) {
                 startBtn.addEventListener('click', function () {
+                    if (!self.identityVerified) {
+                        self.setStatus(
+                            document.getElementById('proctoringCameraStatus'),
+                            'Face must match your profile photo before starting.',
+                            true
+                        );
+                        self.beginIdentityVerifyLoop();
+                        return;
+                    }
                     self.startExam();
                 });
             }
             if (resumeBtn) {
                 resumeBtn.addEventListener('click', function () {
+                    // Identity lock clears only after live face rematches profile photo.
+                    if (self.identityLocked) {
+                        self.setFaceStatus('Waiting for profile face match...', true);
+                        self.checkWebcam();
+                        return;
+                    }
                     self.enterFullscreen();
                     self.resumeGraceUntil = Date.now() + 2000;
                     if (self.lockType === 'webcam') {
@@ -78,7 +114,7 @@
                     self.lockType = null;
                     self.hideWarning();
                     setTimeout(function () {
-                        if (self.started && !self.ended && !self.isFullscreen()) {
+                        if (self.started && !self.ended && !self.isFullscreen() && !self.identityLocked) {
                             self.lockToExam('fullscreen', 'Stay in fullscreen. Click Return to Exam to continue.');
                         }
                     }, 1800);
@@ -102,27 +138,361 @@
             }).catch(function () {
                 self.ssdReady = false;
             });
-            var landmarks = window.faceapi.nets.faceLandmark68TinyNet.loadFromUri(url).then(function () {
-                self.landmarksReady = true;
+            var tinyLandmarks = window.faceapi.nets.faceLandmark68TinyNet.loadFromUri(url).then(function () {
+                self.tinyLandmarksReady = true;
             }).catch(function () {
-                return window.faceapi.nets.faceLandmark68Net.loadFromUri(url).then(function () {
-                    self.landmarksReady = true;
-                });
-            }).catch(function () {
-                self.landmarksReady = false;
+                self.tinyLandmarksReady = false;
             });
-            Promise.all([tiny, ssd, landmarks]).then(function () {
+            var fullLandmarks = window.faceapi.nets.faceLandmark68Net.loadFromUri(url).then(function () {
+                self.fullLandmarksReady = true;
+            }).catch(function () {
+                self.fullLandmarksReady = false;
+            });
+            var recognition = window.faceapi.nets.faceRecognitionNet.loadFromUri(url).then(function () {
+                self.recognitionReady = true;
+            }).catch(function (err) {
+                self.recognitionReady = false;
+                console.warn('Face recognition model failed to load', err);
+            });
+            Promise.all([tiny, ssd, tinyLandmarks, fullLandmarks, recognition]).then(function () {
+                self.landmarksReady = !!(self.tinyLandmarksReady || self.fullLandmarksReady);
                 self.modelsReady = !!(self.ssdReady || self.tinyReady);
+                if (!self.recognitionReady) {
+                    self.setStatus(
+                        document.getElementById('proctoringIdentityStatus'),
+                        'Face recognition model failed to load. Refresh the page and try again.',
+                        true
+                    );
+                    self.setScanLabel('Recognition model failed', 'error');
+                }
+                return self.loadProfileDescriptor(true);
+            }).then(function () {
+                if (self.stream) {
+                    self.beginIdentityVerifyLoop();
+                }
+            }).catch(function (err) {
+                console.warn('Proctoring model bootstrap failed', err);
             });
+        },
+
+        useTinyLandmarks: function () {
+            // face-api withFaceLandmarks(true) = tiny net; false/undefined = full net.
+            return !this.fullLandmarksReady && !!this.tinyLandmarksReady;
+        },
+
+        loadProfileDescriptor: function (force) {
+            var self = this;
+            var statusEl = document.getElementById('proctoringIdentityStatus');
+            if (!force && this.profileLoadAttempted && this.profileDescriptor) {
+                return Promise.resolve(this.profileDescriptor);
+            }
+            if (!this.config.profileImageUrl) {
+                this.setStatus(statusEl, 'Upload a clear profile photo before taking a proctored exam.', true);
+                this.setScanLabel('Profile photo required', 'error');
+                return Promise.resolve(null);
+            }
+            if (!window.faceapi || !this.recognitionReady || !this.landmarksReady) {
+                this.setStatus(statusEl, 'Loading face recognition models...', false);
+                this.setScanLabel('Loading face models...', null);
+                return Promise.resolve(null);
+            }
+
+            this.profileLoadAttempted = true;
+            this.setStatus(statusEl, 'Loading profile face for identity match...', false);
+            this.setScanLabel('Loading profile face...', null);
+
+            return this.fetchProfileImageElement(this.config.profileImageUrl).then(function (img) {
+                if (!img) {
+                    self.setStatus(statusEl, 'Profile photo could not be loaded. Update it on Profile, then retry.', true);
+                    self.setScanLabel('Profile photo load failed', 'error');
+                    return null;
+                }
+                return self.detectSingleDescriptor(img).then(function (desc) {
+                    self.profileDescriptor = desc;
+                    if (!desc) {
+                        self.setStatus(statusEl, 'Could not detect a face in your profile photo. Update it on Profile, then retry.', true);
+                        self.setScanLabel('No face in profile photo', 'error');
+                    } else {
+                        self.setStatus(statusEl, 'Profile face loaded. Look at the camera to verify identity.', false);
+                        self.setScanLabel('Profile face ready — scanning camera...', null);
+                    }
+                    return desc;
+                });
+            }).catch(function (err) {
+                console.warn('Profile descriptor load failed', err);
+                self.setStatus(statusEl, 'Could not read profile photo for face match.', true);
+                self.setScanLabel('Profile face read failed', 'error');
+                return null;
+            });
+        },
+
+        fetchProfileImageElement: function (url) {
+            return new Promise(function (resolve) {
+                var finishWithImg = function (src) {
+                    var img = new Image();
+                    img.onload = function () {
+                        if (img.naturalWidth < 8 || img.naturalHeight < 8) {
+                            resolve(null);
+                            return;
+                        }
+                        resolve(img);
+                    };
+                    img.onerror = function () { resolve(null); };
+                    img.src = src;
+                };
+
+                // Prefer fetch+blob so we avoid cache/CORS edge cases on local assets.
+                if (typeof fetch === 'function') {
+                    fetch(url, { credentials: 'same-origin', cache: 'no-store' }).then(function (res) {
+                        if (!res.ok) {
+                            finishWithImg(url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now());
+                            return null;
+                        }
+                        return res.blob();
+                    }).then(function (blob) {
+                        if (!blob) return;
+                        var objUrl = URL.createObjectURL(blob);
+                        var img = new Image();
+                        img.onload = function () {
+                            URL.revokeObjectURL(objUrl);
+                            resolve(img);
+                        };
+                        img.onerror = function () {
+                            URL.revokeObjectURL(objUrl);
+                            finishWithImg(url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now());
+                        };
+                        img.src = objUrl;
+                    }).catch(function () {
+                        finishWithImg(url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now());
+                    });
+                    return;
+                }
+                finishWithImg(url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now());
+            });
+        },
+
+        detectSingleDescriptor: function (input) {
+            var self = this;
+            if (!input || !window.faceapi || !this.recognitionReady || !this.landmarksReady) {
+                return Promise.resolve(null);
+            }
+
+            var useTinyLm = this.useTinyLandmarks();
+            var attempts = [];
+            if (this.ssdReady) {
+                attempts.push(new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.35 }));
+                attempts.push(new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.25 }));
+            }
+            if (this.tinyReady) {
+                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.25 }));
+                attempts.push(new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.2 }));
+            }
+            if (!attempts.length) {
+                return Promise.resolve(null);
+            }
+
+            var runOne = function (options) {
+                return window.faceapi
+                    .detectSingleFace(input, options)
+                    .withFaceLandmarks(useTinyLm)
+                    .withFaceDescriptor()
+                    .then(function (det) {
+                        return det && det.descriptor ? det.descriptor : null;
+                    })
+                    .catch(function () {
+                        // Fallback: detectAllFaces then take strongest match.
+                        return window.faceapi
+                            .detectAllFaces(input, options)
+                            .withFaceLandmarks(useTinyLm)
+                            .withFaceDescriptors()
+                            .then(function (faces) {
+                                if (!faces || !faces.length || !faces[0].descriptor) {
+                                    return null;
+                                }
+                                return faces[0].descriptor;
+                            })
+                            .catch(function () { return null; });
+                    });
+            };
+
+            var tryAt = function (index) {
+                if (index >= attempts.length) {
+                    return Promise.resolve(null);
+                }
+                return runOne(attempts[index]).then(function (desc) {
+                    if (desc) return desc;
+                    return tryAt(index + 1);
+                });
+            };
+            return tryAt(0);
+        },
+
+        descriptorDistance: function (a, b) {
+            if (!a || !b || !window.faceapi || typeof window.faceapi.euclideanDistance !== 'function') {
+                return 999;
+            }
+            try {
+                return window.faceapi.euclideanDistance(a, b);
+            } catch (e) {
+                return 999;
+            }
+        },
+
+        beginIdentityVerifyLoop: function () {
+            var self = this;
+            if (this.verifyTimer) {
+                return;
+            }
+            this.verifyingIdentity = true;
+            this.verifyTimer = setInterval(function () {
+                self.verifyIdentityOnce();
+            }, 1500);
+            this.verifyIdentityOnce();
+        },
+
+        stopIdentityVerifyLoop: function () {
+            if (this.verifyTimer) {
+                clearInterval(this.verifyTimer);
+                this.verifyTimer = null;
+            }
+            this.verifyingIdentity = false;
+        },
+
+        getGateDetectCanvas: function () {
+            var gateVideo = document.getElementById('proctoringGateVideo');
+            var source = null;
+            if (gateVideo && gateVideo.videoWidth) {
+                source = gateVideo;
+            } else if (this.video && this.video.videoWidth) {
+                source = this.video;
+            }
+            if (!source) {
+                return null;
+            }
+            if (!this.gateSampleCanvas) {
+                this.gateSampleCanvas = document.createElement('canvas');
+            }
+            var w = 420;
+            var h = Math.round((source.videoHeight / source.videoWidth) * w) || 320;
+            this.gateSampleCanvas.width = w;
+            this.gateSampleCanvas.height = h;
+            this.gateSampleCanvas.getContext('2d').drawImage(source, 0, 0, w, h);
+            return this.gateSampleCanvas;
+        },
+
+        verifyIdentityOnce: function () {
+            var self = this;
+            var statusEl = document.getElementById('proctoringIdentityStatus');
+            var startBtn = document.getElementById('proctoringStartBtn');
+            if (this.identityVerified || this.started) {
+                this.stopIdentityVerifyLoop();
+                return;
+            }
+            if (!this.stream) {
+                return;
+            }
+            var gateVideo = document.getElementById('proctoringGateVideo');
+            var hasFrames = (gateVideo && gateVideo.videoWidth) || (this.video && this.video.videoWidth);
+            if (!hasFrames) {
+                this.setScanLabel('Waiting for camera frames...', null);
+                return;
+            }
+            if (!this.config.profileImageUrl) {
+                this.setStatus(statusEl, 'Upload a clear profile photo on Profile before starting.', true);
+                this.setScanLabel('Profile photo required', 'error');
+                if (startBtn) startBtn.disabled = true;
+                return;
+            }
+            if (!this.modelsReady || !this.recognitionReady || !this.landmarksReady) {
+                this.setStatus(statusEl, 'Loading face recognition models...', false);
+                this.setScanLabel('Loading face models...', null);
+                return;
+            }
+            if (!this.profileDescriptor) {
+                if (!this._profileReloadBusy) {
+                    this._profileReloadBusy = true;
+                    this.setStatus(statusEl, 'Loading profile face for identity match...', false);
+                    this.setScanLabel('Loading profile face...', null);
+                    this.loadProfileDescriptor(true).then(function () {
+                        self._profileReloadBusy = false;
+                    }, function () {
+                        self._profileReloadBusy = false;
+                    });
+                }
+                return;
+            }
+            if (this._identityScanBusy) {
+                return;
+            }
+
+            this._identityScanBusy = true;
+            this.setScanLabel('Scanning face...', null);
+            var input = this.getGateDetectCanvas();
+            this.detectCandidate(input, true).then(function (result) {
+                self._identityScanBusy = false;
+                if (self.identityVerified || self.started) {
+                    return;
+                }
+                if (result.faceCount !== 1 || !result.descriptor) {
+                    self.setStatus(statusEl, 'Show one clear face to the camera for identity match.', true);
+                    self.setScanLabel('No clear face detected', 'error');
+                    if (startBtn) startBtn.disabled = true;
+                    return;
+                }
+                // Soft eye check at gate (glasses / lighting can lower EAR).
+                if (!result.eyesVisible && !result.eyesOpen && result.label === 'face') {
+                    self.setStatus(statusEl, 'Face the camera with eyes open for identity verification.', true);
+                    self.setScanLabel('Keep eyes visible to camera', 'error');
+                    if (startBtn) startBtn.disabled = true;
+                    return;
+                }
+
+                var dist = self.descriptorDistance(result.descriptor, self.profileDescriptor);
+                var threshold = self.config.identityMatchThreshold || 0.62;
+                if (dist <= threshold) {
+                    self.identityVerified = true;
+                    self.sessionDescriptor = result.descriptor;
+                    self.stopIdentityVerifyLoop();
+                    self.setStatus(statusEl, 'Identity matched with profile photo. You can start the exam.', false);
+                    self.setScanLabel('Identity matched — ready to start', 'ok');
+                    if (startBtn) startBtn.disabled = false;
+                    self.logEvent('identity_matched', 'Live face matched profile photo (distance ' + dist.toFixed(3) + ')');
+                } else {
+                    self.setStatus(
+                        statusEl,
+                        'Face does not match your profile photo. Sit facing the camera with good light.',
+                        true
+                    );
+                    self.setScanLabel('Face does not match profile (' + dist.toFixed(2) + ')', 'error');
+                    if (startBtn) startBtn.disabled = true;
+                }
+            }).catch(function () {
+                self._identityScanBusy = false;
+            });
+        },
+
+        setCameraButtonEnabled: function (enabled) {
+            var cameraBtn = document.getElementById('proctoringCameraBtn');
+            if (!cameraBtn) return;
+            cameraBtn.disabled = !enabled;
+            cameraBtn.style.pointerEvents = enabled ? '' : 'none';
+            cameraBtn.style.opacity = enabled ? '' : '0.65';
+            cameraBtn.textContent = enabled ? 'Allow Camera' : 'Camera Allowed';
         },
 
         requestCamera: function () {
             var self = this;
             var statusEl = document.getElementById('proctoringCameraStatus');
+            if (this.stream) {
+                this.setCameraButtonEnabled(false);
+                return;
+            }
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 this.setStatus(statusEl, 'Camera is not supported in this browser.', true);
                 return;
             }
+            this.setCameraButtonEnabled(false);
+            this.setStatus(statusEl, 'Requesting camera permission...', false);
             navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: 'user',
@@ -134,12 +504,15 @@
                 self.stream = stream;
                 if (self.video) {
                     self.video.srcObject = stream;
-                    self.video.play();
+                    self.video.play().catch(function () {});
                 }
-                self.setStatus(statusEl, 'Camera connected. Keep your face clearly visible.', false);
+                self.showGateCamera(stream);
+                self.setCameraButtonEnabled(false);
+                self.setStatus(statusEl, 'Camera connected. Keep your face clearly visible for identity match.', false);
+                self.setScanLabel('Scanning face for identity match...', null);
                 var startBtn = document.getElementById('proctoringStartBtn');
                 if (startBtn) {
-                    startBtn.disabled = false;
+                    startBtn.disabled = !self.identityVerified;
                 }
                 stream.getVideoTracks().forEach(function (track) {
                     track.addEventListener('ended', function () {
@@ -148,9 +521,62 @@
                         }
                     });
                 });
+                // Wait briefly so gate video has frames before identity scan.
+                setTimeout(function () {
+                    if (self.modelsReady) {
+                        self.loadProfileDescriptor(true).then(function () {
+                            self.beginIdentityVerifyLoop();
+                        });
+                    } else {
+                        self.beginIdentityVerifyLoop();
+                    }
+                }, 700);
             }).catch(function () {
+                self.stream = null;
+                self.setCameraButtonEnabled(true);
                 self.setStatus(statusEl, 'Camera permission is required to start this exam.', true);
+                self.hideGateCamera();
             });
+        },
+
+        showGateCamera: function (stream) {
+            var stage = document.getElementById('proctoringScanStage');
+            var gateVideo = document.getElementById('proctoringGateVideo');
+            if (stage) {
+                stage.classList.add('is-active');
+            }
+            if (gateVideo && stream) {
+                gateVideo.srcObject = stream;
+                gateVideo.play().catch(function () {});
+            }
+        },
+
+        hideGateCamera: function () {
+            var stage = document.getElementById('proctoringScanStage');
+            var gateVideo = document.getElementById('proctoringGateVideo');
+            if (stage) {
+                stage.classList.remove('is-active');
+            }
+            if (gateVideo) {
+                gateVideo.srcObject = null;
+            }
+            this.setScanLabel('Scanning face...', null);
+        },
+
+        setScanLabel: function (text, state) {
+            var label = document.getElementById('proctoringScanLabel');
+            var frame = document.getElementById('proctoringScanFrame');
+            if (label) {
+                label.textContent = text || 'Scanning face...';
+                label.classList.remove('is-error', 'is-ok');
+                if (state === 'error') label.classList.add('is-error');
+                if (state === 'ok') label.classList.add('is-ok');
+            }
+            if (frame) {
+                frame.classList.remove('is-error', 'is-ok');
+                if (state === 'error') frame.classList.add('is-error');
+                if (state === 'ok') frame.classList.add('is-ok');
+            }
         },
 
         startExam: function () {
@@ -158,16 +584,39 @@
                 this.requestCamera();
                 return;
             }
+            if (!this.identityVerified || !this.sessionDescriptor) {
+                this.beginIdentityVerifyLoop();
+                this.setStatus(
+                    document.getElementById('proctoringIdentityStatus'),
+                    'Identity match with profile photo is required before starting.',
+                    true
+                );
+                return;
+            }
+            this.stopIdentityVerifyLoop();
+            this.hideGateCamera();
             this.enterFullscreen();
             this.started = true;
             this.ended = false;
             this.graceUntil = Date.now() + 10000;
             this.lastPresentAt = Date.now();
             this.lastMotionAt = Date.now();
+            this.lastBlinkAt = Date.now();
             this.noFaceStreak = 0;
             this.awayAfterWarnStreak = 0;
             this.webcamStrikeCount = 0;
             this.webcamWarningShown = false;
+            this.identityLocked = false;
+            this.identityMismatchStreak = 0;
+            if (document.body) {
+                document.body.classList.remove('exam-identity-locked');
+            }
+            this.stagnantStreak = 0;
+            this.noBlinkStreak = 0;
+            this.earHistory = [];
+            this.blinkCount = 0;
+            this.lastLandmarkPoint = null;
+            this.landmarkMotionScore = 0;
             this.referenceReady = false;
             this.referenceGray = null;
             this.prevGray = null;
@@ -178,7 +627,7 @@
             }
             this.bindExamGuards();
             this.startLockWatch();
-            this.logEvent('started', 'Proctored exam started');
+            this.logEvent('started', 'Proctored exam started after profile face match');
             this.startSnapshots();
             this.startFaceMonitor();
             if (typeof window.beginExamTimer === 'function') {
@@ -312,7 +761,7 @@
                 if (Date.now() < self.graceUntil && !self.lockType) {
                     return;
                 }
-                if (!self.isFullscreen() && self.lockType !== 'webcam') {
+                if (!self.isFullscreen() && self.lockType !== 'webcam' && !self.identityLocked) {
                     self.lockToExam('fullscreen', 'Stay in fullscreen. Click Return to Exam to continue.');
                 }
             }, 2000);
@@ -605,6 +1054,10 @@
                 faceCount: 0,
                 eyesVisible: false,
                 eyesOpen: false,
+                ear: 0,
+                blink: false,
+                landmarkPoint: null,
+                descriptor: null,
                 label: 'none'
             };
             if (!detections || !detections.length) {
@@ -617,6 +1070,9 @@
             }
 
             var det = detections[0];
+            if (det.descriptor) {
+                result.descriptor = det.descriptor;
+            }
             var landmarks = det.landmarks;
             if (!landmarks || typeof landmarks.getLeftEye !== 'function') {
                 result.label = 'face';
@@ -628,9 +1084,27 @@
             var leftEar = this.eyeAspectRatio(leftEye);
             var rightEar = this.eyeAspectRatio(rightEye);
             var avgEar = (leftEar + rightEar) / 2;
+            result.ear = avgEar;
 
-            result.eyesVisible = !!(leftEye && rightEye && leftEye.length >= 6 && rightEye.length >= 6 && leftEar > 0.08 && rightEar > 0.08);
-            result.eyesOpen = result.eyesVisible && avgEar >= 0.14;
+            // Lower EAR floors help with glasses / lower webcam resolution.
+            result.eyesVisible = !!(leftEye && rightEye && leftEye.length >= 6 && rightEye.length >= 6 && leftEar > 0.05 && rightEar > 0.05);
+            result.eyesOpen = result.eyesVisible && avgEar >= 0.11;
+
+            try {
+                var nose = typeof landmarks.getNose === 'function' ? landmarks.getNose() : null;
+                if (nose && nose.length) {
+                    var mid = nose[Math.floor(nose.length / 2)] || nose[0];
+                    result.landmarkPoint = { x: mid.x, y: mid.y };
+                } else if (det.detection && det.detection.box) {
+                    result.landmarkPoint = {
+                        x: det.detection.box.x + (det.detection.box.width / 2),
+                        y: det.detection.box.y + (det.detection.box.height / 2)
+                    };
+                }
+            } catch (e) {}
+
+            result.blink = this.trackBlink(avgEar);
+            this.trackLandmarkMotion(result.landmarkPoint);
 
             if (result.eyesOpen) {
                 result.label = 'eyes';
@@ -642,21 +1116,71 @@
             return result;
         },
 
-        detectCandidate: function (input) {
+        trackBlink: function (ear) {
+            if (!ear || ear <= 0) {
+                return false;
+            }
+            this.earHistory.push(ear);
+            if (this.earHistory.length > 12) {
+                this.earHistory.shift();
+            }
+            if (this.earHistory.length < 3) {
+                return false;
+            }
+            var prev = this.earHistory[this.earHistory.length - 2];
+            var older = this.earHistory[this.earHistory.length - 3];
+            // Open -> closed -> open style transition.
+            var blinked = older >= 0.20 && prev < 0.17 && ear >= 0.19;
+            if (blinked) {
+                this.blinkCount += 1;
+                this.lastBlinkAt = Date.now();
+                this.noBlinkStreak = 0;
+            }
+            return blinked;
+        },
+
+        trackLandmarkMotion: function (point) {
+            if (!point) {
+                return;
+            }
+            if (!this.lastLandmarkPoint) {
+                this.lastLandmarkPoint = point;
+                this.landmarkMotionScore = 0;
+                return;
+            }
+            var dx = point.x - this.lastLandmarkPoint.x;
+            var dy = point.y - this.lastLandmarkPoint.y;
+            var dist = Math.sqrt((dx * dx) + (dy * dy));
+            this.lastLandmarkPoint = point;
+            this.landmarkMotionScore = (this.landmarkMotionScore * 0.7) + (dist * 0.3);
+            if (this.landmarkMotionScore < 0.35) {
+                this.stagnantStreak += 1;
+            } else {
+                this.stagnantStreak = 0;
+            }
+        },
+
+        detectCandidate: function (input, withDescriptor) {
             var self = this;
             if (!input || !window.faceapi) {
-                return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
+                return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none', descriptor: null });
             }
+
+            var wantDescriptor = !!(withDescriptor && this.recognitionReady && this.landmarksReady);
+            var useTinyLm = this.useTinyLandmarks();
 
             var runDetect = function (options) {
                 var detector = window.faceapi.detectAllFaces(input, options);
                 if (self.landmarksReady) {
-                    detector = detector.withFaceLandmarks(true);
+                    detector = detector.withFaceLandmarks(useTinyLm);
+                }
+                if (wantDescriptor) {
+                    detector = detector.withFaceDescriptors();
                 }
                 return detector.then(function (faces) {
                     return self.scoreFaceResult(faces || []);
                 }).catch(function () {
-                    return { faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' };
+                    return { faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none', descriptor: null };
                 });
             };
 
@@ -670,12 +1194,12 @@
                 attempts.push(new window.faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }));
             }
             if (!attempts.length) {
-                return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
+                return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none', descriptor: null });
             }
 
             var tryAt = function (index) {
                 if (index >= attempts.length) {
-                    return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
+                    return Promise.resolve({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none', descriptor: null });
                 }
                 return runDetect(attempts[index]).then(function (result) {
                     if (result.faceCount > 0) {
@@ -718,7 +1242,7 @@
             }
 
             var input = this.getDetectCanvas() || this.video;
-            this.detectCandidate(input).then(function (result) {
+            this.detectCandidate(input, true).then(function (result) {
                 if (result.faceCount > 0) {
                     finish(result);
                     return;
@@ -728,11 +1252,11 @@
                     finish(result);
                     return;
                 }
-                return self.detectCandidate(crop).then(function (cropResult) {
+                return self.detectCandidate(crop, true).then(function (cropResult) {
                     finish(cropResult.faceCount > 0 ? cropResult : result);
                 });
             }).catch(function () {
-                finish({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none' });
+                finish({ faceCount: 0, eyesVisible: false, eyesOpen: false, label: 'none', descriptor: null });
             });
         },
 
@@ -762,14 +1286,18 @@
                 return;
             }
 
-            if (result.label === 'eyes' || result.label === 'eyes_soft') {
+            if (result.label === 'eyes' || result.label === 'eyes_soft' || result.label === 'face' || result.faceCount === 1) {
+                if (!this.ensureSamePerson(result)) {
+                    return;
+                }
+                if (!this.ensureLiveness(result, stats)) {
+                    return;
+                }
                 this.lastEyesAt = Date.now();
-                this.markPresent(result.eyesOpen ? 'Eyes detected' : 'Eyes visible');
-                return;
-            }
-
-            if (result.label === 'face' || result.faceCount === 1) {
-                this.markPresent('Face detected');
+                var statusLabel = result.eyesOpen
+                    ? 'Identity OK · eyes tracked'
+                    : (result.eyesVisible ? 'Identity OK · eyes soft' : 'Identity OK · face tracked');
+                this.markPresent(statusLabel);
                 return;
             }
 
@@ -782,13 +1310,152 @@
             this.handleAwayFromSeat();
         },
 
+        ensureSamePerson: function (result) {
+            if (!result || !result.descriptor || !this.recognitionReady || !this.profileDescriptor) {
+                // Without descriptor this sample cannot confirm identity; allow short grace.
+                return true;
+            }
+            var profileThreshold = this.config.identityMatchThreshold || 0.62;
+            var profileDist = this.descriptorDistance(result.descriptor, this.profileDescriptor);
+            var matchesProfile = profileDist <= profileThreshold;
+
+            if (matchesProfile) {
+                this.identityMismatchStreak = 0;
+                this.sessionDescriptor = result.descriptor;
+                if (this.identityLocked) {
+                    this.unlockIdentity('Identity restored — face matches profile photo.');
+                }
+                return true;
+            }
+
+            this.identityMismatchStreak += 1;
+            this.setFaceStatus('Face does not match profile photo', true);
+
+            // Quickly hide questions so a different person cannot continue the paper.
+            if (this.identityMismatchStreak >= 2) {
+                this.lockIdentity(
+                    'Face does not match your RankPro profile photo. Questions are hidden until your live face matches again.'
+                );
+            }
+            if (this.identityMismatchStreak >= 4) {
+                this.recordWebcamStrike(
+                    'face_mismatch',
+                    'A different face was detected. Your face must match your profile photo to continue the exam.'
+                );
+                this.identityMismatchStreak = 2; // keep locked while mismatch continues
+            }
+            return false;
+        },
+
+        lockIdentity: function (message) {
+            if (!this.started || this.ended) {
+                return;
+            }
+            var alreadyLocked = !!this.identityLocked;
+            this.identityLocked = true;
+            this.lockType = 'identity';
+            if (document.body) {
+                document.body.classList.add('exam-identity-locked');
+            }
+            var resumeBtn = document.getElementById('proctoringResumeBtn');
+            if (resumeBtn) {
+                resumeBtn.textContent = 'Recheck Face Match';
+            }
+            this.showWarning(
+                message
+                + ' Stay in front of the camera. Exam questions stay blocked until identity matches.',
+                false
+            );
+            if (!alreadyLocked) {
+                this.logEvent('identity_lock', message);
+            }
+        },
+
+        unlockIdentity: function (statusText) {
+            var wasLocked = !!this.identityLocked
+                || !!(document.body && document.body.classList.contains('exam-identity-locked'));
+            this.identityLocked = false;
+            this.identityMismatchStreak = 0;
+            if (document.body) {
+                document.body.classList.remove('exam-identity-locked');
+            }
+            var resumeBtn = document.getElementById('proctoringResumeBtn');
+            if (resumeBtn) {
+                resumeBtn.textContent = 'Return to Exam';
+            }
+            if (this.lockType === 'identity') {
+                this.lockType = null;
+            }
+            this.hideWarning();
+            this.setFaceStatus(statusText || 'Identity OK', false);
+            if (wasLocked) {
+                this.logEvent('identity_unlock', statusText || 'Identity restored');
+            }
+        },
+
+        ensureLiveness: function (result, stats) {
+            stats = stats || {};
+            // Require visible eyes for ongoing proctoring (blocks many printed photos / closed eyes).
+            if (!result.eyesVisible) {
+                this.noBlinkStreak += 1;
+                this.setFaceStatus('Eyes not tracked clearly', true);
+                if (this.noBlinkStreak >= 4) {
+                    this.recordWebcamStrike(
+                        'eyes_not_tracked',
+                        'Eyes were not tracked clearly. Keep both eyes visible to the camera.'
+                    );
+                    this.noBlinkStreak = 0;
+                }
+                return false;
+            }
+
+            var blinkWindowMs = this.config.blinkWindowMs || 45000;
+            if (this.lastBlinkAt && (Date.now() - this.lastBlinkAt) > blinkWindowMs) {
+                this.noBlinkStreak += 1;
+            } else if (result.blink) {
+                this.noBlinkStreak = 0;
+            }
+
+            // Static photo spoof: almost no landmark motion + no blink + little pixel motion.
+            var looksStatic = this.stagnantStreak >= 6
+                && this.landmarkMotionScore < 0.35
+                && !stats.motion
+                && (Date.now() - (this.lastBlinkAt || 0)) > 20000;
+
+            if (looksStatic) {
+                this.setFaceStatus('Possible photo spoof — move naturally / blink', true);
+                this.recordWebcamStrike(
+                    'static_image_suspected',
+                    'Camera feed looks like a still image. Live face and eye movement are required.'
+                );
+                this.stagnantStreak = 0;
+                return false;
+            }
+
+            if (this.noBlinkStreak >= 8) {
+                this.setFaceStatus('Blink naturally so eyes can be verified', true);
+                this.recordWebcamStrike(
+                    'no_blink',
+                    'No natural eye blink was detected for too long. Live eye tracking is required.'
+                );
+                this.noBlinkStreak = 0;
+                this.lastBlinkAt = Date.now();
+                return false;
+            }
+
+            return true;
+        },
+
         markPresent: function (label) {
             this.noFaceStreak = 0;
             this.extraPersonStreak = 0;
             this.awayAfterWarnStreak = 0;
             this.lastPresentAt = Date.now();
             this.setFaceStatus(label, false);
-            if (this.lockType === 'webcam') {
+            // Always clear identity lock when presence is accepted after a profile match.
+            if (this.identityLocked || (document.body && document.body.classList.contains('exam-identity-locked'))) {
+                this.unlockIdentity(label);
+            } else if (this.lockType === 'webcam') {
                 this.webcamWarningShown = false;
                 this.lockType = null;
                 this.hideWarning();
@@ -897,16 +1564,29 @@
                 return;
             }
 
-            this.lockType = 'webcam';
+            // Keep identity lock sticky; do not overwrite it with a generic webcam lock.
+            if (!this.identityLocked) {
+                this.lockType = 'webcam';
+            } else {
+                this.lockType = 'identity';
+            }
             this.webcamWarningShown = true;
             this.awayAfterWarnStreak = 0;
             var remaining = Math.max(0, maxWebcam - this.webcamStrikeCount);
-            this.showWarning(
-                'Webcam warning: ' + message
-                + ' Return to your seat with your face visible. '
-                + remaining + ' more seat/camera warning(s) will cancel the exam.',
-                false
-            );
+            if (this.identityLocked) {
+                this.showWarning(
+                    'Face still does not match your profile photo. Questions stay hidden. '
+                    + remaining + ' more seat/camera warning(s) will cancel the exam.',
+                    false
+                );
+            } else {
+                this.showWarning(
+                    'Webcam warning: ' + message
+                    + ' Return to your seat with your face visible. '
+                    + remaining + ' more seat/camera warning(s) will cancel the exam.',
+                    false
+                );
+            }
         },
 
         updateBadge: function () {
@@ -942,6 +1622,10 @@
 
         forceEnd: function (mode) {
             this.ended = true;
+            this.identityLocked = false;
+            if (document.body) {
+                document.body.classList.remove('exam-identity-locked');
+            }
             this.stopCamera();
             if (this.faceTimer) {
                 clearInterval(this.faceTimer);

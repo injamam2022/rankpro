@@ -54,12 +54,31 @@
                 @else
                     <img src="{{ asset('') }}web/images/dashboardCheck.png" class="img-fluid" alt="Profile" style="object-fit: contain; opacity:.35;">
                 @endif
+                <span class="rp-avatar-online" aria-hidden="true"></span>
             </div>
             <div class="dashboardAvatarMeta">
                 <div class="dashboardName" style="word-break: break-word;">{{ $user_name }}</div>
-                <div class="dashboardProfileHint">My Profile</div>
+                @php
+                    $givenMocks = (int) ($mocks_given_count ?? 0);
+                    $liveMocks = (int) ($mocks_available_count ?? 0);
+                    $mocksDenom = max($liveMocks, $givenMocks);
+                @endphp
+                @if($mocksDenom > 0 || $givenMocks > 0)
+                    <div class="dashboardProfileHint">{{ $givenMocks }} / {{ $mocksDenom }} Live Mocks Given</div>
+                @else
+                    <div class="dashboardProfileHint">My Profile</div>
+                @endif
+                @if(!empty($student_batches) && count($student_batches))
+                    <div class="rp-side-batches">
+                        @foreach($student_batches as $batch)
+                            <span class="rp-side-batch-chip">{{ $batch->name }}</span>
+                        @endforeach
+                    </div>
+                @endif
             </div>
-            <img src="{{ asset('') }}web/images/dashboardCheck.png" class="img-fluid dashboardCheck" alt="">
+            <span class="dashboardCheck rp-profile-check" aria-hidden="true">
+                <i class="fas fa-check"></i>
+            </span>
         </a>
         <div>
             <div class="dashboardXp">
@@ -198,8 +217,28 @@
         </li>
     </ul>
 
+    <div class="rp-side-quote">
+        <strong><i class="fas fa-award" style="color:#2563eb;"></i> Doctor Vision</strong>
+        <p class="mb-0" style="font-size:10px;line-height:1.45;color:#64748b;">Consistent mock test discipline turns preparation into top medical ranks.</p>
+    </div>
+
     <script>
       (function () {
+        document.querySelectorAll('.menuBarBtn.menuBarBtnOpen').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            document.querySelectorAll('.dashboardLeft').forEach(function (el) {
+              el.classList.remove('dashboardLeftOff');
+            });
+          });
+        });
+        document.querySelectorAll('.menuBarBtn.menuBarBtnClose').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            document.querySelectorAll('.dashboardLeft').forEach(function (el) {
+              el.classList.add('dashboardLeftOff');
+            });
+          });
+        });
+
         function toggleMenuItem(li) {
           if (!li) return;
           var sub = li.querySelector(':scope > .dashboardMenuSub');

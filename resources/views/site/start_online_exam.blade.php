@@ -619,13 +619,72 @@
             pointer-events:auto;
         }
         .proctoring-card {
-            width:100%; max-width:560px; background:#fff; border-radius:16px;
+            width:100%; max-width:640px; background:#fff; border-radius:16px;
             padding:28px 28px 24px; text-align:center;
             box-shadow:0 18px 50px rgba(0,0,0,.25);
+            max-height: min(92vh, 920px);
+            overflow:auto;
         }
         .proctoring-card h3 { font-size:22px; margin-bottom:8px; color:#17233b; }
         .proctoring-card p, .proctoring-card li { color:#4d5a73; font-size:14px; text-align:left; }
         .proctoring-card ul { padding-left:18px; margin:14px 0 18px; }
+        .proctoring-scan {
+            display:none;
+            margin: 14px auto 12px;
+            width: min(100%, 360px);
+        }
+        .proctoring-scan.is-active { display:block; }
+        .proctoring-scan__frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #0b1220;
+            border: 3px solid #3561ff;
+            box-shadow: 0 10px 28px rgba(53, 97, 255, 0.22);
+        }
+        .proctoring-scan__frame.is-error { border-color: #c62828; box-shadow: 0 10px 28px rgba(198, 40, 40, 0.2); }
+        .proctoring-scan__frame.is-ok { border-color: #2e7d32; box-shadow: 0 10px 28px rgba(46, 125, 50, 0.22); }
+        #proctoringGateVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            background: #000;
+        }
+        .proctoring-scan__guide {
+            position: absolute;
+            inset: 12% 18%;
+            border: 2px dashed rgba(255,255,255,.7);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 0 999px rgba(0,0,0,.28);
+        }
+        .proctoring-scan__pulse {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, transparent 0%, rgba(53,97,255,.12) 50%, transparent 100%);
+            background-size: 100% 200%;
+            animation: proctorScanPulse 2.2s linear infinite;
+        }
+        @keyframes proctorScanPulse {
+            0% { background-position: 0 -40%; }
+            100% { background-position: 0 140%; }
+        }
+        .proctoring-scan__label {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 8px 10px;
+            background: rgba(15, 23, 42, 0.82);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+        .proctoring-scan__label.is-error { background: rgba(198, 40, 40, 0.9); }
+        .proctoring-scan__label.is-ok { background: rgba(46, 125, 50, 0.92); }
         .proctoring-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
         .proctoring-actions button {
             min-width:160px; height:42px; border:0; border-radius:10px;
@@ -640,6 +699,20 @@
         }
         body.exam-proctored-active .proctoring-pip { display:block; }
         body.exam-proctored-active { user-select:none; }
+        /* Hide questions while live face does not match profile photo */
+        body.exam-identity-locked #dashboardBody,
+        body.exam-identity-locked #header .questionCount,
+        body.exam-identity-locked #header .topExampButtons {
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        body.exam-identity-locked #dashboardBody {
+            filter: blur(10px);
+        }
+        body.exam-identity-locked .proctoring-pip {
+            display: block !important;
+            z-index: 100001;
+        }
         #proctoringVideo { width:100%; height:100%; object-fit:cover; }
         #proctoringFaceStatus {
             position:absolute; left:0; right:0; bottom:0;
@@ -674,14 +747,24 @@
     <h3>This exam is proctored</h3>
     <p>Before you start, allow camera access and stay in fullscreen for the full duration.</p>
     <ul>
-      <li>The camera tracks your face and eyes continuously while you take the exam.</li>
+      <li>Your live face must match your RankPro profile photo before the exam can start.</li>
+      <li>The same face must remain throughout the exam (not only basic face detection).</li>
+      <li>Eyes are tracked continuously (blinks / movement). Still photos or covered eyes are blocked.</li>
       <li>Looking at the questions is fine. A warning appears if you leave the seat or cover the camera.</li>
-      <li>If you stay away or keep the camera covered after warnings, the exam is cancelled.</li>
       <li>Do not switch tabs, windows, or leave fullscreen. Esc exits fullscreen and locks the exam until you click Return to Exam.</li>
       <li>Copy, paste, and right-click are disabled.</li>
       <li>After {{ $exam_detail->proctoring_max_violations ?? 5 }} other warnings, the exam is submitted automatically.</li>
     </ul>
     <p id="proctoringCameraStatus">Camera is not connected yet.</p>
+    <div class="proctoring-scan" id="proctoringScanStage">
+      <div class="proctoring-scan__frame" id="proctoringScanFrame">
+        <video id="proctoringGateVideo" autoplay playsinline muted></video>
+        <div class="proctoring-scan__guide" aria-hidden="true"></div>
+        <div class="proctoring-scan__pulse" aria-hidden="true"></div>
+        <div class="proctoring-scan__label" id="proctoringScanLabel">Scanning face...</div>
+      </div>
+    </div>
+    <p id="proctoringIdentityStatus">Identity check waiting for camera...</p>
     <div class="proctoring-actions">
       <button type="button" id="proctoringCameraBtn" class="secondary">Allow Camera</button>
       <button type="button" id="proctoringStartBtn" disabled>Enter Fullscreen &amp; Start</button>
@@ -1772,8 +1855,19 @@
       @endif
     </script>
     @if(!empty($exam_detail->is_proctored))
+    @php
+      $proctorProfileName = !empty(Auth::user()->profile_img)
+        ? basename(str_replace('\\', '/', Auth::user()->profile_img))
+        : '';
+      $proctorProfileUrl = '';
+      if ($proctorProfileName !== '') {
+          $proctorProfilePath = public_path('uploads/profileImage/'.$proctorProfileName);
+          $proctorProfileVer = file_exists($proctorProfilePath) ? filemtime($proctorProfilePath) : time();
+          $proctorProfileUrl = asset('uploads/profileImage/'.$proctorProfileName).'?v='.$proctorProfileVer;
+      }
+    @endphp
     <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=10"></script>
-    <script src="{{ asset('exam/js/proctoring.js') }}?v=14"></script>
+    <script src="{{ asset('exam/js/proctoring.js') }}?v=20"></script>
     <script>
       RankProProctoring.init({
         enabled: true,
@@ -1782,6 +1876,10 @@
         maxViolations: {{ (int)($exam_detail->proctoring_max_violations ?? 5) }},
         maxWebcamStrikes: 3,
         modelUrl: "{{ asset('exam/vendor/face-api') }}",
+        profileImageUrl: @json($proctorProfileUrl),
+        identityMatchThreshold: 0.62,
+        sessionMatchThreshold: 0.66,
+        blinkWindowMs: 45000,
         eventUrl: "{{ route('log_proctoring_event') }}",
         snapshotUrl: "{{ route('save_proctoring_snapshot') }}",
         snapshotInterval: 120000,

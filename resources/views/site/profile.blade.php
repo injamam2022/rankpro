@@ -37,6 +37,7 @@
     <!-- Template Stylesheet -->
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/dashboard.css" rel="stylesheet">
+    <link href="{{ asset('web/css/dashboard-v2.css') }}" rel="stylesheet">
     <link href="{{ asset('') }}web/css/form.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" rel="stylesheet">
 
@@ -96,13 +97,100 @@
         padding: 12px 18px 16px;
         gap: 8px;
       }
+      .profilePhotoChoice {
+        display: grid;
+        gap: 10px;
+        margin: 4px 0 8px;
+      }
+      .profilePhotoChoice__btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        text-align: left;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+      }
+      .profilePhotoChoice__btn:hover {
+        border-color: #93c5fd;
+        background: #f8fbff;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+      }
+      .profilePhotoChoice__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+      .profilePhotoChoice__icon.is-upload {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+      .profilePhotoChoice__icon.is-camera {
+        background: #fdf2f8;
+        color: #db2777;
+      }
+      .profilePhotoChoice__btn > span:last-child {
+        min-width: 0;
+      }
+      .profilePhotoChoice__btn strong {
+        display: block;
+        font-size: 14px;
+        color: #0f172a;
+        font-weight: 700;
+      }
+      .profilePhotoChoice__btn strong + span {
+        display: block;
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 2px;
+      }
+      .profileCameraStage {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        aspect-ratio: 1;
+        background: #111;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .profileCameraStage video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+      }
+      .profileCameraStage canvas {
+        display: none;
+      }
+      .profileCameraHint {
+        text-align: center;
+        color: #666;
+        font-size: 13px;
+        margin: 12px 0 0;
+      }
+      .profileCameraError {
+        color: #b91c1c;
+        font-size: 13px;
+        text-align: center;
+        margin-top: 10px;
+        display: none;
+      }
     </style>
     @include('site.include.head_meta')
 </head>
 
-<!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;"> -->
+<!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;" class="rp-dash-body"> -->
 
-<body>
+<body class="rp-dash-body">
     @include('site.include.body_meta')
     <!-- Spinner Start -->
     <div id="spinner"
@@ -112,10 +200,17 @@
     <!-- Spinner End -->
 
     <!-- dashboard -->
+    @include('site.include.student_dashboard_header')
+
     <section id="dashboard">
       <div class="container-fluid">
           <div class="dashboardAll dashboardPh">
-              <div class="dashboardLeft">
+              <div class="menuBarBtn menuBarBtnOpen">
+                  <i class="fas fa-bars"></i>
+              </div>
+              
+
+              <div class="dashboardLeft dashboardLeftOff">
                   @include('site.include.student_left_menu')
               </div>
               <div class="dashboardRight">
@@ -148,7 +243,7 @@
                                           @endphp
                                           <img src="{{ $profileImgUrl }}" class="img-fluid" alt="Profile" id="avatarPreview" @if($profileImgName === '') style="opacity:.4;object-fit:contain;padding:18px;" @endif>
                                       </div>
-                                      <img src="{{ asset('') }}web/images/form/cam_ic.png" class="img-fluid cam_ic" alt="Upload" id="uploadTrigger" title="Change profile picture">
+                                      <img src="{{ asset('') }}web/images/form/cam_ic.png" class="img-fluid cam_ic" alt="Change photo" id="photoSourceTrigger" title="Change profile picture">
                                     </div>
                                     <input type="file" name="profileImage" id="profileImage" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" style="display: none;">
                                     @error('profileImage')
@@ -416,6 +511,58 @@
       </div>
     </div>
 
+    <div class="modal fade" id="profilePhotoSourceModal" tabindex="-1" aria-labelledby="profilePhotoSourceModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius:14px;border:none;">
+          <div class="modal-header" style="border-bottom:1px solid #ececec;padding:14px 18px;">
+            <h5 class="modal-title" id="profilePhotoSourceModalLabel" style="font-weight:600;font-size:18px;">Change profile photo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding:16px 18px;">
+            <div class="profilePhotoChoice">
+              <button type="button" class="profilePhotoChoice__btn" id="profileOptUpload">
+                <span class="profilePhotoChoice__icon is-upload"><i class="fas fa-image"></i></span>
+                <span>
+                  <strong>Upload photo</strong>
+                  <span>Choose an image from your device</span>
+                </span>
+              </button>
+              <button type="button" class="profilePhotoChoice__btn" id="profileOptCamera">
+                <span class="profilePhotoChoice__icon is-camera"><i class="fas fa-camera"></i></span>
+                <span>
+                  <strong>Take photo</strong>
+                  <span>Use your camera to click a new picture</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="profileCameraModal" tabindex="-1" aria-labelledby="profileCameraModalLabel" aria-hidden="true" data-bs-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px;border:none;">
+          <div class="modal-header" style="border-bottom:1px solid #ececec;padding:14px 18px;">
+            <h5 class="modal-title" id="profileCameraModalLabel" style="font-weight:600;font-size:18px;">Take profile photo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding:16px 18px 8px;">
+            <div class="profileCameraStage">
+              <video id="profileCameraVideo" playsinline autoplay muted></video>
+              <canvas id="profileCameraCanvas"></canvas>
+            </div>
+            <p class="profileCameraHint">Allow camera access, then center your face and click Capture.</p>
+            <p class="profileCameraError" id="profileCameraError"></p>
+          </div>
+          <div class="modal-footer justify-content-between" style="border-top:1px solid #ececec;padding:12px 18px 16px;">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="profileCameraCapture"><i class="fas fa-camera"></i> Capture</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -473,16 +620,7 @@
           $('#profileImage').trigger('click');
       }
 
-      $('#uploadTrigger, #avatarClickArea').on('click', openProfilePicker);
-      $('#avatarClickArea').on('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              openProfilePicker();
-          }
-      });
-
-      $('#profileImage').on('change', function () {
-          var file = this.files && this.files[0];
+      function beginProfileCropFromFile(file) {
           if (!file) return;
           if (!/^image\//.test(file.type)) {
               alert('Please choose an image file (JPG, PNG, WEBP, or GIF).');
@@ -495,8 +633,6 @@
               return;
           }
 
-          // Keep picker empty until user confirms crop; restore prior file if they cancel.
-          this.value = '';
           destroyProfileCropper();
           profileCropApplied = false;
           profileObjectUrl = URL.createObjectURL(file);
@@ -506,6 +642,138 @@
               profileCropModal = new bootstrap.Modal(document.getElementById('profileCropModal'));
           }
           profileCropModal.show();
+      }
+
+      var profilePhotoSourceModal = null;
+      var profileCameraModal = null;
+      var profileCameraStream = null;
+
+      function stopProfileCamera() {
+          if (profileCameraStream) {
+              profileCameraStream.getTracks().forEach(function (track) {
+                  track.stop();
+              });
+              profileCameraStream = null;
+          }
+          var video = document.getElementById('profileCameraVideo');
+          if (video) {
+              video.srcObject = null;
+          }
+      }
+
+      function openProfilePhotoSourceModal() {
+          if (!profilePhotoSourceModal) {
+              profilePhotoSourceModal = new bootstrap.Modal(document.getElementById('profilePhotoSourceModal'));
+          }
+          profilePhotoSourceModal.show();
+      }
+
+      function openProfileCamera() {
+          var errEl = document.getElementById('profileCameraError');
+          if (errEl) {
+              errEl.style.display = 'none';
+              errEl.textContent = '';
+          }
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+              alert('Camera capture is not supported in this browser. Please upload a photo instead.');
+              return;
+          }
+          if (!profileCameraModal) {
+              profileCameraModal = new bootstrap.Modal(document.getElementById('profileCameraModal'));
+          }
+          profileCameraModal.show();
+      }
+
+      $('#photoSourceTrigger, #avatarClickArea').on('click', function (e) {
+          e.preventDefault();
+          openProfilePhotoSourceModal();
+      });
+      $('#avatarClickArea').on('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openProfilePhotoSourceModal();
+          }
+      });
+
+      $('#profileOptUpload').on('click', function () {
+          if (profilePhotoSourceModal) profilePhotoSourceModal.hide();
+          setTimeout(openProfilePicker, 180);
+      });
+      $('#profileOptCamera').on('click', function () {
+          if (profilePhotoSourceModal) profilePhotoSourceModal.hide();
+          setTimeout(openProfileCamera, 180);
+      });
+
+      $('#profileCameraModal').on('shown.bs.modal', function () {
+          var video = document.getElementById('profileCameraVideo');
+          var errEl = document.getElementById('profileCameraError');
+          stopProfileCamera();
+          navigator.mediaDevices.getUserMedia({
+              video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
+              audio: false
+          }).then(function (stream) {
+              profileCameraStream = stream;
+              if (video) {
+                  video.srcObject = stream;
+                  video.play().catch(function () {});
+              }
+          }).catch(function (err) {
+              var msg = 'Could not access the camera. Check browser permissions and try again.';
+              if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+                  msg = 'Camera permission was denied. Allow camera access, or upload a photo instead.';
+              } else if (err && (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError')) {
+                  msg = 'No camera was found on this device. Please upload a photo instead.';
+              }
+              if (errEl) {
+                  errEl.textContent = msg;
+                  errEl.style.display = 'block';
+              }
+          });
+      });
+
+      $('#profileCameraModal').on('hidden.bs.modal', function () {
+          stopProfileCamera();
+      });
+
+      $('#profileCameraCapture').on('click', function () {
+          var video = document.getElementById('profileCameraVideo');
+          var canvas = document.getElementById('profileCameraCanvas');
+          if (!video || !canvas || !video.videoWidth) {
+              alert('Camera is not ready yet. Please wait a moment and try again.');
+              return;
+          }
+          var size = Math.min(video.videoWidth, video.videoHeight);
+          var sx = (video.videoWidth - size) / 2;
+          var sy = (video.videoHeight - size) / 2;
+          canvas.width = 900;
+          canvas.height = 900;
+          var ctx = canvas.getContext('2d');
+          // Mirror to match preview
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(video, sx, sy, size, size, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob(function (blob) {
+              if (!blob) {
+                  alert('Could not capture this photo. Please try again.');
+                  return;
+              }
+              var file = new File([blob], 'camera_' + Date.now() + '.jpg', {
+                  type: 'image/jpeg',
+                  lastModified: Date.now()
+              });
+              if (profileCameraModal) profileCameraModal.hide();
+              stopProfileCamera();
+              beginProfileCropFromFile(file);
+          }, 'image/jpeg', 0.92);
+      });
+
+      $('#profileImage').on('change', function () {
+          var file = this.files && this.files[0];
+          if (!file) return;
+          // Keep picker empty until user confirms crop; restore prior file if they cancel.
+          this.value = '';
+          beginProfileCropFromFile(file);
       });
 
       $('#profileCropModal').on('shown.bs.modal', function () {

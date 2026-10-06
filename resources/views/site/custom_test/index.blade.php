@@ -10,6 +10,7 @@
     <link href="{{ asset('') }}web/bootstrap-5.0.2/css/bootstrap.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/dashboard.css" rel="stylesheet">
+    <link href="{{ asset('web/css/dashboard-v2.css') }}" rel="stylesheet">
     @include('site.include.head_meta')
     <style>
         .ct-wrap { max-width: 760px; margin: 0 auto; padding-bottom: 7rem; }
@@ -111,15 +112,22 @@
         }
     </style>
 </head>
-<body>
+<body class="rp-dash-body">
 @include('site.include.body_meta')
 <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
     <div class="spinner-grow text-primary" role="status"></div>
 </div>
-<section id="dashboard">
+@include('site.include.student_dashboard_header')
+
+    <section id="dashboard">
     <div class="container-fluid">
         <div class="dashboardAll dashboardPh">
-            <div class="dashboardLeft">
+              <div class="menuBarBtn menuBarBtnOpen">
+                  <i class="fas fa-bars"></i>
+              </div>
+              
+
+            <div class="dashboardLeft dashboardLeftOff">
                 @include('site.include.student_left_menu')
             </div>
             <div class="dashboardRight">

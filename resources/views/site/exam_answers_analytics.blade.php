@@ -38,6 +38,7 @@
     <!-- Template Stylesheet -->
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/dashboard.css" rel="stylesheet">
+    <link href="{{ asset('web/css/dashboard-v2.css') }}" rel="stylesheet">
     
     <style>
         .calltoaction {
@@ -48,9 +49,9 @@
     @include('site.include.head_meta')
 </head>
 
-<!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;"> -->
+<!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;" class="rp-dash-body"> -->
 
-<body>
+<body class="rp-dash-body">
     @include('site.include.body_meta')
     <!-- Spinner Start -->
     <div id="spinner"
@@ -60,25 +61,22 @@
     <!-- Spinner End -->
 
     <!-- dashboard -->
+    @include('site.include.student_dashboard_header')
+
     <section id="dashboard">
       <div class="container-fluid">
           <div class="dashboardAll dashboardPh">
-              <div class="dashboardLeft">
+              <div class="menuBarBtn menuBarBtnOpen">
+                  <i class="fas fa-bars"></i>
+              </div>
+              
+
+              <div class="dashboardLeft dashboardLeftOff">
                   @include('site.include.student_left_menu')
               </div>
               <div class="dashboardRight">
                   <div class="dashboardRightBody">
                       <div class="row">
-                          <div class="col-xl-12">
-                              <div class="dashboardBlock">
-                                    <div class="dashboardTitleCount">
-                                        <div class="">
-                                          <div class="dashboardTitle">{{ $user->first_name }} {{ strtoupper(substr($user->last_name, 0, 1)) }}, (<span>{{ $user->rankpro_id }}</span>)</div>
-                                          <div class="dashboardEmail">{{$user->email_id}}</div>
-                                        </div>
-                                    </div>
-                              </div>
-                          </div>
                           <div class="col-12">
                               <div class="dashboardBlock dashboardBlockShadow">
                                  <!--  <ul class="nav nav-tabs examTab" role="tablist">

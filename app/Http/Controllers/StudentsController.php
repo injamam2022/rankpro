@@ -36,6 +36,7 @@ use App\Models\Chapter;
 use App\Models\Topic;
 use App\Models\Setting;
 use App\Models\Batch;
+use App\Models\Notice_user;
 
 use DB;
 
@@ -80,7 +81,15 @@ class StudentsController extends Controller
         $subject_id = $request->subject_id;
         $exam_type = $request->exam_type;
 
-        $data['exam_list'] = Exam_user::select(['exams.*','exam_users.id as user_exam_id','exam_users.total_answer','exam_users.total_right_answer','exam_users.total_number'])
+        $data['exam_list'] = Exam_user::select([
+                                    'exams.*',
+                                    'exam_users.id as user_exam_id',
+                                    'exam_users.total_answer',
+                                    'exam_users.total_right_answer',
+                                    'exam_users.total_number',
+                                    'exam_users.total_mark',
+                                    'exam_users.rank',
+                                ])
                                 ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
                                 ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
                                 ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
@@ -93,7 +102,64 @@ class StudentsController extends Controller
                                 })
                                 ->when($exam_type !== null, function ($query) use ($exam_type) {
                                     $query->where('exams.type',$exam_type); 
-                                })->distinct()->orderBy('exams.exam_date','DESC')->take(5)->get();
+                                })->distinct()->orderBy('exams.exam_date','DESC')->take(50)->get();
+
+        // Enrich given exams with participant count + subject breakdown for result modal.
+        $givenExamIds = $data['exam_list']->pluck('id')->filter()->unique()->values();
+        $givenUserExamIds = $data['exam_list']->pluck('user_exam_id')->filter()->unique()->values();
+        $participantCounts = collect();
+        if ($givenExamIds->isNotEmpty()) {
+            $participantCounts = Exam_user::query()
+                ->select('exam_id', DB::raw('COUNT(DISTINCT user_id) as participant_count'))
+                ->whereIn('exam_id', $givenExamIds)
+                ->groupBy('exam_id')
+                ->pluck('participant_count', 'exam_id');
+        }
+
+        $subjectBreakdowns = [];
+        if ($givenUserExamIds->isNotEmpty()) {
+            $subjectRows = Exam_result::query()
+                ->select([
+                    'exam_results.exam_user_id',
+                    'subjects.name as subject_name',
+                    DB::raw('COALESCE(SUM(exam_results.result), 0) as obtained'),
+                    DB::raw('COUNT(*) as question_count'),
+                ])
+                ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
+                ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
+                ->leftJoin('subjects', 'subjects.id', '=', DB::raw('COALESCE(questions.subject_id, offline_exam_questions.subject_id)'))
+                ->whereIn('exam_results.exam_user_id', $givenUserExamIds)
+                ->groupBy('exam_results.exam_user_id', 'subjects.name')
+                ->get();
+
+            foreach ($subjectRows as $row) {
+                if (!$row->subject_name) {
+                    continue;
+                }
+                $marksPerQ = 4; // NEET default; refined per exam below when available
+                $subjectBreakdowns[$row->exam_user_id][] = [
+                    'name' => $row->subject_name,
+                    'obtained' => (float) $row->obtained,
+                    'max' => (int) $row->question_count * $marksPerQ,
+                    'question_count' => (int) $row->question_count,
+                ];
+            }
+        }
+
+        foreach ($data['exam_list'] as $examRow) {
+            $examRow->participant_count = (int) ($participantCounts[$examRow->id] ?? 0);
+            $marksPerQ = (int) ($examRow->marks_per_question ?? 0);
+            if ($marksPerQ <= 0) {
+                $marksPerQ = 4;
+            }
+            $subjects = $subjectBreakdowns[$examRow->user_exam_id] ?? [];
+            foreach ($subjects as &$s) {
+                $s['max'] = (int) ($s['question_count'] ?? 0) * $marksPerQ;
+            }
+            unset($s);
+            $examRow->subject_scores = $subjects;
+        }
 
         $data['upcoming_list'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
                                     ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
@@ -118,6 +184,26 @@ class StudentsController extends Controller
                                     ->listedForStudentPortal()
                                     ->distinct()->orderBy('exams.exam_date','ASC')->take(5)->get();
 
+        // Full schedule list for dashboard "Exam Schedule" modal.
+        $data['exam_schedule_list'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
+                                    ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
+                                    ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
+                                    ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
+                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.exam_id', '=', 'exams.id')
+                                    ->where('exams.is_deleted',0)->where('exams.status',1)
+                                    ->where(function ($q) {
+                                        $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
+                                    })
+                                    ->when(filled($subject_id), function ($query) use ($subject_id) {
+                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
+                                    })
+                                    ->when(filled($exam_type), function ($query) use ($exam_type) {
+                                        $query->where('exams.type',$exam_type);
+                                    })
+                                    ->listedForStudentPortal()
+                                    ->distinct()->orderBy('exams.exam_date','ASC')->take(50)->get();
+
         $data['leader_board'] = Exam_user::select(['exam_users.*',DB::raw('AVG(exam_users.percentage) as total_result'),DB::raw('SUM(exam_users.total_mark) as total_mark'),DB::raw('SUM(exam_users.total_number) as total_number'),'users.first_name','users.last_name','users.profile_img','users.rankpro_id',DB::raw('count(*) as total_exam')])
                     ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
                     ->leftJoin('users', 'users.id', '=', 'exam_users.user_id');
@@ -131,7 +217,7 @@ class StudentsController extends Controller
         }
 
         $data['leader_board'] = $data['leader_board']->where('exams.is_deleted',0)->groupBy('exam_users.user_id')
-                    ->orderBy('total_number','desc')->take(2)->get();
+                    ->orderBy('total_number','desc')->take(5)->get();
 
                     // dd($data['leader_board']);
         
@@ -172,6 +258,41 @@ class StudentsController extends Controller
 
         $data['your_score'] = $userRank[0]->rank ?? 1;
 
+        $inTopFive = $data['leader_board']->contains(function ($row) {
+            return (int) $row->user_id === (int) Auth::id();
+        });
+        $data['leader_board_show_me'] = !$inTopFive && !empty($data['my_leader_board']);
+
+        $data['mocks_given_count'] = Exam_user::query()
+            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
+            ->where('exam_users.user_id', Auth::id())
+            ->where('exams.is_deleted', 0)
+            ->count();
+
+        $data['mocks_available_count'] = Exam::assignedTo(Auth::id())
+            ->where('exams.is_deleted', 0)
+            ->where('exams.status', 1)
+            ->where(function ($q) {
+                $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
+            })
+            ->listedForStudentPortal()
+            ->count();
+
+        $data['dashboard_notices'] = Notice_user::select([
+                'notice_users.*',
+                'notices.name',
+                'notices.description',
+                'notices.is_urgent',
+            ])
+            ->leftJoin('notices', 'notices.id', '=', 'notice_users.notice_id')
+            ->where('notice_users.user_id', Auth::id())
+            ->where('notice_users.is_deleted', 0)
+            ->where('notice_users.is_archive', 0)
+            ->where('notices.status', 1)
+            ->orderByDesc('notice_users.created_at')
+            ->take(3)
+            ->get();
+
         $data['trending_test'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
                                     ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
                                     ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
@@ -194,6 +315,48 @@ class StudentsController extends Controller
                                     })
                                     ->listedForStudentPortal()
                                     ->where('exams.is_trending',1)->distinct()->orderBy('exams.exam_date','ASC')->take(5)->get();
+
+        // Live "Trending" = many students currently giving the exam (active unfinished attempts).
+        $trendingMinGivers = 3;
+        $activeWindow = now()->subMinutes(20);
+        $giveExamIds = collect($data['upcoming_list'] ?? [])
+            ->merge($data['trending_test'] ?? [])
+            ->merge($data['exam_schedule_list'] ?? [])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $examGivingCounts = collect();
+        if ($giveExamIds->isNotEmpty()) {
+            $examGivingCounts = Exam_user::query()
+                ->select('exam_id', DB::raw('COUNT(DISTINCT user_id) as giving_count'))
+                ->whereIn('exam_id', $giveExamIds)
+                ->where(function ($q) {
+                    $q->whereNull('percentage')->orWhere('percentage', '');
+                })
+                ->where(function ($q) {
+                    $q->whereNull('proctoring_status')
+                        ->orWhereNotIn('proctoring_status', ['completed', 'auto_submitted', 'cancelled']);
+                })
+                ->where('updated_at', '>=', $activeWindow)
+                ->groupBy('exam_id')
+                ->pluck('giving_count', 'exam_id');
+        }
+
+        $attachGivingStats = function ($exams) use ($examGivingCounts, $trendingMinGivers) {
+            foreach ($exams as $exam) {
+                $count = (int) ($examGivingCounts[$exam->id] ?? 0);
+                $exam->giving_count = $count;
+                $exam->is_live_trending = $count >= $trendingMinGivers;
+            }
+            return $exams;
+        };
+
+        $data['upcoming_list'] = $attachGivingStats($data['upcoming_list']);
+        $data['trending_test'] = $attachGivingStats($data['trending_test']);
+        $data['exam_schedule_list'] = $attachGivingStats($data['exam_schedule_list'] ?? collect());
+        $data['trending_min_givers'] = $trendingMinGivers;
                             
         $data['dashboard_banner'] = Dashboard_banner::where('status',1)->get();
 
