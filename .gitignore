@@ -44,6 +44,9 @@ php.ini
 /resources-25-08-2026
 /routes-25-08-2026
 
+# Local design prototype (not for production)
+/rankpro design/
+
 # User uploads (keep folder)
 /public/uploads/*
 !/public/uploads/.gitkeep
