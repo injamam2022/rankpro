@@ -6,12 +6,12 @@
     <title>RankPro</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
-    <meta name="title" content="NEET AI Platform â€“ Unlimited Free Mock Tests, Test Series & Find Your Mentor">
+    <meta name="title" content="NEET AI Platform - Unlimited Free Mock Tests, Test Series & Find Your Mentor">
     <meta name="description" content="Prepare for NEET with AI-powered tools. Access unlimited free mock tests and full test series based on the latest NEET exam pattern. Get expert guidance, detailed analysis, and connect with top NEET mentors to boost your score.">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('') }}web/images/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="{{ asset('') }}web/images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,22 +25,22 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
-    <link href="{{ asset('') }}web/lib/animate/animate.min.css" rel="stylesheet">
-    <link href="{{ asset('') }}web/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="{{ asset('web/lib/animate/animate.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('web/lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css" rel="stylesheet">
 
 
 
     <!-- Customized Bootstrap Stylesheet -->
-    <link href="{{ asset('') }}web/bootstrap-5.0.2/css/bootstrap.css" rel="stylesheet">
+    <link href="{{ asset('web/bootstrap-5.0.2/css/bootstrap.css') }}" rel="stylesheet">
 
     <!-- Template Stylesheet -->
-    <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
+    <link href="{{ asset('web/css/style.css') }}" rel="stylesheet">
     <!-- New design fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Redesign Stylesheet (loads after style.css so it overrides cleanly) -->
      <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-    <link href="{{ asset('') }}web/css/redesign.css" rel="stylesheet">
+    <link href="{{ asset('web/css/redesign.css') }}" rel="stylesheet">
     @include('site.include.head_meta')
 
    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -73,9 +73,9 @@
         <div class="rh__inner">
             <!-- LEFT -->
             <div class="rh__left">
-                <span class="rh__eyebrow"><i></i>NEET UG Â· AI-Powered Prep</span>
+                <span class="rh__eyebrow"><i></i>NEET UG &middot; AI-Powered Prep</span>
                 <h1 class="rh__title">Timeless prep<br>for <span class="rh__accent">serious NEET aspirants.</span></h1>
-                <p class="rh__lead">Unlimited free mock tests, real exam patterns, and one-on-one mentorship from top NEET rankers â€” crafted for Class 12 &amp; repeaters.</p>
+                <p class="rh__lead">Unlimited free mock tests, real exam patterns, and one-on-one mentorship from top NEET rankers - crafted for Class 12 &amp; repeaters.</p>
 
                 <div class="rh__cta">
                     @if (Auth::check())
@@ -98,7 +98,7 @@
                     <div class="rh__badge" aria-hidden="true">
                         <svg class="rh__badge-ring" viewBox="0 0 120 120">
                             <defs><path id="rhcirc" d="M60,60 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0"/></defs>
-                            <text><textPath href="#rhcirc" startOffset="0">FREE MOCK TEST Â· FREE MOCK TEST Â· </textPath></text>
+                            <text><textPath href="#rhcirc" startOffset="0">FREE MOCK TEST &middot; FREE MOCK TEST &middot; </textPath></text>
                         </svg>
                         <a href="{{ Auth::check() ? route('custom_test') : route('signup') }}" class="rh__badge-center">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -106,7 +106,7 @@
                     </div>
                     <!-- mini card -->
                     <a href="{{ route('new_light') }}" class="rh__mini">
-                        <div class="rh__mini-img" style="background-image:url('{{ asset('') }}web/images/scolar_test.png');"></div>
+                        <div class="rh__mini-img" style="background-image:url('{{ asset('web/images/scolar_test.png') }}');"></div>
                         <div class="rh__mini-txt">
                             <strong>NEET Pro Test Series</strong>
                             <span>Real-exam simulation. Same-day results.</span>
@@ -117,8 +117,8 @@
 
            <!-- RIGHT: Start Test card -->
             <div class="rh__right" id="rhTilt">
-                <div class="rh__badge-float rh__badge-float--a" data-depth="34">âœ“ Projected Score Â· <b>648</b></div>
-                <div class="rh__badge-float rh__badge-float--b" data-depth="46">â†‘ 7-day streak Â· <b>+142 solved</b></div>
+                <div class="rh__badge-float rh__badge-float--a" data-depth="34">&#10003; Projected Score &middot; <b>648</b></div>
+                <div class="rh__badge-float rh__badge-float--b" data-depth="46">&uarr; 7-day streak &middot; <b>+142 solved</b></div>
 
                 <div class="rh__test" id="rhTestCard">
                     <div class="rh__test-head">
@@ -127,12 +127,12 @@
                     </div>
 
                     <div class="rh__subjects" id="rhSubjects">
-                        <button class="rh__subj is-active" data-subject="physics" data-q="45" data-min="60" data-ch="Kinematics Â· Optics Â· Modern Physics">Physics</button>
-                        <button class="rh__subj" data-subject="chemistry" data-q="45" data-min="60" data-ch="Organic Â· Electrochemistry Â· Bonding">Chemistry</button>
-                        <button class="rh__subj" data-subject="biology" data-q="90" data-min="90" data-ch="Genetics Â· Morphology Â· Ecology">Biology</button>
+                        <button class="rh__subj is-active" data-subject="physics" data-q="45" data-min="60" data-ch="Kinematics &middot; Optics &middot; Modern Physics">Physics</button>
+                        <button class="rh__subj" data-subject="chemistry" data-q="45" data-min="60" data-ch="Organic &middot; Electrochemistry &middot; Bonding">Chemistry</button>
+                        <button class="rh__subj" data-subject="biology" data-q="90" data-min="90" data-ch="Genetics &middot; Morphology &middot; Ecology">Biology</button>
                     </div>
 
-                    <h3 class="rh__test-title" id="rhTestTitle">Physics â€” Full Chapter Test</h3>
+                    <h3 class="rh__test-title" id="rhTestTitle">Physics - Full Chapter Test</h3>
 
                     <div class="rh__test-meta">
                         <div class="rh__meta"><span class="rh__meta-num" id="rhQ">45</span><span class="rh__meta-lbl">Questions</span></div>
@@ -148,7 +148,7 @@
                         <span>Start Test</span>
                         <span class="rh__start-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                     </a>
-                    <span class="rh__test-foot">No card needed Â· Instant result &amp; rank prediction</span>
+                    <span class="rh__test-foot">No card needed &middot; Instant result &amp; rank prediction</span>
                 </div>
             </div>
         </div>
@@ -181,17 +181,18 @@
                             ['n'=>'02','t'=>'DPP Generator','d'=>'Daily practice problems auto-curated to your weak areas, every single day.'],
                             ['n'=>'03','t'=>'AI Syllabus Tracker','d'=>'Know exactly what to study next with an AI plan that adapts to your pace.'],
                             ['n'=>'04','t'=>'AI Youtube','d'=>'Instantly find the exact concept videos for any topic you\'re stuck on.'],
-                            ['n'=>'05','t'=>'Rank & College Predictor','d'=>'Predict your rank and target colleges â€” based on real NEET data.'],
+                            ['n'=>'05','t'=>'Rank & College Predictor','d'=>'Predict your rank and target colleges - based on real NEET data.'],
                             ['n'=>'06','t'=>'Chapterwise & Topicwise Test','d'=>'Master NEET one chapter at a time with targeted, exam-pattern tests.'],
                             ['n'=>'07','t'=>'Live Poll Based Class','d'=>'Interactive live classes with real-time polls that keep you sharp.'],
                         ];
                     @endphp
                     @foreach($features as $f)
                         <article class="rf__card">
-                           <div class="rf__card-img">
-    <div class="rf__card-photo" style="background-image:url('https://placehold.co/600x420/eef2ff/345ff4?text={{ urlencode($f['t']) }}');"></div>
-    <span class="rf__card-num">{{ $f['n'] }}</span>
-</div>
+                            <div class="rf__card-img">
+                                <div class="rf__card-photo rf__card-photo--{{ ($loop->index % 4) + 1 }}"></div>
+                                <div class="rf__card-label" aria-hidden="true"><span>{{ $f['t'] }}</span></div>
+                                <span class="rf__card-num">{{ $f['n'] }}</span>
+                            </div>
                             <div class="rf__card-body">
                                 <h3 class="rf__card-title">{{ $f['t'] }}</h3>
                                 <p class="rf__card-desc">{{ $f['d'] }}</p>
@@ -213,7 +214,7 @@
             <div class="hw__head">
                 <span class="hw__eyebrow"><i></i>See it in action</span>
                 <h2 class="hw__headline" id="hwHeadline">Watch how RankPro works.</h2>
-                <p class="hw__sub">In just 2 minutes, see how thousands of aspirants go from their first mock test to a predicted NEET rank â€” with AI analysis, real exam patterns, and mentorship built in.</p>
+                <p class="hw__sub">In just 2 minutes, see how thousands of aspirants go from their first mock test to a predicted NEET rank - with AI analysis, real exam patterns, and mentorship built in.</p>
                 <div class="hw__points">
                     <span class="hw__point"><i></i>Set up in under a minute</span>
                     <span class="hw__point"><i></i>No credit card needed</span>
@@ -222,13 +223,14 @@
             </div>
 
             <a href="https://www.youtube.com" target="_blank" rel="noopener" class="hw__video" id="hwVideo">
-                <div class="hw__video-photo" style="background-image:url('https://placehold.co/1280x720/2547c8/ffffff?text=RankPro+Walkthrough');"></div>
+                <div class="hw__video-photo hw__video-photo--local"></div>
                 <div class="hw__video-shade"></div>
+                <span class="hw__video-title">RankPro Walkthrough</span>
                 <span class="hw__play" id="hwPlay">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </span>
                 <span class="hw__playlabel">Watch the walkthrough</span>
-                <span class="hw__meta"><span class="hw__meta-dot"></span>2:14 Â· Full walkthrough</span>
+                <span class="hw__meta"><span class="hw__meta-dot"></span>2:14 &middot; Full walkthrough</span>
             </a>
         </div>
     </section>
@@ -238,9 +240,9 @@
     <section class="pp">
         <div class="pp__inner">
             <div class="pp__left">
-                <span class="pp__eyebrow"><i></i>Real overlap Â· Paper proof</span>
+                <span class="pp__eyebrow"><i></i>Real overlap &middot; Paper proof</span>
                 <h2 class="pp__title">Questions from <span class="pp__grad">NEET&nbsp;2027</span> you already solved here.</h2>
-                <p class="pp__sub">See how what you practised on RankPro lines up with the actual paper â€” tap a subject to open the proof PDF.</p>
+                <p class="pp__sub">See how what you practised on RankPro lines up with the actual paper - tap a subject to open the proof PDF.</p>
 
                 <div class="pp__subjects">
                     @php
@@ -274,7 +276,7 @@
                     <div class="pp__slides" id="ppSlides">
                         @php
                             $proofs = [
-                                ['sub'=>'Physics','match'=>'98%','p'=>'A body is projected with velocity u at angle Î¸. Find the maximum height reached.','e'=>'A body is projected with velocity u at an angle Î¸ with the horizontal. The maximum height reached is:'],
+                                ['sub'=>'Physics','match'=>'98%','p'=>'A body is projected with velocity u at angle &theta;. Find the maximum height reached.','e'=>'A body is projected with velocity u at an angle &theta; with the horizontal. The maximum height reached is:'],
                                 ['sub'=>'Chemistry','match'=>'96%','p'=>'Arrange the given species in order of increasing stability.','e'=>'The correct order of stability of the given species is:'],
                                 ['sub'=>'Biology','match'=>'99%','p'=>'Correct sequence of events during sexual reproduction in flowering plants.','e'=>'The correct sequence of events during sexual reproduction in flowering plants is:'],
                                 ['sub'=>'Physics','match'=>'95%','p'=>'In an ideal transformer, turns ratio Np/Ns = 1/2. Find Vs : Vp.','e'=>'In an ideal transformer, the turns ratio is Np/Ns = 1/2. The ratio Vs : Vp is equal to:'],
@@ -283,7 +285,7 @@
                         @foreach($proofs as $pr)
                             <div class="pp__proof">
                                 <div class="pp__proof-head">
-                                    <span class="pp__proof-tag">NEET 2027 Â· {{ $pr['sub'] }}</span>
+                                    <span class="pp__proof-tag">NEET 2027 &middot; {{ $pr['sub'] }}</span>
                                     <span class="pp__proof-match"><i></i>{{ $pr['match'] }} match</span>
                                 </div>
                                 <div class="pp__proof-pair">
@@ -297,7 +299,7 @@
                                     <div class="pp__q pp__q--exam">
                                         <span class="pp__q-label">Appeared in NEET 2027</span>
                                         <p class="pp__q-text">{{ $pr['e'] }}</p>
-                                        <span class="pp__q-verified">âœ“ Verified from question bank</span>
+                                        <span class="pp__q-verified">&#10003; Verified from question bank</span>
                                     </div>
                                 </div>
                             </div>
@@ -316,7 +318,7 @@
         <div class="rk__glow rk__glow--b"></div>
         <div class="rk__inner">
             <div class="rk__head">
-                <span class="rk__eyebrow"><i></i>Real results Â· Real rankers</span>
+                <span class="rk__eyebrow"><i></i>Real results &middot; Real rankers</span>
                 <h2 class="rk__title">Aspirants who trained on RankPro<br><span class="rk__grad">and cracked NEET.</span></h2>
                 <p class="rk__sub">Every rank below is a student who practised here. Learn from them, then connect one-on-one.</p>
             </div>
@@ -389,7 +391,7 @@
                             <p class="pr__desc">{{ $p['desc'] }}</p>
                         </div>
                         <div class="pr__price">
-                            <span class="pr__currency">â‚¹</span><span class="pr__amount">{{ $p['price'] }}</span>
+                            <span class="pr__currency">&#8377;</span><span class="pr__amount">{{ $p['price'] }}</span>
                             <span class="pr__period">/ {{ $p['period'] }}</span>
                         </div>
                         <a href="{{ Auth::check() ? route('plans') : route('signup') }}" class="pr__cta {{ $p['featured'] ? 'pr__cta--solid' : '' }}">{{ $p['cta'] }}</a>
@@ -457,14 +459,14 @@
     <!--    <div class="cusContainer">-->
     <!--        <h2 class="mainheading"> Doctor-Led Advisory Committee </h2>-->
     <!--        <div class="realinfo">-->
-    <!--            Experts share their insights to craft Shikkhaâ€™s NEET Prep-->
+    <!--            Experts share their insights to craft Shikkha's NEET Prep-->
     <!--            curriculum-->
     <!--        </div>-->
     <!--    </div>-->
     <!--    <div class="slider__items">-->
     <!--        <div class="advisoryblk pink">-->
     <!--            <div class="docimg">-->
-    <!--                <img src="{{ asset('') }}web/images/advisory05.png" height="210" width="245" alt="" class="img-fluid">-->
+    <!--                <img src="{{ asset('web/images/advisory05.png') }}" height="210" width="245" alt="" class="img-fluid">-->
     <!--            </div>-->
     <!--            <h4>Dr A K Bardhan</h4>-->
     <!--            <div class="department">Cardiology | 30 years exp.</div>-->
@@ -474,7 +476,7 @@
     <!--        </div>-->
     <!--        <div class="advisoryblk blue">-->
     <!--            <div class="docimg">-->
-    <!--                <img src="{{ asset('') }}web/images/advisory01.png" height="210" width="245" alt="" class="img-fluid">-->
+    <!--                <img src="{{ asset('web/images/advisory01.png') }}" height="210" width="245" alt="" class="img-fluid">-->
     <!--            </div>-->
     <!--            <h4>Dr A K Bardhan</h4>-->
     <!--            <div class="department">Cardiology | 30 years exp.</div>-->
@@ -484,7 +486,7 @@
     <!--        </div>-->
     <!--        <div class="advisoryblk orange">-->
     <!--            <div class="docimg">-->
-    <!--                <img src="{{ asset('') }}web/images/advisory02.png" height="210" width="245" alt="" class="img-fluid">-->
+    <!--                <img src="{{ asset('web/images/advisory02.png') }}" height="210" width="245" alt="" class="img-fluid">-->
     <!--            </div>-->
     <!--            <h4>Dr A K Bardhan</h4>-->
     <!--            <div class="department">Cardiology | 30 years exp.</div>-->
@@ -494,7 +496,7 @@
     <!--        </div>-->
     <!--        <div class="advisoryblk green">-->
     <!--            <div class="docimg">-->
-    <!--                <img src="{{ asset('') }}web/images/advisory03.png" height="210" width="245" alt="" class="img-fluid">-->
+    <!--                <img src="{{ asset('web/images/advisory03.png') }}" height="210" width="245" alt="" class="img-fluid">-->
     <!--            </div>-->
     <!--            <h4>Dr A K Bardhan</h4>-->
     <!--            <div class="department">Cardiology | 30 years exp.</div>-->
@@ -504,7 +506,7 @@
     <!--        </div>-->
     <!--        <div class="advisoryblk blue">-->
     <!--            <div class="docimg">-->
-    <!--                <img src="{{ asset('') }}web/images/advisory04.png" height="210" width="245" alt="" class="img-fluid">-->
+    <!--                <img src="{{ asset('web/images/advisory04.png') }}" height="210" width="245" alt="" class="img-fluid">-->
     <!--            </div>-->
     <!--            <h4>Dr A K Bardhan</h4>-->
     <!--            <div class="department">Cardiology | 30 years exp.</div>-->
@@ -528,8 +530,8 @@
                 @foreach($upcoming_test as $value)
                     <article class="ut__card">
                         <div class="ut__card-head">
-                            <span class="ut__card-badge">Exam Â· {{ $value->exam_date }}</span>
-                            <img src="{{ asset('') }}web/images/favicon.ico" alt="RankPro" class="ut__card-logo">
+                            <span class="ut__card-badge">Exam &middot; {{ $value->exam_date }}</span>
+                            <img src="{{ asset('web/images/favicon.ico') }}" alt="RankPro" class="ut__card-logo">
                         </div>
 
                         <h5 class="ut__card-name">{{ $value->name }}</h5>
@@ -562,7 +564,7 @@
             <div class="tc__head">
                 <span class="tc__eyebrow"><i></i>Test Centers</span>
                 <h2 class="tc__title">RankPro <span class="tc__grad">test centers</span> near you.</h2>
-                <p class="tc__sub">Pick a center to see it on the map â€” then enroll for your offline test.</p>
+                <p class="tc__sub">Pick a center to see it on the map - then enroll for your offline test.</p>
             </div>
 
             <div class="tc__split">
@@ -589,7 +591,7 @@
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                     {{ $value->phone_number }}
                                 </span>
-                                <a href="{{route('contact')}}?id={{$value->id}}&type=TC" class="tc__item-cta" onclick="event.stopPropagation();">Enroll Now â†’</a>
+                                <a href="{{route('contact')}}?id={{$value->id}}&type=TC" class="tc__item-cta" onclick="event.stopPropagation();">Enroll Now &rarr;</a>
                             </div>
                         </button>
                     @endforeach
@@ -608,14 +610,14 @@
     <!--    <div class="havequerieblock">-->
     <!--        <div class="queryleft">-->
     <!--            <div class="joinqury">-->
-    <!--                <h3><span>Have Doubts?</span> Weâ€™re Just a Message Away!</h3>-->
+    <!--                <h3><span>Have Doubts?</span> We're Just a Message Away!</h3>-->
     <!--                <span class="qstext">Let us help you to make NEET prep easier!</span><br>-->
     <!--                <a href="#" class="joinquerybtn">Enquiry Now</a>-->
     <!--                <a href="#" class="roundcall">Talk to us</a>-->
     <!--            </div>-->
     <!--        </div>-->
     <!--        <div class="queryform">-->
-    <!--            <h3>Your First Step to NEET Success â€“ </h3>-->
+    <!--            <h3>Your First Step to NEET Success - </h3>-->
     <!--            <span class="qstext">Book Your Free Mock Test Now!</span>-->
     <!--            <form action="#">-->
     <!--                <div class="row">-->
@@ -681,7 +683,7 @@
     <section class="ts">
         <div class="ts__inner">
             <div class="ts__head">
-                <span class="ts__eyebrow"><i></i>Real stories Â· Real success</span>
+                <span class="ts__eyebrow"><i></i>Real stories &middot; Real success</span>
                 <h2 class="ts__title">Aspirants who made it <span class="ts__grad">with RankPro.</span></h2>
                 @if ($real_story)
                     <p class="ts__sub">{!! $real_story->text !!}</p>
@@ -719,13 +721,13 @@
     <!--    <div class="row">-->
     <!--        <div class="col-lg-6 d-flex align-items-end">-->
     <!--            <h3>-->
-    <!--                <span>Donâ€™t Wait,</span> Start Your Test Series and <span>Track Your Growth</span>-->
+    <!--                <span>Don't Wait,</span> Start Your Test Series and <span>Track Your Growth</span>-->
     <!--            </h3>-->
-    <!--            <img src="{{ asset('') }}web/images/icons/hurry.png" width="148" height="160" alt="" class="hurryimg">-->
+    <!--            <img src="{{ asset('web/images/icons/hurry.png') }}" width="148" height="160" alt="" class="hurryimg">-->
     <!--        </div>-->
     <!--        <div class="col-lg-6">-->
     <!--            <div class="hurryblock">-->
-    <!--                <p>Get personalized growth insights with every test. Donâ€™t wait â€“ start now and see how quickly you-->
+    <!--                <p>Get personalized growth insights with every test. Don't wait - start now and see how quickly you-->
     <!--                    can improve.</p>-->
     <!--                <a href="#">Register Now</a>-->
     <!--            </div>-->
@@ -733,14 +735,14 @@
     <!--    </div>-->
     <!--</div>-->
     <!-- leftfixt2 -->
-    
+
    <!-- FAQ (redesigned) -->
     <section class="fq">
         <div class="fq__inner">
             <div class="fq__head">
                 <span class="fq__eyebrow"><i></i>FAQ</span>
                 <h2 class="fq__title">Frequently asked <span class="fq__grad">questions.</span></h2>
-                <p class="fq__sub">Everything you need to know about RankPro â€” tests, payments, and plans.</p>
+                <p class="fq__sub">Everything you need to know about RankPro - tests, payments, and plans.</p>
             </div>
 
             @if ($asked_questien->isNotEmpty())
@@ -901,14 +903,14 @@
    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('') }}web/lib/wow/wow.min.js"></script>
-    <script src="{{ asset('') }}web/lib/waypoints/waypoints.min.js"></script>
-    <script src="{{ asset('') }}web/lib/counterup/counterup.min.js"></script>
-    <script src="{{ asset('') }}web/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="{{ asset('web/lib/wow/wow.min.js') }}"></script>
+    <script src="{{ asset('web/lib/waypoints/waypoints.min.js') }}"></script>
+    <script src="{{ asset('web/lib/counterup/counterup.min.js') }}"></script>
+    <script src="{{ asset('web/lib/owlcarousel/owl.carousel.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
     <!-- Template Javascript -->
-    <script src="{{ asset('') }}web/js/main.js"></script>
+    <script src="{{ asset('web/js/main.js') }}"></script>
     <script>
         $(document).ready(function () {
 
@@ -1029,10 +1031,10 @@
                         subs.querySelectorAll(".rh__subj").forEach(function (x) { x.classList.remove("is-active"); });
                         b.classList.add("is-active");
                         var name = b.textContent.trim();
-                        document.getElementById("rhTestTitle").textContent = name + " â€” Full Chapter Test";
+                        document.getElementById("rhTestTitle").textContent = name + " - Full Chapter Test";
                         document.getElementById("rhQ").textContent = b.dataset.q;
                         document.getElementById("rhMin").textContent = b.dataset.min;
-                        var chaps = b.dataset.ch.split(" Â· ");
+                        var chaps = b.dataset.ch.split(" &middot; ");
                         document.getElementById("rhChaps").innerHTML = chaps.map(function (c) { return '<span class="rh__chap">' + c + '</span>'; }).join("");
                         gsap.fromTo("#rhTestTitle, #rhTestCard .rh__test-meta, #rhChaps", { opacity: 0.3, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.05 });
                     });
@@ -1040,7 +1042,7 @@
             })();
         }
     </script>
-    
+
 
     <!-- Rankers marquee -->
     <script>
@@ -1055,7 +1057,7 @@
             var half = track.scrollWidth / 2;
             var x = 0, paused = false, dragging = false, speed = 60;
             console.log("MARQUEE: half =", half, "children =", track.children.length);
-            if (half <= 0) { console.error("MARQUEE: half is 0 â€” cards not sized"); return; }
+            if (half <= 0) { console.error("MARQUEE: half is 0 - cards not sized"); return; }
 
             function wrap(v){ if(v <= -half) v += half; if(v > 0) v -= half; return v; }
 
@@ -1220,7 +1222,7 @@
                 var marquee = document.getElementById("rkMarquee");
                 if(!track || !marquee || !track.children.length || !window.gsap) return;
 
-                var half = track.scrollWidth / 3;   // 3 passes â†’ one third is one loop
+                var half = track.scrollWidth / 3;   // 3 passes &rarr; one third is one loop
                 var x = 0, paused = false, speed = 45;
                 function remeasure(){ half = track.scrollWidth / 3; }
                 window.addEventListener("load", remeasure);
@@ -1341,7 +1343,7 @@
                 var map = L.map(mapEl, { scrollWheelZoom:false, zoomControl:true })
                             .setView([centers[0].lat, centers[0].lng], 11);
                 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                    attribution:"Â© OpenStreetMap", maxZoom:19
+                    attribution:"&copy; OpenStreetMap", maxZoom:19
                 }).addTo(map);
 
                 // brand pin icon
@@ -1380,7 +1382,7 @@
                 var marquee = document.getElementById("tsMarquee");
                 if(!track || !marquee || !track.children.length || !window.gsap) return;
 
-                var half = track.scrollWidth / 2;   // 2 passes â†’ half is one loop
+                var half = track.scrollWidth / 2;   // 2 passes &rarr; half is one loop
                 var x = 0, paused = false, speed = 40;
                 function remeasure(){ half = track.scrollWidth / 2; }
                 window.addEventListener("load", remeasure);
