@@ -559,72 +559,74 @@
 
     <div class="rp-eval-modal" id="rpScheduleModal" aria-hidden="true">
         <div class="rp-eval-modal__backdrop" data-rp-schedule-close></div>
-        <div class="rp-eval-modal__card rp-schedule-modal__card" role="dialog" aria-modal="true" aria-labelledby="rpScheduleTitle">
-            <div class="rp-eval-modal__head">
-                <p class="rp-eval-modal__eyebrow"><i class="far fa-calendar-alt"></i> Exam Schedule</p>
-                <button type="button" class="rp-eval-modal__close" data-rp-schedule-close aria-label="Close">&times;</button>
+        <div class="rp-cal-modal" role="dialog" aria-modal="true" aria-labelledby="rpScheduleTitle">
+            <div class="rp-cal-modal__head">
+                <div class="rp-cal-modal__heading">
+                    <span class="rp-cal-modal__icon" aria-hidden="true"><i class="far fa-calendar-alt"></i></span>
+                    <div>
+                        <h3 class="rp-cal-modal__title" id="rpScheduleTitle">NEET 2027 Upcoming Exam Schedule Calendar</h3>
+                        <p class="rp-cal-modal__sub">All nationwide test series scheduled dates and examination windows.</p>
+                    </div>
+                </div>
+                <button type="button" class="rp-cal-modal__close" data-rp-schedule-close aria-label="Close">&times;</button>
             </div>
-            <h3 class="rp-eval-modal__title" id="rpScheduleTitle">All Upcoming &amp; Live Mocks</h3>
-            <p class="rp-schedule-modal__sub">Browse every assigned exam and start when live.</p>
-            <div class="rp-schedule-list">
+
+            <div class="rp-cal-modal__list">
                 @php $scheduleExams = collect($exam_schedule_list ?? []); @endphp
                 @forelse($scheduleExams as $value)
                     @php
                         $isLive = method_exists($value, 'canBeStarted') && $value->canBeStarted();
-                        $givingCount = (int) ($value->giving_count ?? 0);
-                        $isTrending = !empty($value->is_live_trending);
                         $examMode = (int)($value->type ?? 0);
                         $modeText = $examMode === 1 ? 'Online Examination' : ($examMode === 2 ? 'Offline Examination' : 'Examination');
+                        $badgeClass = $examMode === 2 ? 'is-offline' : 'is-online';
+                        $startDate = !empty($value->exam_date) ? \Carbon\Carbon::parse($value->exam_date) : null;
+                        $startTime = !empty($value->exam_time) ? \Carbon\Carbon::parse($value->exam_time) : null;
+                        $endDate = !empty($value->exam_end_date) ? \Carbon\Carbon::parse($value->exam_end_date) : $startDate;
+                        $endTime = !empty($value->exam_end_time) ? \Carbon\Carbon::parse($value->exam_end_time) : null;
+                        $dateLine = 'Schedule to be announced';
+                        if ($isLive) {
+                            $dateLine = 'Live Now';
+                            if ($endTime) {
+                                $dateLine .= ' • Ends '.$endTime->format('h:i A').' IST';
+                            }
+                        } elseif ($startDate) {
+                            $dateLine = $startDate->format('l, M j, Y');
+                            if ($startTime) {
+                                $dateLine .= ' • '.$startTime->format('h:i A');
+                                if ($endTime) {
+                                    $dateLine .= ' – '.$endTime->format('h:i A');
+                                }
+                                $dateLine .= ' IST';
+                            }
+                        }
+                        $detail = trim(strip_tags((string) ($value->description ?? '')));
+                        if ($detail === '') {
+                            $detail = $examMode === 2
+                                ? 'Pen & Paper OMR Physical Center Mock'
+                                : ($isLive ? 'Live mock window currently open' : 'Scheduled RankPro mock examination');
+                        }
+                        if (mb_strlen($detail) > 90) {
+                            $detail = mb_substr($detail, 0, 87).'...';
+                        }
                     @endphp
-                    <div class="rp-exam-card is-give rp-schedule-item">
-                        <div class="rp-give-top">
-                            <div class="rp-badges">
-                                @if($isLive)
-                                    <span class="rp-badge is-live">LIVE NOW</span>
-                                @else
-                                    <span class="rp-badge is-sky">Upcoming</span>
-                                @endif
-                                @if($isTrending)
-                                    <span class="rp-badge is-orange"><i class="fas fa-fire"></i> Trending ({{ number_format($givingCount) }} Given)</span>
-                                @endif
-                            </div>
-                            <span class="rp-exam-card__mode-label">{{ $modeText }}</span>
+                    <article class="rp-cal-card">
+                        <div class="rp-cal-card__top">
+                            <span class="rp-cal-card__badge {{ $badgeClass }}">{{ $modeText }}</span>
+                            <h4 class="rp-cal-card__title">{{ $value->name }}</h4>
                         </div>
-                        <h4 class="rp-exam-card__title">{{ $value->name }}</h4>
-                        <div class="rp-exam-card__foot rp-give-foot">
-                            <div class="rp-exam-card__meta">
-                                <i class="far fa-clock"></i>
-                                @if($isLive)
-                                    Date: Live Now
-                                    @if($value->exam_end_time)
-                                        &bull; Ends {{ \Carbon\Carbon::parse($value->exam_end_time)->format('g:i A') }} IST
-                                    @endif
-                                @else
-                                    Date: {{ \Carbon\Carbon::parse($value->exam_date)->format('l, M j, Y') }}
-                                    @if($value->exam_time)
-                                        &bull; {{ \Carbon\Carbon::parse($value->exam_time)->format('h:i A') }} IST
-                                    @endif
-                                @endif
-                            </div>
-                            @if($isLive)
-                                <a href="{{ route('start_exam', ['id' => $value->id]) }}"
-                                   class="rp-btn-pink"
-                                   onclick="openStartExamConfirm(this.href, @json($value->name), {{ !empty($value->is_proctored) ? 'true' : 'false' }}); return false;">
-                                    <i class="fas fa-play" style="font-size:10px;"></i>
-                                    Take Mock Now
-                                </a>
-                            @else
-                                <span class="rp-btn-disabled">Starts on Scheduled Date</span>
-                            @endif
+                        <div class="rp-cal-card__date">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>{{ $dateLine }}</span>
                         </div>
-                    </div>
+                        <p class="rp-cal-card__detail">{{ $detail }}</p>
+                    </article>
                 @empty
                     <div class="rp-empty">No scheduled exams found.</div>
                 @endforelse
             </div>
-            <div class="rp-eval-modal__actions">
-                <button type="button" class="rp-btn-gray" data-rp-schedule-close>Close</button>
-                <a href="{{ route('upcoming_exam') }}" class="rp-btn-purple">Open Full Schedule</a>
+
+            <div class="rp-cal-modal__foot">
+                <button type="button" class="rp-cal-modal__close-btn" data-rp-schedule-close>Close Calendar</button>
             </div>
         </div>
     </div>
