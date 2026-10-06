@@ -7,6 +7,7 @@ use App\Models\Batch;
 use App\Models\Exam;
 use App\Models\User;
 use App\Models\CustomTest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -144,11 +145,23 @@ class ExamAssignmentController extends Controller
     {
         $data = $request->validate([
             'exam_id' => ['required', 'integer', Rule::exists('exams', 'id')->where('is_deleted', 0)],
+            'exam_date' => ['required', 'date'],
+            'exam_time' => ['required', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
+            'exam_end_date' => ['required', 'date'],
+            'exam_end_time' => ['required', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
             'batches' => ['nullable', 'array'],
             'batches.*' => ['nullable', 'integer', 'distinct', Rule::exists('batches', 'id')->where('status', 1)],
             'students' => ['nullable', 'array'],
             'students.*' => ['integer', 'distinct', 'exists:users,id'],
         ]);
+
+        $startAt = Carbon::parse($data['exam_date'].' '.$data['exam_time']);
+        $endAt = Carbon::parse($data['exam_end_date'].' '.$data['exam_end_time']);
+        if ($endAt->lte($startAt)) {
+            return back()
+                ->withErrors(['exam_end_date' => 'End date and time must be after the start date and time.'])
+                ->withInput();
+        }
 
         $batchIds = array_values(array_unique(array_filter($data['batches'] ?? [])));
         $studentIds = array_values(array_unique($data['students'] ?? []));
@@ -160,13 +173,23 @@ class ExamAssignmentController extends Controller
         $overlapIds = array_values(array_intersect($studentIds, $batchMemberIds->all()));
         $studentIds = array_values(array_diff($studentIds, $batchMemberIds->all()));
 
-        DB::transaction(function () use ($data, $batchIds, $studentIds) {
+        DB::transaction(function () use ($data, $batchIds, $studentIds, $startAt, $endAt) {
             $exam = Exam::findOrFail($data['exam_id']);
+            $exam->exam_date = $startAt->toDateString();
+            $exam->exam_time = $startAt->format('H:i:s');
+            $exam->exam_end_date = $endAt->toDateString();
+            $exam->exam_end_time = $endAt->format('H:i:s');
+            $exam->save();
             $exam->batches()->sync($batchIds);
             $exam->assignedStudents()->sync($studentIds);
         });
 
         $redirect = redirect()->route('admin.exam_assignments', ['exam_id' => $data['exam_id']]);
+        $warnings = [];
+
+        if ($endAt->lt(now())) {
+            $warnings[] = 'This end date and time is already past, so students will not see the test in the portal.';
+        }
 
         if (!empty($overlapIds)) {
             $names = User::whereIn('id', $overlapIds)
@@ -175,14 +198,16 @@ class ExamAssignmentController extends Controller
                 ->map(fn ($u) => trim($u->first_name.' '.$u->last_name) ?: $u->email_id)
                 ->implode(', ');
 
-            return $redirect->with('success', 'Test assignments saved.')
-                ->with(
-                    'warning',
-                    count($overlapIds).' student(s) were not added as individual assignees because they are already covered by a selected batch: '.$names.'. They still have access through their batch and are counted only once.'
-                );
+            $warnings[] = count($overlapIds).' student(s) were not added as individual assignees because they are already covered by a selected batch: '.$names.'. They still have access through their batch and are counted only once.';
         }
 
-        return $redirect->with('success', 'Test assignments saved. Only selected batches and students can access this test.');
+        $redirect = $redirect->with('success', 'Test assignments saved. Assigned students receive this test in the portal from the start time until the end time.');
+
+        if (!empty($warnings)) {
+            $redirect = $redirect->with('warning', implode(' ', $warnings));
+        }
+
+        return $redirect;
     }
 
     private function activeStudents()

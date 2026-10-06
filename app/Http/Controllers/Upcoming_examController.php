@@ -50,13 +50,13 @@ class Upcoming_examController extends Controller
                         ->where(function ($q) {
                             $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
                         })
-                        ->when($subject_id !== null, function ($query) use ($subject_id) {
+                        ->when(filled($subject_id), function ($query) use ($subject_id) {
                             $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
                         })
-                        ->when($exam_type !== null, function ($query) use ($exam_type) {
+                        ->when(filled($exam_type), function ($query) use ($exam_type) {
                             $query->where('exams.type',$exam_type); 
                         })
-                        ->where('exams.exam_date','>=',date('Y-m-d'))
+                        ->listedForStudentPortal()
                         ->distinct()->orderBy('exams.exam_date','ASC')->get();
 
         foreach($data['upcoming_exam_list'] as $key => $value){

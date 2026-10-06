@@ -52,11 +52,11 @@ class ResultController extends Controller
                         ->where(function ($q) {
                             $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
                         })
-                        ->where('exams.exam_date','>=',date('Y-m-d'))
-                        ->when($subject_id !== null, function ($query) use ($subject_id) {
+                        ->listedForStudentPortal()
+                        ->when(filled($subject_id), function ($query) use ($subject_id) {
                             $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
                         })
-                        ->when($exam_type !== null, function ($query) use ($exam_type) {
+                        ->when(filled($exam_type), function ($query) use ($exam_type) {
                             $query->where('exams.type',$exam_type); 
                         })->distinct()->orderBy('exams.exam_date','ASC')->get();
 

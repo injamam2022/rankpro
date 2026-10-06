@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Facades\Image;
 
@@ -37,7 +39,10 @@ class QuestionController extends Controller
         $data['sub_topic_id'] = $request->sub_topic_id;
 
         $language_id = getDefaultLanguage();
+        $data['duplicates'] = $request->boolean('duplicates');
+
         $data['list'] = Question_detail::select(['questions.*','question_details.question_text','question_details.question_image',
+                                                    'question_details.content_hash',
                                                     'chapters.name as chapter_name','subjects.name as subject_name','sources.name as source_name',
                                                     'question_details.is_option1_image','question_details.option1','question_details.is_option2_image',
                                                     'question_details.option2','question_details.is_option3_image','question_details.option3',
@@ -80,8 +85,106 @@ class QuestionController extends Controller
             $data['subject_list'] = Subject::where('status',1)->get();
         }
 
-        $data['list'] = $data['list']->orderBy('id','DESC')->paginate(25);
+        $duplicateIndex = $this->duplicateIndex($language_id);
+        $duplicateHashes = $duplicateIndex['hashes'];
+        $hasFilters = $request->filled('subject_id') || $request->filled('chapter_id') || $request->filled('topic_id') || $request->filled('sub_topic_id') || session()->get('admmin_is_super') == 'T';
+        $data['duplicate_count'] = 0;
+        if ($duplicateHashes->isNotEmpty()) {
+            if ($hasFilters) {
+                $data['duplicate_count'] = (clone $data['list'])
+                    ->whereIn('question_details.content_hash', $duplicateHashes->all())
+                    ->distinct()
+                    ->count('questions.id');
+            } else {
+                $data['duplicate_count'] = $duplicateIndex['count'];
+            }
+
+            if ($data['duplicates']) {
+                $data['list']->whereIn('question_details.content_hash', $duplicateHashes->all());
+            }
+        }
+
+        $data['list'] = $data['list']->orderBy('id','DESC')->paginate(25)->withQueryString();
+        $this->flagDuplicateQuestions($data['list'], $language_id, $duplicateHashes->all());
+
         return view('admin.question.list',$data);
+    }
+
+    private function duplicateIndex($languageId)
+    {
+        if (!Schema::hasColumn('question_details', 'content_hash')) {
+            return ['hashes' => collect(), 'count' => 0];
+        }
+
+        $index = Cache::remember(Question_detail::duplicateCacheKey($languageId), 3600, function () use ($languageId) {
+            $hashes = Question_detail::query()
+                ->select('question_details.content_hash')
+                ->join('questions', 'questions.id', '=', 'question_details.question_id')
+                ->where('questions.is_deleted', 0)
+                ->where('question_details.language_id', $languageId)
+                ->whereNotNull('question_details.content_hash')
+                ->where('question_details.content_hash', '!=', '')
+                ->groupBy('question_details.content_hash')
+                ->havingRaw('COUNT(DISTINCT question_details.question_id) > 1')
+                ->pluck('question_details.content_hash')
+                ->all();
+
+            $count = 0;
+            if ($hashes) {
+                $count = Question_detail::query()
+                    ->join('questions', 'questions.id', '=', 'question_details.question_id')
+                    ->where('questions.is_deleted', 0)
+                    ->where('question_details.language_id', $languageId)
+                    ->whereIn('question_details.content_hash', $hashes)
+                    ->distinct()
+                    ->count('questions.id');
+            }
+
+            return ['hashes' => $hashes, 'count' => $count];
+        });
+
+        return [
+            'hashes' => collect($index['hashes']),
+            'count' => (int) $index['count'],
+        ];
+    }
+
+    private function flagDuplicateQuestions($list, $languageId, array $duplicateHashes)
+    {
+        $hashLookup = array_flip($duplicateHashes);
+        $pageHashes = [];
+
+        foreach ($list as $row) {
+            if (!empty($row->content_hash) && isset($hashLookup[$row->content_hash])) {
+                $pageHashes[] = $row->content_hash;
+            }
+        }
+
+        $pageHashes = array_values(array_unique($pageHashes));
+        $siblings = [];
+
+        if ($pageHashes) {
+            $rows = Question_detail::query()
+                ->select('question_details.content_hash', 'question_details.question_id')
+                ->join('questions', 'questions.id', '=', 'question_details.question_id')
+                ->where('questions.is_deleted', 0)
+                ->where('question_details.language_id', $languageId)
+                ->whereIn('question_details.content_hash', $pageHashes)
+                ->get();
+
+            foreach ($rows as $row) {
+                $siblings[$row->content_hash][] = (int) $row->question_id;
+            }
+        }
+
+        foreach ($list as $row) {
+            $ids = $siblings[$row->content_hash] ?? [];
+            $ids = array_values(array_unique(array_filter($ids, function ($id) use ($row) {
+                return (int) $id !== (int) $row->id;
+            })));
+            $row->is_duplicate = count($ids) > 0;
+            $row->duplicate_ids = $ids;
+        }
     }
 
     public function add(){
@@ -480,6 +583,7 @@ class QuestionController extends Controller
 
         if($loginCheck){
             $loginCheck->update(["is_deleted"=>1]);
+            Question_detail::forgetDuplicateCache();
         }
         toastr()->success('Question deleted successfully.');
         return redirect()->route('admin.question');

@@ -39,8 +39,11 @@ class ExamsController extends Controller
                             ->where('exams.type',1)
                             ->where('exams.status',1)
                             ->where('exams.is_deleted',0)
-                            ->where('exams.exam_code', 'not like', 'CT-%')
-                            ->where('exams.exam_date','>=',date('Y-m-d'))->get();
+                            ->where(function ($q) {
+                                $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
+                            })
+                            ->listedForStudentPortal()
+                            ->get();
         return view('site.online_exam',$data);
         
     }
@@ -49,6 +52,16 @@ class ExamsController extends Controller
         $exam_id = $request->id;
         $user_id = Auth::user()->id;
         $exam_detail = Exam::assignedTo($user_id)->where('status', 1)->where('is_deleted', 0)->where('type', 1)->where('id',$exam_id)->firstOrFail();
+        if (!$exam_detail->canBeStarted()) {
+            $start = $exam_detail->scheduledStart();
+            $end = $exam_detail->scheduledEnd();
+            if ($end && now()->gt($end)) {
+                toastr()->warning('This exam closed on '.$end->format('j M Y, g:i A').'.');
+            } elseif ($start) {
+                toastr()->warning('This exam opens on '.$start->format('j M Y, g:i A').'.');
+            }
+            return redirect()->route('upcoming_exam');
+        }
         $paper = $exam_detail ? Question_paper::where('id', $exam_detail->question_paper_id)->first() : null;
         $durationMinutes = (int)($exam_detail->total_time_for_exam ?: ($paper->total_time_for_exam ?? 0));
         $durationSeconds = $durationMinutes * 60;

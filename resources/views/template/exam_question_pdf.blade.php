@@ -8,14 +8,58 @@
 			.page-break {
 			    page-break-after: always;
 			}
-			
-            p {
-                margin:0px;
+            body {
+                font-family: DejaVu Sans;
+                font-size: 12px;
+                color: #111;
+                line-height: 1.35;
             }
-            body { font-family: DejaVu Sans; }
+            p {
+                margin: 0;
+                padding: 0;
+            }
+            table {
+                border-collapse: collapse;
+            }
+            td {
+                vertical-align: top;
+            }
+            .q-body img {
+                max-width: 250px;
+                height: auto;
+                vertical-align: middle;
+            }
 		</style>
 	</head>
 	<body style="margin: 0px;width: 700px; margin: 0px auto;">
+		@php
+			if (!function_exists('exam_pdf_image_src')) {
+				function exam_pdf_image_src($filename) {
+					$filename = basename((string) $filename);
+					$path = public_path('uploads/question/'.$filename);
+					if ($filename !== '' && is_file($path)) {
+						return str_replace('\\', '/', $path);
+					}
+					return asset('uploads/question/'.$filename);
+				}
+				function exam_pdf_image_style($filename, $maxW = 250, $maxH = 150) {
+					$filename = basename((string) $filename);
+					$fallback = 'max-width:'.$maxW.'px;height:auto;';
+					$path = public_path('uploads/question/'.$filename);
+					if ($filename === '' || !is_file($path)) {
+						return $fallback;
+					}
+					$size = @getimagesize($path);
+					if (!$size || empty($size[0]) || empty($size[1])) {
+						return $fallback;
+					}
+					$scale = min($maxW / $size[0], $maxH / $size[1], 1);
+					$w = max(1, (int) round($size[0] * $scale));
+					$h = max(1, (int) round($size[1] * $scale));
+					return 'width:'.$w.'px;height:'.$h.'px;';
+				}
+			}
+		@endphp
 		@php $question_count = 1; @endphp
 		@php $page_count = 1; @endphp
 		@php $question_char_count = 3; @endphp
@@ -41,7 +85,7 @@
 				</table>
 				<table style="width: 100%;border: 0px solid black; border-collapse: collapse;margin-top: 0px;">
 					<tr>
-						<td  style="border-right: 1px solid;width: 50%; padding: 0px 15px;">
+						<td valign="top" style="border-right: 1px solid #000;width: 50%; padding: 8px 12px 0 12px; vertical-align: top;">
 						@foreach($v1['question_list'] as $k2=>$v2)
 
 							@php
@@ -90,7 +134,7 @@
 										$height = $current_height; 
 									@endphp
 									</td>
-									<td  style="border-right: 0px solid;width: 50%; padding: 0px 15px;">
+									<td valign="top" style="width: 50%; padding: 8px 12px 0 12px; vertical-align: top;">
 								@else
 									@php 
 										$page_side = 1; 
@@ -135,112 +179,67 @@
 										</table>
 										<table style="width: 100%;border: 0px solid black; border-collapse: collapse;margin-top: 0px;">
 											<tr>
-												<td  style="border-right: 1px solid;width: 50%; padding: 0px 15px;">
+												<td valign="top" style="border-right: 1px solid #000;width: 50%; padding: 8px 12px 0 12px; vertical-align: top;">
 
 								@endif
 
 							@endif
 							
-								<div>
-									<div>
-									    <table  style="width: 100%;">
-									        <tr>
-									            <td style="width:10%;">
-									                {{$question_count}}.
-									            </td>
-									            <td style="width:90%;">
-									                {!!$v2->question_text!!}
-									                
-									                @if(!empty($v2->question_image) && $v2->question_image != NULL)
-	                									<div>
-	                										<img src="{{ asset('') }}uploads/question/{{$v2->question_image}}" style="height:100px;width: auto; padding: 5px 0px;">
-	            										</div>
-	            									@endif
-									            </td>
-									        </tr>
-									    </table>
-										 
-									</div>
-	            									
-									<div style="padding-left: 40px;">
-										<table  style="width: 100%;">
-											<tr>
-												<td style="width:100%;display: flex;" align="left">
-												    <table  style="width: 100%;">
-												        <tr>
-												            <td style="width:10%;">
-												                (1)
-												            </td>
-												            <td style="width:90%;">
-												                @if($v2->is_option1_image)
-	        														<div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$v2->option1}}" style="height:100px;width: auto;"></div>
-	        													@else
-	        														<div style="width:100%;">
-	        															{!!$v2->option1!!}
-	        														</div>
-	        													@endif
-												            </td>
-												        </tr>
-												    </table>
-												</td>
-											</tr>
-											<tr>
-												<td style="width:100%;display: flex;" align="left">
-												    <table  style="width: 100%;">
-												        <tr>
-												            <td style="width:10%;">
-												                (2)
-												            </td>
-												            <td style="width:90%;">
-												                @if($v2->is_option2_image)
-	        														<div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$v2->option2}}" style="height:100px;width: auto;"></div>
-	        													@else
-	        														{!!$v2->option2!!}
-	        													@endif
-												            </td>
-												        </tr>
-												    </table>
-												</td>
-											</tr>
-											<tr>
-												<td style="width:100%;display: flex;" align="left">
-												    <table  style="width: 100%;">
-												        <tr>
-												            <td style="width:10%;">
-												                (3)
-												            </td>
-												            <td style="width:90%;">
-												                @if($v2->is_option3_image)
-	        														<div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$v2->option3}}" style="height:100px;width: auto;"></div>
-	        													@else
-	        														{!!$v2->option3!!}
-	        													@endif
-												            </td>
-												        </tr>
-												    </table>
-												</td>
-											</tr>
-											<tr>
-												<td style="width:100%;display: flex;" align="left">
-												    <table  style="width: 100%;">
-												        <tr>
-												            <td style="width:10%;">
-												                (4)
-												            </td>
-												            <td style="width:90%;">
-												                @if($v2->is_option4_image)
-	        														<div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$v2->option1}}" style="height:100px;width: auto;"></div>
-	        													@else
-	        														{!!$v2->option4!!}
-	        													@endif
-												            </td>
-												        </tr>
-												    </table>
-												</td>
-											</tr>
-										</table>
-									</div>
-								</div>
+								<table cellpadding="0" cellspacing="0" style="width:100%; margin:0 0 14px 0; border-collapse:collapse;">
+									<tr>
+										<td valign="top" style="width:24px; vertical-align:top; white-space:nowrap; padding:0 6px 0 0; font-size:12px; line-height:1.35;">{{$question_count}}.</td>
+										<td valign="top" class="q-body" style="vertical-align:top; padding:0; font-size:12px; line-height:1.35;">
+											<div>{!!$v2->question_text!!}</div>
+											@if(!empty($v2->question_image) && $v2->question_image != NULL)
+												<div style="text-align:center; margin:6px 0 2px 0;">
+													<img src="{{ exam_pdf_image_src($v2->question_image) }}" style="{{ exam_pdf_image_style($v2->question_image, 250, 150) }}" alt="">
+												</div>
+											@endif
+											<table cellpadding="0" cellspacing="0" style="width:100%; margin-top:4px; border-collapse:collapse;">
+												<tr>
+													<td valign="top" style="width:26px; vertical-align:top; white-space:nowrap; padding:3px 6px 3px 0; line-height:1.35;">(1)</td>
+													<td valign="top" class="q-body" style="vertical-align:top; padding:3px 0; line-height:1.35;">
+														@if($v2->is_option1_image)
+															<img src="{{ exam_pdf_image_src($v2->option1) }}" style="{{ exam_pdf_image_style($v2->option1, 200, 80) }}" alt="">
+														@else
+															{!!$v2->option1!!}
+														@endif
+													</td>
+												</tr>
+												<tr>
+													<td valign="top" style="width:26px; vertical-align:top; white-space:nowrap; padding:3px 6px 3px 0; line-height:1.35;">(2)</td>
+													<td valign="top" class="q-body" style="vertical-align:top; padding:3px 0; line-height:1.35;">
+														@if($v2->is_option2_image)
+															<img src="{{ exam_pdf_image_src($v2->option2) }}" style="{{ exam_pdf_image_style($v2->option2, 200, 80) }}" alt="">
+														@else
+															{!!$v2->option2!!}
+														@endif
+													</td>
+												</tr>
+												<tr>
+													<td valign="top" style="width:26px; vertical-align:top; white-space:nowrap; padding:3px 6px 3px 0; line-height:1.35;">(3)</td>
+													<td valign="top" class="q-body" style="vertical-align:top; padding:3px 0; line-height:1.35;">
+														@if($v2->is_option3_image)
+															<img src="{{ exam_pdf_image_src($v2->option3) }}" style="{{ exam_pdf_image_style($v2->option3, 200, 80) }}" alt="">
+														@else
+															{!!$v2->option3!!}
+														@endif
+													</td>
+												</tr>
+												<tr>
+													<td valign="top" style="width:26px; vertical-align:top; white-space:nowrap; padding:3px 6px 3px 0; line-height:1.35;">(4)</td>
+													<td valign="top" class="q-body" style="vertical-align:top; padding:3px 0; line-height:1.35;">
+														@if($v2->is_option4_image)
+															<img src="{{ exam_pdf_image_src($v2->option4) }}" style="{{ exam_pdf_image_style($v2->option4, 200, 80) }}" alt="">
+														@else
+															{!!$v2->option4!!}
+														@endif
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
 								@php $question_count = $question_count + 1; @endphp
 
 								
@@ -248,7 +247,7 @@
 						
 						@if($page_side == 1)
 						    </td>
-							<td  style="border-right: 0px solid;width: 50%; padding: 0px 15px;">
+							<td valign="top" style="width: 50%; padding: 8px 12px 0 12px; vertical-align: top;">
 							    &nbsp;
 							    </td>
 						@else
