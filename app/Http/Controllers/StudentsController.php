@@ -204,57 +204,83 @@ class StudentsController extends Controller
                                     ->listedForStudentPortal()
                                     ->distinct()->orderBy('exams.exam_date','ASC')->take(50)->get();
 
-        $data['leader_board'] = Exam_user::select(['exam_users.*',DB::raw('AVG(exam_users.percentage) as total_result'),DB::raw('SUM(exam_users.total_mark) as total_mark'),DB::raw('SUM(exam_users.total_number) as total_number'),'users.first_name','users.last_name','users.profile_img','users.rankpro_id',DB::raw('count(*) as total_exam')])
-                    ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
-                    ->leftJoin('users', 'users.id', '=', 'exam_users.user_id');
+        // Dashboard leaderboard: TOP 5 only (never hydrate the full student list).
+        $leaderBoardQuery = Exam_user::query()
+            ->select([
+                'exam_users.user_id',
+                DB::raw('AVG(exam_users.percentage) as total_result'),
+                DB::raw('SUM(exam_users.total_mark) as total_mark'),
+                DB::raw('SUM(exam_users.total_number) as total_number'),
+                'users.first_name',
+                'users.last_name',
+                'users.profile_img',
+                'users.rankpro_id',
+                DB::raw('COUNT(*) as total_exam'),
+            ])
+            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
+            ->leftJoin('users', 'users.id', '=', 'exam_users.user_id')
+            ->where('exams.is_deleted', 0)
+            ->whereNotNull('exam_users.user_id');
 
-        if($data['exam_user_type']){
-            if($data['exam_user_type'] == "OTS"){
-                $data['leader_board'] = $data['leader_board']->where('exams.type',1);
-            }else{
-                $data['leader_board'] = $data['leader_board']->where('exams.type',2)->where('exam_users.exam_type',$data['exam_user_type']);
+        if (!empty($data['exam_user_type'])) {
+            if ($data['exam_user_type'] === 'OTS') {
+                $leaderBoardQuery->where('exams.type', 1);
+            } else {
+                $leaderBoardQuery->where('exams.type', 2)
+                    ->where('exam_users.exam_type', $data['exam_user_type']);
             }
         }
 
-        $data['leader_board'] = $data['leader_board']->where('exams.is_deleted',0)->groupBy('exam_users.user_id')
-                    ->orderBy('total_number','desc')->take(5)->get();
+        $data['leader_board'] = (clone $leaderBoardQuery)
+            ->groupBy('exam_users.user_id', 'users.first_name', 'users.last_name', 'users.profile_img', 'users.rankpro_id')
+            ->orderByDesc('total_number')
+            ->limit(5)
+            ->get();
 
-                    // dd($data['leader_board']);
-        
-            
-        $data['my_leader_board'] = Exam_user::select(['exam_users.*',DB::raw('AVG(exam_users.percentage) as total_result'),DB::raw('SUM(exam_users.total_mark) as total_mark'),DB::raw('SUM(exam_users.total_number) as total_number'),'users.first_name','users.last_name','users.profile_img','users.rankpro_id',DB::raw('count(*) as total_exam')])
-                    ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
-                    ->leftJoin('users', 'users.id', '=', 'exam_users.user_id');
+        $data['my_leader_board'] = (clone $leaderBoardQuery)
+            ->where('exam_users.user_id', Auth::id())
+            ->groupBy('exam_users.user_id', 'users.first_name', 'users.last_name', 'users.profile_img', 'users.rankpro_id')
+            ->first();
 
-        if($data['exam_user_type']){
-            if($data['exam_user_type'] == "OTS"){
-                $data['my_leader_board'] = $data['my_leader_board']->where('exams.type',1);
-            }else{
-                $data['my_leader_board'] = $data['my_leader_board']->where('exams.type',2)->where('exam_users.exam_type',$data['exam_user_type']);
+        // Rank for current user only (DB aggregate — does not hydrate all students in PHP).
+        $rankTypeSql = '';
+        $rankBindings = [];
+        if (!empty($data['exam_user_type'])) {
+            if ($data['exam_user_type'] === 'OTS') {
+                $rankTypeSql = ' AND exams.type = 1 ';
+            } else {
+                $rankTypeSql = ' AND exams.type = 2 AND exam_users.exam_type = ? ';
             }
         }
 
-        $data['my_leader_board'] = $data['my_leader_board']->where('exam_users.user_id', Auth::id())->where('exams.is_deleted',0)->groupBy('exam_users.user_id')->first();
-        
+        // Placeholder order: outer type?, inner user_id, inner type?
+        if ($rankTypeSql !== '' && $data['exam_user_type'] !== 'OTS') {
+            $rankBindings[] = $data['exam_user_type'];
+        }
+        $rankBindings[] = Auth::id();
+        if ($rankTypeSql !== '' && $data['exam_user_type'] !== 'OTS') {
+            $rankBindings[] = $data['exam_user_type'];
+        }
+
         $userRank = DB::select("
-                                SELECT COUNT(*) + 1 AS rank
-                                FROM (
-                                    SELECT exam_users.user_id, SUM(exam_users.total_number) as total_number
-                                    FROM exam_users
-                                    LEFT JOIN exams ON exams.id = exam_users.exam_id
-                                    WHERE exams.is_deleted = 0 
-                                    GROUP BY exam_users.user_id
-                                ) as totals
-                                WHERE total_number > (
-                                    SELECT SUM(exam_users.total_number)
-                                    FROM exam_users
-                                    LEFT JOIN exams ON exams.id = exam_users.exam_id
-                                    WHERE exams.is_deleted = 0
-                                    AND exam_users.user_id = ?
-                                )
-                            ", [
-                                    Auth::id()
-                                ]);
+            SELECT COUNT(*) + 1 AS `rank`
+            FROM (
+                SELECT exam_users.user_id, SUM(exam_users.total_number) AS total_number
+                FROM exam_users
+                LEFT JOIN exams ON exams.id = exam_users.exam_id
+                WHERE exams.is_deleted = 0
+                {$rankTypeSql}
+                GROUP BY exam_users.user_id
+                HAVING SUM(exam_users.total_number) > (
+                    SELECT COALESCE(SUM(exam_users.total_number), 0)
+                    FROM exam_users
+                    LEFT JOIN exams ON exams.id = exam_users.exam_id
+                    WHERE exams.is_deleted = 0
+                    AND exam_users.user_id = ?
+                    {$rankTypeSql}
+                )
+            ) AS totals
+        ", $rankBindings);
 
         $data['your_score'] = $userRank[0]->rank ?? 1;
 

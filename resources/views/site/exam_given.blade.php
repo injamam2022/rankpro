@@ -3,283 +3,385 @@
 
 <head>
     <meta charset="utf-8">
-    <title>RankPro</title>
+    <title>Exams Given | RankPro</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta name="title" content="NEET AI Platform â€“ Unlimited Free Mock Tests, Test Series & Find Your Mentor">
-    <meta name="description" content="Prepare for NEET with AI-powered tools. Access unlimited free mock tests and full test series based on the latest NEET exam pattern. Get expert guidance, detailed analysis, and connect with top NEET mentors to boost your score.">
+    <meta name="title" content="Exams Given & Past Scorecards – RankPro">
+    <meta name="description" content="Review past NEET mock scores, ranks, OMR sheets, and detailed analytics on RankPro.">
 
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('') }}web/images/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="{{ asset('') }}web/images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
 
-    <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Libraries Stylesheet -->
-    <link href="{{ asset('') }}web/lib/animate/animate.min.css" rel="stylesheet">
-    <link href="{{ asset('') }}web/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="{{ asset('web/lib/animate/animate.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('web/lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css" rel="stylesheet">
-
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="{{ asset('') }}web/bootstrap-5.0.2/css/bootstrap.css" rel="stylesheet">
-
-    <!-- bxslider -->
-    <link rel="stylesheet" href="{{ asset('') }}web/css/jquery.bxslider.css">
-
-    <!-- Template Stylesheet -->
-    <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
-    <link href="{{ asset('') }}web/css/dashboard.css" rel="stylesheet">
+    <link href="{{ asset('web/bootstrap-5.0.2/css/bootstrap.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('web/css/jquery.bxslider.css') }}">
+    <link href="{{ asset('web/css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('web/css/dashboard.css') }}" rel="stylesheet">
     <link href="{{ asset('web/css/dashboard-v2.css') }}" rel="stylesheet">
-    
+    <link href="{{ asset('web/css/exams-given.css') }}" rel="stylesheet">
+
     <style>
-        .calltoaction {
-            display: none;
-        }
-        .exam-type-badge {
-            display: inline-block;
-            margin-left: 6px;
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 600;
-            background: #f4ebff;
-            color: #5b4bb7;
-            vertical-align: middle;
-        }
-        .exam-given-pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 16px 4px 8px;
-        }
-        .exam-given-pagination .pagination {
-            margin: 0;
-        }
-        .exam-given-pagination .page-link {
-            color: #3561ff;
-            border-radius: 8px;
-            margin: 0 2px;
-            border: 1px solid #e4e7ec;
-        }
-        .exam-given-pagination .page-item.active .page-link {
-            background: #3561ff;
-            border-color: #3561ff;
-            color: #fff;
-        }
-        .exam-given-meta {
-            font-size: 13px;
-            color: #667085;
-        }
-        .exam-id-link {
-            color: #3561ff;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .exam-id-link:hover {
-            text-decoration: underline;
-        }
-        .exam-analytics-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            background: #3561ff;
-            color: #fff;
-            text-decoration: none;
-            font-size: 15px;
-            line-height: 1;
-        }
-        .exam-analytics-btn:hover {
-            background: #274bd6;
-            color: #fff;
-        }
+        .calltoaction { display: none; }
     </style>
-    
     @include('site.include.head_meta')
 </head>
 
-<!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;" class="rp-dash-body"> -->
-
 <body class="rp-dash-body">
     @include('site.include.body_meta')
-    <!-- Spinner Start -->
+
     <div id="spinner"
         class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
         <div class="spinner-grow text-primary" role="status"></div>
     </div>
-    <!-- Spinner End -->
 
-    <!-- dashboard -->
+    @php
+        $filterType = (string) ($exam_type ?? '');
+        $searchQ = (string) ($q ?? '');
+        $baseQuery = array_filter([
+            'subject_id' => $subject_id ?? null,
+            'q' => $searchQ !== '' ? $searchQ : null,
+        ], function ($v) {
+            return $v !== null && $v !== '';
+        });
+        $searchOpen = $searchQ !== '';
+    @endphp
+
     @include('site.include.student_dashboard_header')
 
     <section id="dashboard">
-      <div class="container-fluid">
-          <div class="dashboardAll dashboardPh">
-              <div class="menuBarBtn menuBarBtnOpen">
-                  <i class="fas fa-bars"></i>
-              </div>
-              
-              <div class="dashboardLeft dashboardLeftOff">
-                  @include('site.include.student_left_menu')
-              </div>
-              <div class="dashboardRight">
-                  <div class="dashboardRightBody">
-                      <div class="row">
-                          <div class="col-12">
-                              <div class="dashboardBlock dashboardBlockShadow">
-                                  <ul class="nav nav-tabs examTab" role="tablist">
-                                    <li class="nav-item">
-                                      <a class="nav-link @if($exam_type==1) active @endif" href="{{ route('exam_given') }}?subject_id={{$subject_id}}&exam_type=1">Online Examination</a>
-                                    </li>
-                                    <li class="nav-item">
-                                      <a class="nav-link @if($exam_type==2) active @endif" href="{{ route('exam_given') }}?subject_id={{$subject_id}}&exam_type=2">Offline Examination</a>
-                                    </li>
-                                    <li class="nav-item">
-                                      <a class="nav-link @if($exam_type==3 || $exam_type == '') active @endif" href="{{ route('exam_given') }}?subject_id={{$subject_id}}&exam_type=">Overall</a>
-                                    </li>
-                                  </ul>
-                                  <ul class="nav nav-tabs examTab examTabSub">
-                                    @foreach($subject_list as $value)
-                                        <li class="nav-item mt-2" >
-                                          <a class="nav-link  @if($subject_id==$value->id) active @endif" href="{{ route('exam_given') }}?subject_id={{$value->id}}&exam_type={{$exam_type}}">{{$value->name}}</a>
-                                        </li>
-                                    @endforeach
-                                  </ul>
-                              </div>
-                          </div>
-                          <div class="col-12 mb-0">
-                              <div class="tab-content dashboardBlock pb-0">
-                                <div id="onlineExam" class="tab-pane fade show active">
-                                    <div class="textTitle_viewAllText">
-                                        <div class="dashboardTitle dashboardTitle3">
-                                            @if($exam_type==1) Online @elseif($exam_type==2) Offline @else Overall @endif Examination 
-                                            <span>
-                                                @if($subject_details)
-                                                    {{$subject_details->name}}
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </div>
-                                      <div class="table-responsive exam-table">
-                                        <table class="table align-middle">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Exam Id</th>
-                                                    <th>Exam</th>
-                                                    <!-- <th>Topics</th> -->
-                                                    <th>Rank</th>
-                                                    <th>Score</th>
-                                                    <th>OMR</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                
-                                            <tbody>
-                                                @forelse($exam_list as $value)
-                                                    @php
-                                                        $isCustom = ($value->exam_type === 'CUSTOM')
-                                                            || (is_string($value->exam_code) && str_starts_with($value->exam_code, 'CT-'));
-                                                        $analyticsUrl = route('exam_answers_analytics', ['exam_id' => $value->user_exam_id]);
-                                                    @endphp
-                                                    <tr>
-                                                        <td>{{ \Carbon\Carbon::parse($value->created_at)->format('Y-m-d H:i:s') }}</td>
-                                                        <td>
-                                                            <a href="{{ $analyticsUrl }}" class="exam-id-link">{{$value->exam_code}}</a>
-                                                        </td>
-                                                        <td>
-                                                            {{$value->name}}
-                                                            @if($isCustom)
-                                                                <span class="exam-type-badge">Custom Test</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{$value->rank}}</td>
-                                                        <td>{{$value->total_number}} / {{$value->total_mark}}</td>
-                                                        <td>
-                                                            <a href="{{route('exam_result_detail',['id'=>$value->user_exam_id])}}">
-                                                                <div class="omr-icon"></div>
-                                                            </a>
-                                                        </td>
-                                                        <td>
-                                                            <a href="{{ $analyticsUrl }}" class="exam-analytics-btn" title="View Answers Analytics" aria-label="View Answers Analytics">
-                                                                <i class="fas fa-chart-bar"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                @empty
-                                                    <tr>
-                                                        <td colspan="7" class="text-center text-muted py-4">No exams found.</td>
-                                                    </tr>
-                                                @endforelse
-                                            </tbody>
-                                        </table>
+        <div class="container-fluid">
+            <div class="dashboardAll dashboardPh">
+                <div class="menuBarBtn menuBarBtnOpen">
+                    <i class="fas fa-bars"></i>
+                </div>
+
+                <div class="dashboardLeft dashboardLeftOff">
+                    @include('site.include.student_left_menu')
+                </div>
+
+                <div class="dashboardRight">
+                    <div class="dashboardRightBody">
+                        <div class="eg-portal">
+                            <div class="eg-card">
+                                <div class="eg-head">
+                                    <div class="eg-head__title-row">
+                                        <span class="eg-head__icon"><i class="fas fa-flask"></i></span>
+                                        <h1 class="eg-head__title">Exams Given &amp; Past Scorecards</h1>
                                     </div>
 
-                                    @if($exam_list->total() > 0)
-                                        <div class="exam-given-pagination">
-                                            <div class="exam-given-meta">
-                                                Showing {{ $exam_list->firstItem() }}–{{ $exam_list->lastItem() }} of {{ $exam_list->total() }}
-                                            </div>
-                                            {{ $exam_list->onEachSide(1)->links('pagination::bootstrap-5') }}
+                                    <div class="eg-head__tools">
+                                        <button type="button"
+                                                class="eg-search-toggle {{ $searchOpen ? 'is-active' : '' }}"
+                                                id="egSearchToggle"
+                                                aria-expanded="{{ $searchOpen ? 'true' : 'false' }}"
+                                                aria-controls="egSearchPanel"
+                                                title="Search exams">
+                                            <i class="fas fa-search"></i>
+                                            <span>Search</span>
+                                        </button>
+
+                                        <div class="eg-filters" role="tablist" aria-label="Exam mode filter">
+                                            <a class="eg-filter is-all {{ $filterType === '' ? 'is-active' : '' }}"
+                                               href="{{ route('exam_given', $baseQuery) }}">All</a>
+                                            <a class="eg-filter is-online {{ $filterType === '1' ? 'is-active' : '' }}"
+                                               href="{{ route('exam_given', array_merge($baseQuery, ['exam_type' => 1])) }}">Online Exam</a>
+                                            <a class="eg-filter is-offline {{ $filterType === '2' ? 'is-active' : '' }}"
+                                               href="{{ route('exam_given', array_merge($baseQuery, ['exam_type' => 2])) }}">Offline Exam</a>
                                         </div>
-                                    @endif
-                                
+                                    </div>
                                 </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
+
+                                <div class="eg-search-panel {{ $searchOpen ? 'is-open' : '' }}" id="egSearchPanel" @if(!$searchOpen) hidden @endif>
+                                    <form class="eg-search-form" method="get" action="{{ route('exam_given') }}" role="search">
+                                        @if(!empty($exam_type))
+                                            <input type="hidden" name="exam_type" value="{{ $exam_type }}">
+                                        @endif
+                                        @if(!empty($subject_id))
+                                            <input type="hidden" name="subject_id" value="{{ $subject_id }}">
+                                        @endif
+                                        <div class="eg-search-field">
+                                            <i class="fas fa-search"></i>
+                                            <input type="search"
+                                                   name="q"
+                                                   id="egSearchInput"
+                                                   value="{{ $searchQ }}"
+                                                   placeholder="Search by exam name or exam ID…"
+                                                   autocomplete="off">
+                                        </div>
+                                        <button type="submit" class="eg-btn eg-btn--purple eg-btn--sm">Search</button>
+                                        @if($searchQ !== '')
+                                            <a class="eg-btn eg-btn--ghost eg-btn--sm"
+                                               href="{{ route('exam_given', array_filter(['exam_type' => $exam_type ?: null, 'subject_id' => $subject_id ?: null])) }}">Clear</a>
+                                        @endif
+                                    </form>
+                                </div>
+
+                                <div class="eg-list">
+                                    @forelse($exam_list as $value)
+                                        @php
+                                            $score = $value->total_number ?? 0;
+                                            $max = $value->total_mark ?? 0;
+                                            $rankRaw = trim((string) ($value->rank ?? ''));
+                                            $rankLabel = $rankRaw !== ''
+                                                ? (preg_match('/^AIR/i', $rankRaw) ? $rankRaw : ('AIR ' . $rankRaw))
+                                                : '—';
+                                            $attemptedDate = \Carbon\Carbon::parse($value->created_at)->format('Y-m-d');
+                                            $modeClass = ((int) $value->type === 2) ? 'eg-badge--offline' : 'eg-badge--online';
+                                        @endphp
+                                        <article class="eg-item"
+                                            data-title="{{ $value->name }}"
+                                            data-mode="{{ $value->mode_label }}"
+                                            data-date="{{ $attemptedDate }}"
+                                            data-score="{{ $score }}"
+                                            data-max="{{ $max }}"
+                                            data-rank="{{ $rankLabel }}"
+                                            data-omr="{{ $value->omr_url }}"
+                                            data-analytics="{{ $value->analytics_url }}"
+                                            data-subjects='@json($value->subject_scores ?? [])'>
+                                            <div class="eg-item__row">
+                                                <div class="eg-item__main">
+                                                    <div class="eg-item__meta">
+                                                        <span class="eg-badge {{ $modeClass }}">{{ $value->mode_label }}</span>
+                                                        @if(!empty($value->is_custom))
+                                                            <span class="eg-badge eg-badge--custom">Custom Test</span>
+                                                        @endif
+                                                        <span class="eg-item__date">Date: {{ $attemptedDate }}</span>
+                                                    </div>
+                                                    <h2 class="eg-item__name">{{ $value->name }}</h2>
+                                                    <p class="eg-item__sub">
+                                                        @if(!empty($value->is_custom))
+                                                            Custom Test · Exam ID: {{ $value->exam_code }}
+                                                        @elseif(!empty($value->exam_code))
+                                                            Exam ID: {{ $value->exam_code }}
+                                                        @else
+                                                            Past scorecard &amp; rank summary
+                                                        @endif
+                                                    </p>
+                                                </div>
+
+                                                <div class="eg-item__right">
+                                                    <div class="eg-stat eg-stat--score">
+                                                        <span class="eg-stat__label">Score Obtained</span>
+                                                        <div class="eg-stat__value">{{ $score }} <span>/ {{ $max }}</span></div>
+                                                    </div>
+                                                    <div class="eg-stat eg-stat--rank">
+                                                        <span class="eg-stat__label">Rank</span>
+                                                        <div class="eg-stat__value">{{ $rankLabel }}</div>
+                                                    </div>
+                                                    <button type="button" class="eg-btn eg-btn--purple eg-open-result">
+                                                        Detailed Results &amp; Ranks
+                                                        <i class="fas fa-trophy"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    @empty
+                                        <div class="eg-empty">
+                                            @if($searchQ !== '')
+                                                No exams matched “{{ $searchQ }}”.
+                                            @else
+                                                No exams found for the selected filter.
+                                            @endif
+                                        </div>
+                                    @endforelse
+                                </div>
+
+                                @if($exam_list->total() > 0)
+                                    <div class="eg-pagination">
+                                        <div class="eg-pagination__meta">
+                                            Showing {{ $exam_list->firstItem() }}–{{ $exam_list->lastItem() }} of {{ $exam_list->total() }}
+                                        </div>
+                                        {{ $exam_list->onEachSide(1)->links('pagination::bootstrap-5') }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
-    <!-- dashboard end -->
 
+    {{-- Result & Rank modal --}}
+    <div class="eg-modal-backdrop" id="egResultModal" aria-hidden="true">
+        <div class="eg-modal" role="dialog" aria-modal="true" aria-labelledby="egResultTitle">
+            <button type="button" class="eg-modal__close" id="egResultClose" aria-label="Close">&times;</button>
 
-    
+            <div class="eg-modal__eyebrow">
+                <i class="fas fa-flask"></i>
+                Exam Evaluation &amp; All-India Rank
+            </div>
+            <h3 class="eg-modal__title" id="egResultTitle">—</h3>
+            <div class="eg-modal__meta">
+                <span class="eg-mode" id="egResultMode">Mode: —</span>
+                <span class="eg-date" id="egResultDate">Date: —</span>
+            </div>
+
+            <div class="eg-modal__stats">
+                <div class="eg-modal__stat eg-modal__stat--score">
+                    <div class="eg-modal__stat-label">Score Achieved</div>
+                    <div class="eg-modal__stat-value" id="egResultScore">—</div>
+                </div>
+                <div class="eg-modal__stat eg-modal__stat--rank">
+                    <div class="eg-modal__stat-label">All-India Rank</div>
+                    <div class="eg-modal__stat-value" id="egResultRank">—</div>
+                </div>
+            </div>
+
+            <div class="eg-subjects" id="egSubjectsWrap" hidden>
+                <div class="eg-subjects__title">Subject Performance:</div>
+                <div id="egSubjectsList"></div>
+            </div>
+
+            <div class="eg-modal__foot">
+                <button type="button" class="eg-btn eg-btn--ghost" id="egResultCloseBtn">Close</button>
+                <button type="button" class="eg-btn eg-btn--purple" id="egReviewBtn">Review Full Solutions</button>
+            </div>
+
+            <div class="eg-chooser" id="egChooser">
+                <div class="eg-chooser__title">Choose how you want to review:</div>
+                <div class="eg-chooser__actions">
+                    <a href="#" class="eg-chooser__btn eg-chooser__btn--omr" id="egOmrLink">
+                        <i class="fas fa-search"></i>
+                        <span>OMR</span>
+                        <span class="eg-chooser__hint">Answer sheet view</span>
+                    </a>
+                    <a href="#" class="eg-chooser__btn eg-chooser__btn--action" id="egActionLink">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Answers Analytics</span>
+                        <span class="eg-chooser__hint">Detailed action view</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @include('site.include.call_to_action')
     @include('site.include.how_to_use')
 
-
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('') }}web/lib/wow/wow.min.js"></script>
-    <script src="{{ asset('') }}web/lib/waypoints/waypoints.min.js"></script>
-    <script src="{{ asset('') }}web/lib/counterup/counterup.min.js"></script>
-    <script src="{{ asset('') }}web/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="{{ asset('web/lib/wow/wow.min.js') }}"></script>
+    <script src="{{ asset('web/lib/waypoints/waypoints.min.js') }}"></script>
+    <script src="{{ asset('web/lib/counterup/counterup.min.js') }}"></script>
+    <script src="{{ asset('web/lib/owlcarousel/owl.carousel.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
-    <script src="{{ asset('') }}web/js/jquery.bxslider.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="{{ asset('') }}web/js/main.js"></script>
+    <script src="{{ asset('web/js/jquery.bxslider.js') }}"></script>
+    <script src="{{ asset('web/js/main.js') }}"></script>
 
     <script>
-      $(document).ready(function(){
-        $(".menuBarBtn.menuBarBtnOpen").click(function(){
-            $(".dashboardLeft").removeClass("dashboardLeftOff");
+      $(document).ready(function () {
+        $(".menuBarBtn.menuBarBtnOpen").click(function () {
+          $(".dashboardLeft").removeClass("dashboardLeftOff");
         });
-        $(".menuBarBtn.menuBarBtnClose").click(function(){
-            $(".dashboardLeft").addClass("dashboardLeftOff");
+        $(".menuBarBtn.menuBarBtnClose").click(function () {
+          $(".dashboardLeft").addClass("dashboardLeftOff");
         });
       });
     </script>
 
+    <script>
+    (function () {
+      var searchToggle = document.getElementById('egSearchToggle');
+      var searchPanel = document.getElementById('egSearchPanel');
+      var searchInput = document.getElementById('egSearchInput');
 
+      if (searchToggle && searchPanel) {
+        searchToggle.addEventListener('click', function () {
+          var open = searchPanel.classList.toggle('is-open');
+          searchToggle.classList.toggle('is-active', open);
+          searchToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+          if (open) {
+            searchPanel.removeAttribute('hidden');
+            if (searchInput) setTimeout(function () { searchInput.focus(); }, 50);
+          } else if (!(searchInput && searchInput.value.trim())) {
+            searchPanel.setAttribute('hidden', '');
+          }
+        });
+      }
+
+      var modal = document.getElementById('egResultModal');
+      var chooser = document.getElementById('egChooser');
+      var omrLink = document.getElementById('egOmrLink');
+      var actionLink = document.getElementById('egActionLink');
+      var subjectsWrap = document.getElementById('egSubjectsWrap');
+      var subjectsList = document.getElementById('egSubjectsList');
+
+      function closeModal() {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        if (chooser) chooser.classList.remove('is-open');
+      }
+
+      function openModal(item) {
+        if (!modal || !item) return;
+        document.getElementById('egResultTitle').textContent = item.getAttribute('data-title') || '—';
+        document.getElementById('egResultMode').textContent = 'Mode: ' + (item.getAttribute('data-mode') || '—');
+        document.getElementById('egResultDate').textContent = 'Date: ' + (item.getAttribute('data-date') || '—');
+        document.getElementById('egResultScore').textContent =
+          (item.getAttribute('data-score') || '0') + ' / ' + (item.getAttribute('data-max') || '0');
+        document.getElementById('egResultRank').textContent = item.getAttribute('data-rank') || '—';
+
+        omrLink.href = item.getAttribute('data-omr') || '#';
+        actionLink.href = item.getAttribute('data-analytics') || '#';
+
+        var subjects = [];
+        try {
+          subjects = JSON.parse(item.getAttribute('data-subjects') || '[]') || [];
+        } catch (e) {
+          subjects = [];
+        }
+
+        if (subjects.length && subjectsList && subjectsWrap) {
+          subjectsList.innerHTML = subjects.map(function (s) {
+            return '<div class="eg-subjects__row"><span>' + (s.name || 'Subject') + ':</span><span>' +
+              (s.score != null ? s.score : '—') + '</span></div>';
+          }).join('');
+          subjectsWrap.hidden = false;
+        } else if (subjectsWrap) {
+          subjectsWrap.hidden = true;
+          if (subjectsList) subjectsList.innerHTML = '';
+        }
+
+        if (chooser) chooser.classList.remove('is-open');
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+      }
+
+      document.querySelectorAll('.eg-open-result').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          openModal(btn.closest('.eg-item'));
+        });
+      });
+
+      ['egResultClose', 'egResultCloseBtn'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('click', closeModal);
+      });
+
+      if (modal) {
+        modal.addEventListener('click', function (e) {
+          if (e.target === modal) closeModal();
+        });
+      }
+
+      var reviewBtn = document.getElementById('egReviewBtn');
+      if (reviewBtn) {
+        reviewBtn.addEventListener('click', function () {
+          if (chooser) chooser.classList.toggle('is-open');
+        });
+      }
+    })();
+    </script>
 </body>
 
 </html>

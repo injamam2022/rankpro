@@ -509,6 +509,7 @@ body.rp-dash-body #dashboard .dashboardMenuMain > li {
   margin: 0 0 2px;
   border: none !important;
   background: transparent !important;
+  box-shadow: none !important;
 }
 
 body.rp-dash-body #dashboard .dashboardMenuMain > li > a,
@@ -522,22 +523,61 @@ body.rp-dash-body #dashboard .dashboardMenuMain > li .menuItemRow > a {
   font-weight: 600;
   color: #475569 !important;
   text-decoration: none !important;
+  box-shadow: none !important;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-body.rp-dash-body #dashboard .dashboardMenuMain > li.active > a,
-body.rp-dash-body #dashboard .dashboardMenuMain > li.active .menuItemRow > a,
+body.rp-dash-body #dashboard .dashboardMenuMain > li > .menuItemRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 10px;
+  transition: background 0.15s ease;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuMain > li > a:hover,
+body.rp-dash-body #dashboard .dashboardMenuMain > li:not(.active) > .menuItemRow:hover {
+  background: var(--rp-blue-soft);
+}
+
 body.rp-dash-body #dashboard .dashboardMenuMain > li > a:hover,
 body.rp-dash-body #dashboard .dashboardMenuMain > li .menuItemRow > a:hover {
-  background: var(--rp-blue-soft);
   color: var(--rp-blue) !important;
   font-weight: 700;
 }
 
-body.rp-dash-body #dashboard .dashboardMenuMain > li.active > a {
+body.rp-dash-body #dashboard .dashboardMenuMain > li:not(.active) > .menuItemRow:hover > a {
+  background: transparent !important;
+}
+
+/* Unified active highlight (same as Give Exam): soft blue + left bar */
+body.rp-dash-body #dashboard .dashboardMenuMain > li.active > a,
+body.rp-dash-body #dashboard .dashboardMenuMain > li.active > .menuItemRow {
+  background: var(--rp-blue-soft) !important;
+  color: var(--rp-blue) !important;
+  font-weight: 700;
   border-left: 4px solid var(--rp-blue);
   border-radius: 0 10px 10px 0;
   padding-left: 8px;
+  box-shadow: none !important;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuMain > li.active > .menuItemRow {
+  padding: 0 4px 0 8px;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuMain > li.active > .menuItemRow > a {
+  background: transparent !important;
+  color: var(--rp-blue) !important;
+  font-weight: 700;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0;
+  padding-left: 4px;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuMain > li.active > .menuItemRow > .menuCollapseBtn {
+  color: var(--rp-blue);
 }
 
 body.rp-dash-body #dashboard .dashboardMenu_ic {
@@ -546,9 +586,20 @@ body.rp-dash-body #dashboard .dashboardMenu_ic {
   opacity: 0.75;
 }
 
+body.rp-dash-body #dashboard .dashboardMenuMain > li.active .dashboardMenu_ic {
+  opacity: 1;
+}
+
 body.rp-dash-body #dashboard .dashboardMenuSub {
   padding-left: 8px;
   margin-top: 2px;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuSub > li {
+  margin: 0 0 2px;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 body.rp-dash-body #dashboard .dashboardMenuSub a {
@@ -556,6 +607,21 @@ body.rp-dash-body #dashboard .dashboardMenuSub a {
   padding: 8px 12px !important;
   border-radius: 8px;
   color: #64748b !important;
+  box-shadow: none !important;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuSub > li.active > a,
+body.rp-dash-body #dashboard .dashboardMenuSub > li > a:hover {
+  background: var(--rp-blue-soft) !important;
+  color: var(--rp-blue) !important;
+  font-weight: 700;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuSub > li.active > a {
+  border-left: 4px solid var(--rp-blue);
+  border-radius: 0 8px 8px 0;
+  padding-left: 8px !important;
+  box-shadow: none !important;
 }
 
 body.rp-dash-body #dashboard .rp-side-quote {

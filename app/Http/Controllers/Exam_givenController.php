@@ -77,87 +77,103 @@ class Exam_givenController extends Controller
         //                     })
         //                     ->groupBy('exam_users.user_id');
 
-        $data['exam_list'] = Exam_user::select([
-                                'exam_users.user_id',
-                                DB::raw('SUM(exam_users.total_mark) as total_mark'),
-                                DB::raw('SUM(exam_users.total_number) as total_result'),
-                                'users.first_name','users.last_name','users.profile_img','users.rankpro_id',
-                                DB::raw('count(*) as total_exam')
-                            ])
-                            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
-                            ->leftJoin('users', 'users.id', '=', 'exam_users.user_id')
-                            ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                $query->where(function ($q) use ($subject_id) {
-                                    // Online exams (question_paper_id NOT NULL)
-                                    $q->where(function ($online) use ($subject_id) {
-                                        $online->whereNotNull('exams.question_paper_id')
-                                               ->whereExists(function ($sub) use ($subject_id) {
-                                                   $sub->select(DB::raw(1))
-                                                       ->from('question_paper_questions')
-                                                       ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                                       ->whereColumn('question_paper_questions.question_paper_id', 'exams.question_paper_id')
-                                                       ->where('questions.subject_id', $subject_id);
-                                               });
-                                    })
-                                    // Offline exams (question_paper_id IS NULL)
-                                    ->orWhere(function ($offline) use ($subject_id) {
-                                        $offline->whereNull('exams.question_paper_id')
-                                                ->whereExists(function ($sub) use ($subject_id) {
-                                                    $sub->select(DB::raw(1))
-                                                        ->from('offline_exam_questions')
-                                                        ->whereColumn('offline_exam_questions.exam_id', 'exams.id')
-                                                        ->where('offline_exam_questions.subject_id', $subject_id);
-                                                });
-                                    });
-                                });
-                            })
-                            ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                $query->where('exams.type',$exam_type);
-                            })
-                            ->where('exams.is_deleted',0)
-                            ->groupBy('exam_users.user_id');
+        $examListQuery = Exam_user::select([
+                'exam_users.user_id',
+                DB::raw('SUM(exam_users.total_mark) as total_mark'),
+                DB::raw('SUM(exam_users.total_number) as total_result'),
+                'users.first_name',
+                'users.last_name',
+                'users.profile_img',
+                'users.rankpro_id',
+                DB::raw('COUNT(*) as total_exam'),
+            ])
+            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
+            ->leftJoin('users', 'users.id', '=', 'exam_users.user_id')
+            ->when($subject_id !== null && $subject_id !== '', function ($query) use ($subject_id) {
+                $query->where(function ($q) use ($subject_id) {
+                    $q->where(function ($online) use ($subject_id) {
+                        $online->whereNotNull('exams.question_paper_id')
+                            ->whereExists(function ($sub) use ($subject_id) {
+                                $sub->select(DB::raw(1))
+                                    ->from('question_paper_questions')
+                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                                    ->whereColumn('question_paper_questions.question_paper_id', 'exams.question_paper_id')
+                                    ->where('questions.subject_id', $subject_id);
+                            });
+                    })->orWhere(function ($offline) use ($subject_id) {
+                        $offline->whereNull('exams.question_paper_id')
+                            ->whereExists(function ($sub) use ($subject_id) {
+                                $sub->select(DB::raw(1))
+                                    ->from('offline_exam_questions')
+                                    ->whereColumn('offline_exam_questions.exam_id', 'exams.id')
+                                    ->where('offline_exam_questions.subject_id', $subject_id);
+                            });
+                    });
+                });
+            })
+            ->when($exam_type !== null && $exam_type !== '', function ($query) use ($exam_type) {
+                $query->where('exams.type', $exam_type);
+            })
+            ->where('exams.is_deleted', 0)
+            ->groupBy('exam_users.user_id', 'users.first_name', 'users.last_name', 'users.profile_img', 'users.rankpro_id');
 
-        if($data['exam_types']){
-            if($data['exam_types'] == 1){
-                $data['exam_list'] = $data['exam_list']->where('exams.type',2)->where('exam_users.exam_type',"RNS");
-            }else if($data['exam_types'] == 2){
-                $data['exam_list'] = $data['exam_list']->where('exams.type',2)->where('exam_users.exam_type',"RPS");
-            }else if($data['exam_types'] == 3){
-                $data['exam_list'] = $data['exam_list']->where('exams.type',2)->where('exam_users.exam_type',"SNT");
-            }else if($data['exam_types'] == 4){
-                $data['exam_list'] = $data['exam_list']->where('exams.type',1);
+        if ($data['exam_types']) {
+            if ($data['exam_types'] == 1) {
+                $examListQuery->where('exams.type', 2)->where('exam_users.exam_type', 'RNS');
+            } elseif ($data['exam_types'] == 2) {
+                $examListQuery->where('exams.type', 2)->where('exam_users.exam_type', 'RPS');
+            } elseif ($data['exam_types'] == 3) {
+                $examListQuery->where('exams.type', 2)->where('exam_users.exam_type', 'SNT');
+            } elseif ($data['exam_types'] == 4) {
+                $examListQuery->where('exams.type', 1);
             }
         }
 
-        $data['exam_list'] = $data['exam_list']->orderBy('total_result','desc')->get();
+        // Paginate — never load the full student list into memory.
+        $data['exam_list'] = $examListQuery
+            ->orderByDesc('total_result')
+            ->paginate(25)
+            ->appends($request->query());
 
-        // dd($data['exam_list']);
+        $pageUserIds = $data['exam_list']->pluck('user_id')->filter()->values()->all();
+        $subjectIds = $data['subject_list']->pluck('id')->filter()->values()->all();
+        $subjectScores = [];
 
-        foreach($data['exam_list'] as $key => $value){
-            $subjectList = [];
+        if (!empty($pageUserIds) && !empty($subjectIds)) {
+            $rows = Exam_result::query()
+                ->select([
+                    'exam_results.user_id',
+                    DB::raw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) as subject_id'),
+                    DB::raw('COUNT(exam_results.id) as correct_count'),
+                ])
+                ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
+                ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
+                ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
+                ->where('exams.is_deleted', 0)
+                ->where('exam_results.result', '>', 0)
+                ->whereIn('exam_results.user_id', $pageUserIds)
+                ->where(function ($q) use ($subjectIds) {
+                    $q->whereIn('questions.subject_id', $subjectIds)
+                      ->orWhereIn('offline_exam_questions.subject_id', $subjectIds);
+                })
+                ->groupBy('exam_results.user_id', DB::raw('COALESCE(questions.subject_id, offline_exam_questions.subject_id)'))
+                ->get();
 
-            foreach ($data['subject_list'] as $key1 => $value1) {
-
-                $subjectList[$value1->id] = Exam_result::select(['exam_results.id'])
-                    ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
-                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                    ->whereRaw(
-                        'COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?',
-                        [$value1->id]
-                    )
-                    ->where('exams.is_deleted',0)
-                    ->where('exam_results.result','>', 0)
-                    ->where('exam_results.user_id', $value->user_id)
-                    ->count();
+            foreach ($rows as $row) {
+                $subjectScores[$row->user_id][$row->subject_id] = (int) $row->correct_count;
             }
+        }
 
-            // Now assign once
-            // dd($subjectList);
+        foreach ($data['exam_list'] as $value) {
+            $subjectList = [];
+            foreach ($data['subject_list'] as $subject) {
+                $subjectList[$subject->id] = $subjectScores[$value->user_id][$subject->id] ?? 0;
+            }
             $value->subject_list = $subjectList;
         }
-        return view('site.leader_board',$data);
+
+        return view('site.leader_board', $data);
     }
 
     public function exam_given(Request $request){
@@ -166,11 +182,13 @@ class Exam_givenController extends Controller
         $data['user'] = Auth::user();
         $data['exam_type'] = $request->exam_type;
         $data['subject_id'] = $request->subject_id;
+        $data['q'] = trim((string) $request->get('q', ''));
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
 
         $subject_id = $request->subject_id;
         $exam_type = $request->exam_type;
+        $search = $data['q'];
 
         $data['exam_list'] = Exam_user::select([
                 'exams.id',
@@ -209,9 +227,53 @@ class Exam_givenController extends Controller
             ->when($exam_type !== null && $exam_type !== '', function ($query) use ($exam_type) {
                 $query->where('exams.type', $exam_type);
             })
+            ->when($search !== '', function ($query) use ($search) {
+                $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%';
+                $query->where(function ($q) use ($like) {
+                    $q->where('exams.name', 'like', $like)
+                      ->orWhere('exams.exam_code', 'like', $like);
+                });
+            })
             ->orderByDesc('exam_users.created_at')
-            ->paginate(15)
+            ->paginate(10)
             ->appends($request->query());
+
+        // Subject scores only for the current page (keeps pagination cheap).
+        $pageExamUserIds = $data['exam_list']->pluck('user_exam_id')->filter()->values()->all();
+        $subjectScoresByExamUser = [];
+        if (!empty($pageExamUserIds)) {
+            $subjectRows = Exam_result::query()
+                ->select([
+                    'exam_results.exam_user_id',
+                    DB::raw("COALESCE(subjects.name, 'Subject') as subject_name"),
+                    DB::raw('SUM(exam_results.result) as subject_score'),
+                ])
+                ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
+                ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
+                ->leftJoin('subjects', 'subjects.id', '=', DB::raw('COALESCE(questions.subject_id, offline_exam_questions.subject_id)'))
+                ->whereIn('exam_results.exam_user_id', $pageExamUserIds)
+                ->where('exam_results.user_id', Auth::id())
+                ->groupBy('exam_results.exam_user_id', DB::raw("COALESCE(subjects.name, 'Subject')"))
+                ->orderBy('subject_name')
+                ->get();
+
+            foreach ($subjectRows as $row) {
+                $subjectScoresByExamUser[$row->exam_user_id][] = [
+                    'name' => $row->subject_name,
+                    'score' => (int) $row->subject_score,
+                ];
+            }
+        }
+
+        foreach ($data['exam_list'] as $value) {
+            $value->subject_scores = $subjectScoresByExamUser[$value->user_exam_id] ?? [];
+            $value->is_custom = ($value->exam_type === 'CUSTOM')
+                || (is_string($value->exam_code) && str_starts_with((string) $value->exam_code, 'CT-'));
+            $value->mode_label = ((int) ($value->type ?? 0) === 2) ? 'Offline Examination' : 'Online Examination';
+            $value->omr_url = route('exam_result_detail', ['id' => $value->user_exam_id]);
+            $value->analytics_url = route('exam_answers_analytics', ['exam_id' => $value->user_exam_id]);
+        }
 
         return view('site.exam_given',$data);
     }

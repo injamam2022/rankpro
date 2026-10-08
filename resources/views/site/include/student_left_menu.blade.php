@@ -157,7 +157,7 @@
         </li>
 
         <li class="{{ request()->is('upcoming-exam') || request()->is('upcoming-exam/*') ? 'active' : '' }}">
-            <a href="{{ route('upcoming_exam') }}"><img src="{{ asset('') }}web/images/d_upcoming_ex_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Upcoming Exam</span></a>
+            <a href="{{ route('upcoming_exam') }}"><img src="{{ asset('') }}web/images/d_upcoming_ex_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Give Exam</span></a>
         </li>
 
         <li class="menuHasSub {{ $insightsOpen ? 'active open' : '' }}">

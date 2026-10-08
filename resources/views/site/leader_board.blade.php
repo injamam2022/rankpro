@@ -153,9 +153,9 @@
                                             </thead>
                                 
                                             <tbody>
-                                                @foreach($exam_list as $key => $value)
+                                                @forelse($exam_list as $key => $value)
                                                     <tr>
-                                                        <td>{{$key+1}}</td>
+                                                        <td>{{ method_exists($exam_list, 'firstItem') ? ($exam_list->firstItem() + $key) : ($key + 1) }}</td>
                                                         <td>{{$value->first_name}} {{$value->last_name}}</td>
                                                         <td>{{(int) (($value->total_result))}}</td>
                                                         <td>
@@ -164,13 +164,26 @@
                                                             @endif
                                                         </td>
                                                         @foreach($subject_list as $value1)
-                                                            <td>{{$value->subject_list[$value1->id]}}</td>
+                                                            <td>{{$value->subject_list[$value1->id] ?? 0}}</td>
                                                         @endforeach
                                                     </tr>
-                                                @endforeach
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="{{ 4 + count($subject_list) }}" class="text-center text-muted py-4">No leaderboard data yet.</td>
+                                                    </tr>
+                                                @endforelse
                                             </tbody>
                                         </table>
                                     </div>
+
+                                    @if(method_exists($exam_list, 'total') && $exam_list->total() > 0)
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3">
+                                            <div class="text-muted" style="font-size:13px;">
+                                                Showing {{ $exam_list->firstItem() }}–{{ $exam_list->lastItem() }} of {{ $exam_list->total() }}
+                                            </div>
+                                            {{ $exam_list->onEachSide(1)->links('pagination::bootstrap-5') }}
+                                        </div>
+                                    @endif
                                 
                                 </div>
                               </div>
