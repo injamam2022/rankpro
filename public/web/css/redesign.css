@@ -704,8 +704,8 @@
     }
 }
 
-/* Hide floating call/whatsapp/calendar action buttons */
-.calltoaction { display: none !important; }
+/* Floating WhatsApp + call icons (home page only; calendar icon removed) */
+.calltoaction { display: block !important; }
 
 
 /* ============================================================
@@ -1634,12 +1634,11 @@
 .tc__split { display:grid; grid-template-columns:1fr 1.2fr; gap:24px; align-items:stretch; }
 
 /* list */
-.tc__list { display:flex; flex-direction:column; gap:12px; max-height:560px; overflow-y:auto; padding-right:6px; }
-.tc__list::-webkit-scrollbar { width:6px; }
-.tc__list::-webkit-scrollbar-thumb { background:rgba(12,10,20,.15); border-radius:999px; }
+.tc__list { display:flex; flex-direction:column; gap:12px; height:100%; }
 .tc__item {
     text-align:left; border:1px solid rgba(12,10,20,.08); background:#fff;
-    border-radius:16px; padding:18px 20px; cursor:pointer; width:100%;
+    border-radius:16px; padding:18px 20px; width:100%; height:100%;
+    display:flex; flex-direction:column;
     font-family:inherit; transition:border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 }
 .tc__item:hover { transform:translateX(4px); box-shadow:0 14px 30px rgba(12,10,40,.1); }
@@ -1649,16 +1648,15 @@
 .tc__item.is-active .tc__item-pin { background:var(--pink); color:#fff; }
 .tc__item-name { font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:17px; color:var(--ink); margin:0; }
 .tc__item-addr { font-size:13px; line-height:1.5; color:var(--muted); margin:0 0 14px; }
-.tc__item-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-.tc__item-phone { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--ink); }
+.tc__item-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:auto; }
+.tc__item-phone { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--ink); text-decoration:none; }
 .tc__item-phone svg { color:var(--blue); }
+.tc__item-phone:hover { color:var(--blue); }
 .tc__item-cta { font-size:13px; font-weight:600; color:var(--pink); text-decoration:none; }
 
 /* map */
 .tc__mapwrap { border-radius:20px; overflow:hidden; box-shadow:0 24px 54px rgba(12,10,40,.14); min-height:560px; }
-.tc__map { width:100%; height:100%; min-height:560px; background:#e8ecf5; }
-/* brand-tint the leaflet pin */
-.tc__map .leaflet-popup-content { font-family:"Inter",sans-serif; font-weight:600; }
+.tc__map { width:100%; height:100%; min-height:560px; border:0; display:block; background:#e8ecf5; }
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width:900px){

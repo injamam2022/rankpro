@@ -127,16 +127,10 @@
                               </div>
                             </div>
                           </div>
-                          <div class="col-md-6">
+                          <div class="col-md-12">
                             <div class="form-group">
-                              <label for="father_full_name">Father's name</label>
-                              <input type="text" class="form-control" id="father_full_name" placeholder="Father's name" name="father_full_name">
-                            </div>
-                          </div>
-                          <div class="col-md-6">
-                            <div class="form-group">
-                              <label for="father_mobile_number">Father's contact no</label>
-                              <input type="tel" class="form-control" id="father_mobile_number" placeholder="Father's contact no" name="father_mobile_number" inputmode="numeric">
+                              <label for="address">Location</label>
+                              <input type="text" class="form-control" id="address" placeholder="City / location" name="address" autocomplete="address-level2">
                             </div>
                           </div>
                         </div>

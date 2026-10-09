@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 use App\Models\User;
@@ -28,6 +29,7 @@ class AdmissionController extends Controller
             'last_name'         => 'required|string|max:255',
             'mobile_number'     => 'required|digits:10',
             'email_id'          => 'required|email',
+            'address'           => 'nullable|string|max:255',
             'profileImage'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'password'          => 'required|string|min:4|confirmed'
         ]);
@@ -68,16 +70,18 @@ class AdmissionController extends Controller
         $user->first_name            = $request->first_name;
         $user->last_name             = $request->last_name;
         $user->mobile_number         = $request->mobile_number;
-        $user->father_full_name      = $request->father_full_name;
-        $user->father_mobile_number  = $request->father_mobile_number;
         $user->is_whatsapp           = ($request->is_whatsapp)?1:0;
         $user->email_id              = $request->email_id;
         $user->profile_img           = $profileImagePath;
         $user->password              = $hashedPassword;
         $user->otp                   = $otp;
         $user->status                = 0;
+        if (Schema::hasColumn($user->getTable(), 'address')) {
+            $user->address = $request->address;
+        }
 
         $user->save();
+        session(['pending_signup_address_'.$user->id => $request->address]);
         
         $emailData = [
             'subject' => 'Verify Your Account - OTP Code',
@@ -147,8 +151,7 @@ class AdmissionController extends Controller
         $insertData['email_id'] = $user->email_id;
         $insertData['password'] = $user->password;
         $insertData['profile_img'] = $user->profile_img;
-        $insertData['father_full_name'] = $user->father_full_name;
-        $insertData['father_mobile_number'] = $user->father_mobile_number;
+        $insertData['address'] = $user->address ?: session()->pull('pending_signup_address_'.$user->id);
         $insertData['rankpro_id'] = $rankproId;
 
         User::create($insertData);

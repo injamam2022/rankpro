@@ -48,9 +48,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/InertiaPlugin.min.js"></script>
 
-    <!-- Leaflet (map) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;"> -->
@@ -74,7 +71,7 @@
             <!-- LEFT -->
             <div class="rh__left">
                 <span class="rh__eyebrow"><i></i>NEET UG &middot; AI-Powered Prep</span>
-                <h1 class="rh__title">Timeless prep<br>for <span class="rh__accent">serious NEET aspirants.</span></h1>
+                <h1 class="rh__title">Timeless prep<br>for <span class="rh__accent">serious NEET aspirants</span></h1>
                 <p class="rh__lead">Unlimited free mock tests, real exam patterns, and one-on-one mentorship from top NEET rankers - crafted for Class 12 &amp; repeaters.</p>
 
                 <div class="rh__cta">
@@ -161,7 +158,7 @@
             <div class="rf__head">
                 <div class="rf__head-txt">
                     <span class="rf__eyebrow"><i></i>Everything you need</span>
-                    <h2 class="rf__title">One platform to crack NEET, engineered end&nbsp;to&nbsp;end.</h2>
+                    <h2 class="rf__title">One platform to crack NEET, engineered end&nbsp;to&nbsp;end</h2>
                 </div>
                 <div class="rf__nav">
                     <button class="rf__arrow" id="rfPrev" aria-label="Previous">
@@ -213,7 +210,7 @@
         <div class="hw__inner">
             <div class="hw__head">
                 <span class="hw__eyebrow"><i></i>See it in action</span>
-                <h2 class="hw__headline" id="hwHeadline">Watch how RankPro works.</h2>
+                <h2 class="hw__headline" id="hwHeadline">Watch how RankPro works</h2>
                 <p class="hw__sub">In just 2 minutes, see how thousands of aspirants go from their first mock test to a predicted NEET rank - with AI analysis, real exam patterns, and mentorship built in.</p>
                 <div class="hw__points">
                     <span class="hw__point"><i></i>Set up in under a minute</span>
@@ -241,7 +238,7 @@
         <div class="pp__inner">
             <div class="pp__left">
                 <span class="pp__eyebrow"><i></i>Real overlap &middot; Paper proof</span>
-                <h2 class="pp__title">Questions from <span class="pp__grad">NEET&nbsp;2027</span> you already solved here.</h2>
+                <h2 class="pp__title">Questions from <span class="pp__grad">NEET&nbsp;2027</span> you already solved here</h2>
                 <p class="pp__sub">See how what you practised on RankPro lines up with the actual paper - tap a subject to open the proof PDF.</p>
 
                 <div class="pp__subjects">
@@ -319,7 +316,7 @@
         <div class="rk__inner">
             <div class="rk__head">
                 <span class="rk__eyebrow"><i></i>Real results &middot; Real rankers</span>
-                <h2 class="rk__title">Aspirants who trained on RankPro<br><span class="rk__grad">and cracked NEET.</span></h2>
+                <h2 class="rk__title">Aspirants who trained on RankPro<br><span class="rk__grad">and cracked NEET</span></h2>
                 <p class="rk__sub">Every rank below is a student who practised here. Learn from them, then connect one-on-one.</p>
             </div>
         </div>
@@ -368,7 +365,7 @@
             <div class="pr__head">
                 <div>
                     <span class="pr__eyebrow"><i></i>Pricing</span>
-                    <h2 class="pr__title">Simple, transparent <span class="pr__grad">pricing.</span></h2>
+                    <h2 class="pr__title">Simple, transparent <span class="pr__grad">pricing</span></h2>
                 </div>
                 <p class="pr__sub">Choose the plan that fits your NEET preparation journey. First 3 custom tests are completely free.</p>
             </div>
@@ -416,7 +413,7 @@
         <div class="bf__inner">
             <div class="bf__head">
                 <span class="bf__eyebrow"><i></i>The RankPro method</span>
-                <h2 class="bf__title">Every step <span class="bf__grad">leads to your rank.</span></h2>
+                <h2 class="bf__title">Every step <span class="bf__grad">leads to your rank</span></h2>
                 <p class="bf__sub">A connected system where each thing you do compounds into a better NEET score.</p>
             </div>
 
@@ -522,7 +519,7 @@
         <div class="ut__inner">
             <div class="ut__head">
                 <span class="ut__eyebrow"><i></i>Upcoming Tests</span>
-                <h2 class="ut__title">Smart prep with <span class="ut__grad">upcoming RankPro tests.</span></h2>
+                <h2 class="ut__title">Smart prep with <span class="ut__grad">upcoming RankPro tests</span></h2>
                 <p class="ut__sub">Reserve your seat for the next exam-pattern test and walk in exam-ready.</p>
             </div>
 
@@ -562,43 +559,44 @@
     <section class="tc">
         <div class="tc__inner">
             <div class="tc__head">
-                <span class="tc__eyebrow"><i></i>Test Centers</span>
-                <h2 class="tc__title">RankPro <span class="tc__grad">test centers</span> near you.</h2>
-                <p class="tc__sub">Pick a center to see it on the map - then enroll for your offline test.</p>
+                <span class="tc__eyebrow"><i></i>Test Center</span>
+                <h2 class="tc__title">RankPro <span class="tc__grad">test center</span> near you</h2>
+                <p class="tc__sub">Visit our Krishna Building center and enroll for your offline test.</p>
             </div>
 
             <div class="tc__split">
-                <div class="tc__list" id="tcList">
-                    @foreach($location as $index => $value)
-                        @php
-                            $lat = $value->latitude ?? null;
-                            $lng = $value->longitude ?? null;
-                        @endphp
-                        <button type="button" class="tc__item {{ $index === 0 ? 'is-active' : '' }}"
-                                data-index="{{ $index }}"
-                                data-lat="{{ $lat }}"
-                                data-lng="{{ $lng }}"
-                                data-name="{{ $value->location_name }}">
-                            <div class="tc__item-top">
-                                <span class="tc__item-pin">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 1 1 14 0c0 4.7-7 11-7 11z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
-                                </span>
-                                <h5 class="tc__item-name">{{ $value->location_name }}</h5>
-                            </div>
-                            <p class="tc__item-addr">{{ $value->address }}, {{ $value->state_name }}, {{ $value->country_name }} - {{ $value->zip_code }}</p>
-                            <div class="tc__item-foot">
-                                <span class="tc__item-phone">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    {{ $value->phone_number }}
-                                </span>
-                                <a href="{{route('contact')}}?id={{$value->id}}&type=TC" class="tc__item-cta" onclick="event.stopPropagation();">Enroll Now &rarr;</a>
-                            </div>
-                        </button>
-                    @endforeach
+                <div class="tc__list">
+                    @php
+                        $centerAddress = '224A AJC Bose Road, Krishna Building, 2nd Floor (Near Minto Park), Opp. La Martiniere for Girls School, Suite No. 212, 214, Kolkata, West Bengal 700017';
+                        $centerMapsQuery = urlencode('224A AJC Bose Road Krishna Building near Minto Park opposite La Martiniere for Girls Kolkata 700017');
+                    @endphp
+                    <article class="tc__item is-active">
+                        <div class="tc__item-top">
+                            <span class="tc__item-pin">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 1 1 14 0c0 4.7-7 11-7 11z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
+                            </span>
+                            <h5 class="tc__item-name">Krishna Building</h5>
+                        </div>
+                        <p class="tc__item-addr">{{ $centerAddress }}</p>
+                        <div class="tc__item-foot">
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ $centerMapsQuery }}" class="tc__item-phone" target="_blank" rel="noopener noreferrer">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 1 1 14 0c0 4.7-7 11-7 11z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
+                                Get Directions
+                            </a>
+                            <a href="{{ route('contact') }}" class="tc__item-cta">Enroll Now &rarr;</a>
+                        </div>
+                    </article>
                 </div>
 
                 <div class="tc__mapwrap">
-                    <div id="tcMap" class="tc__map"></div>
+                    <iframe
+                        class="tc__map"
+                        title="RankPro Krishna Building, AJC Bose Road, Kolkata"
+                        src="https://www.google.com/maps?q={{ $centerMapsQuery }}&z=17&output=embed"
+                        allowfullscreen
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
                 </div>
             </div>
         </div>
@@ -684,7 +682,7 @@
         <div class="ts__inner">
             <div class="ts__head">
                 <span class="ts__eyebrow"><i></i>Real stories &middot; Real success</span>
-                <h2 class="ts__title">Aspirants who made it <span class="ts__grad">with RankPro.</span></h2>
+                <h2 class="ts__title">Aspirants who made it <span class="ts__grad">with RankPro</span></h2>
                 @if ($real_story)
                     <p class="ts__sub">{!! $real_story->text !!}</p>
                 @endif
@@ -741,7 +739,7 @@
         <div class="fq__inner">
             <div class="fq__head">
                 <span class="fq__eyebrow"><i></i>FAQ</span>
-                <h2 class="fq__title">Frequently asked <span class="fq__grad">questions.</span></h2>
+                <h2 class="fq__title">Frequently asked <span class="fq__grad">questions</span></h2>
                 <p class="fq__sub">Everything you need to know about RankPro - tests, payments, and plans.</p>
             </div>
 
@@ -830,7 +828,7 @@
         <div class="gl__inner">
             <div class="gl__head">
                 <span class="gl__eyebrow"><i></i>Inside RankPro</span>
-                <h2 class="gl__title">Take a closer look at <span class="gl__grad">RankPro.</span></h2>
+                <h2 class="gl__title">Take a closer look at <span class="gl__grad">RankPro</span></h2>
                 <p class="gl__sub">Real centers, real students, real preparation in action.</p>
             </div>
 
@@ -874,7 +872,7 @@
 
             <div class="cta__content">
                 <span class="cta__eyebrow"><i></i>Start today</span>
-                <h2 class="cta__title">RankPro makes<br>learning <span class="cta__grad">effortless.</span></h2>
+                <h2 class="cta__title">RankPro makes<br>learning <span class="cta__grad">effortless</span></h2>
                 <p class="cta__sub">Get tests delivered to your doorstep and excel from home. Join thousands of NEET aspirants.</p>
 
                 <form action="{{ route('save_subscription') }}" method="get" onsubmit="return rankProFormValidation();" class="cta__form">
@@ -1322,59 +1320,6 @@
                     y:44, opacity:0, duration:.7, stagger:.1, ease:"power3.out"
                 });
             }
-
-            // ===== Test centers map =====
-            (function(){
-                var mapEl = document.getElementById("tcMap");
-                var list = document.getElementById("tcList");
-                if(!mapEl || !list || typeof L === "undefined") return;
-
-                var items = Array.prototype.slice.call(list.querySelectorAll(".tc__item"));
-
-                // collect coords; use demo fallbacks for any missing (so it renders now)
-                var demo = [[22.5726,88.3639],[22.5958,88.2636],[22.6520,88.3630],[22.5041,88.3900]];
-                var centers = items.map(function(it, i){
-                    var lat = parseFloat(it.dataset.lat), lng = parseFloat(it.dataset.lng);
-                    if(isNaN(lat) || isNaN(lng)){ lat = demo[i % demo.length][0]; lng = demo[i % demo.length][1]; }
-                    return { lat:lat, lng:lng, name:it.dataset.name, el:it };
-                });
-                if(!centers.length) return;
-
-                var map = L.map(mapEl, { scrollWheelZoom:false, zoomControl:true })
-                            .setView([centers[0].lat, centers[0].lng], 11);
-                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                    attribution:"&copy; OpenStreetMap", maxZoom:19
-                }).addTo(map);
-
-                // brand pin icon
-                var pinIcon = L.divIcon({
-                    className:"tc-pin",
-                    html:'<div style="width:26px;height:26px;background:#f20b81;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 4px 10px rgba(0,0,0,.3)"></div>',
-                    iconSize:[26,26], iconAnchor:[13,26]
-                });
-
-                var markers = [];
-                centers.forEach(function(c, i){
-                    var m = L.marker([c.lat, c.lng], { icon:pinIcon }).addTo(map).bindPopup("<b>"+c.name+"</b>");
-                    markers.push(m);
-                    c.el.addEventListener("click", function(){
-                        items.forEach(function(x){ x.classList.remove("is-active"); });
-                        c.el.classList.add("is-active");
-                        map.flyTo([c.lat, c.lng], 15, { duration:1.1 });
-                        m.openPopup();
-                    });
-                });
-
-                // fit all pins initially
-                var group = L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.2));
-
-                // fix Leaflet sizing when it becomes visible
-                setTimeout(function(){ map.invalidateSize(); }, 300);
-                if(window.ScrollTrigger){
-                    ScrollTrigger.create({ trigger:".tc", start:"top 80%", once:true, onEnter:function(){ map.invalidateSize(); } });
-                }
-            })();
 
             // ===== Testimonials marquee =====
             (function(){

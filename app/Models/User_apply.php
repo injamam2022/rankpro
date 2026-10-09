@@ -13,6 +13,7 @@ class User_apply extends Model
         'mobile_number',
         'is_whatsapp',
         'email_id',
+        'address',
         'profile_img',
         'password',
         'father_full_name',

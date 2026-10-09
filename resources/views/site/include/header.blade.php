@@ -25,13 +25,6 @@
                     <a href="#" class="active">English</a><a href="#">Bengali</a>
                 </div> -->
             </div>
-            <div class="navbar-nav pl-4">
-                <a href="{{ route('testseries') }}" class="nav-item nav-link {{ request()->is('testseries') ? ' active' : '' }}">Test Series </a>
-                <!--<a href="#" class="nav-item nav-link">Free Customise Test </a>-->
-                <!--<a href="#" class="nav-item nav-link">Advisory committee </a>-->
-                <!--<a href="#" class="nav-item nav-link">Blogs </a>-->
-                <a href="{{ route('new_light') }}" class="nav-item nav-link  {{ request()->is('new-light') ? ' active' : '' }}">New light</a>
-            </div>
         </div>
     </div>
 </nav>
