@@ -65,11 +65,12 @@
                   <div class="col-lg-6">
                     <div class="loginLeft signupLeft">
                       <div class="formTitle text-left">Create an account</div>
-                      <div class="formTexts text-left">Already have an account? <a href="{{ route('login') }}">Log in</a></div>
+                      <div class="formTexts text-left">Already have an account? <a href="{{ route('login', request()->only('next')) }}">Log in</a></div>
                       <div class="required-note text-start"><span class="req">*</span> Required fields</div>
 
                       <form class="registrationForm" id="registerForm" action="" method="POST" enctype="multipart/form-data" novalidate>
                         @csrf
+                        <input type="hidden" name="next" value="{{ request('next') }}">
                         <div class="formAvatar">
                           <div class="formAvatarImg">
                             <img src="{{ asset('web/images/form/signup-avatar.jpg') }}" class="img-fluid avatar-placeholder" alt="Upload profile photo" id="avatarPreview">
@@ -203,7 +204,7 @@
               <div class="otpPopupSubTitle">Congratulations, your account has been successfully created.</div>
 
               <div class="text-center">
-                <a href="{{ route('login') }}" class="btn btnRegister mt-0">Continue</a>
+                <a href="{{ route('index') }}" class="btn btnRegister mt-0" id="successContinue">Continue</a>
               </div>
             </form>
           </div>
@@ -296,6 +297,10 @@
                     icon.removeClass("bi-eye-slash").addClass("bi-eye");
                     $(this).attr("aria-label", "Show password");
                 }
+            });
+
+            $("#mobile_number").on("input", function () {
+                this.value = this.value.replace(/\D/g, "").slice(0, 10);
             });
 
             function showFieldError(selector, message) {
@@ -413,12 +418,14 @@
                         _token: "{{ csrf_token() }}"
                     },
                     success: function(response) {
-                        // console.log(response);
-
                         if (response.success) {
+                            var dest = response.redirect || "{{ route('index') }}";
+                            $("#successContinue").attr("href", dest);
                             $("#otpPopup").modal("hide");
                             $("#successPopup").modal("show");
-                            // window.location.href = "{{ route('login') }}";
+                            setTimeout(function () {
+                                window.location.href = dest;
+                            }, 900);
                         } else {
                             alert("Invalid OTP, please try again.");
                         }

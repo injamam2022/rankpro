@@ -19,11 +19,16 @@ use App\Models\User_apply;
 
 class AdmissionController extends Controller
 {
-    public function signup(){
+    public function signup(Request $request){
+        $this->rememberSignupRedirect($request);
         return view('site.registration');
     }
 
     public function store(Request $request){
+        $this->rememberSignupRedirect($request);
+        $mobile = preg_replace('/\D+/', '', (string) $request->mobile_number);
+        $request->merge(['mobile_number' => $mobile]);
+
         $validator = Validator::make($request->all(), [
             'first_name'        => 'required|string|max:255',
             'last_name'         => 'required|string|max:255',
@@ -43,6 +48,9 @@ class AdmissionController extends Controller
         }
 
         $existingUser = User::where('email_id', $request->email_id)->first();
+        if (!$existingUser) {
+            $existingUser = User_apply::where('email_id', $request->email_id)->first();
+        }
         if ($existingUser) {
             return response()->json([
                 'success' => false,
@@ -50,11 +58,11 @@ class AdmissionController extends Controller
             ], 400);
         }
 
-        $existingUser = User::where('mobile_number', $request->mobile_number)->first();
-        if ($existingUser) {
+        if ($this->mobileAlreadyRegistered($mobile)) {
             return response()->json([
                 'success' => false,
                 'message' => 'This phone number is already registered.',
+                'errors' => ['mobile_number' => ['This phone number is already registered.']],
             ], 400);
         }
 
@@ -153,10 +161,16 @@ class AdmissionController extends Controller
         $insertData['profile_img'] = $user->profile_img;
         $insertData['address'] = $user->address ?: session()->pull('pending_signup_address_'.$user->id);
         $insertData['rankpro_id'] = $rankproId;
+        $insertData['status'] = 1;
 
-        User::create($insertData);
+        $createdUser = User::create($insertData);
+        Auth::login($createdUser);
 
-        return response()->json(['success' => true, 'message' => 'OTP verified successfully!']);
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP verified successfully!',
+            'redirect' => $this->intendedAfterAuth(),
+        ]);
     }
 
     public function resendOtp(Request $request){
@@ -206,11 +220,13 @@ class AdmissionController extends Controller
         return $filename;
     }
 
-    public function showLogin(){
+    public function showLogin(Request $request){
+        $this->rememberSignupRedirect($request);
         return view('site.login');
     }
 
     public function login(Request $request){
+        $this->rememberSignupRedirect($request);
         $request->validate([
             'email_id'    => 'required',
             'password'    => 'required|string',
@@ -219,25 +235,54 @@ class AdmissionController extends Controller
             'password.required' => 'Enter your password.',
         ]);
 
-        $user_detail = User::where('status',1)->where('email_id', $request->email_id)
-                    ->orWhere('father_mobile_number', $request->email_id)
-                    ->first();
-        if($user_detail){
-            if($user_detail->email_id == $request->email_id){
-                session()->put('parant_login_type','S');
-                if (Hash::check($request->password, $user_detail->password)) {
-                    Auth::login($user_detail);
-                    return redirect()->route('index')->with('success', 'You are logged in!');
-                }
-            }else if($user_detail->father_mobile_number == $request->email_id){
-                session()->put('parant_login_type','P');
-                if (Hash::check($request->password, $user_detail->password)) {
-                    Auth::login($user_detail);
-                    return redirect()->route('index')->with('success', 'You are logged in!');;
-                }
-            }
+        $login = $request->email_id;
+        $user_detail = User::where('status', 1)
+            ->where(function ($query) use ($login) {
+                $query->where('email_id', $login)
+                    ->orWhere('mobile_number', $login)
+                    ->orWhere('father_mobile_number', $login);
+            })
+            ->first();
+
+        if ($user_detail && Hash::check($request->password, $user_detail->password)) {
+            $isParent = $user_detail->father_mobile_number && $user_detail->father_mobile_number == $login;
+            session()->put('parant_login_type', $isParent ? 'P' : 'S');
+            Auth::login($user_detail);
+            return redirect($this->intendedAfterAuth())->with('success', 'You are logged in!');
         }
         \Log::info('Redirecting back with error message.');
         return redirect()->back()->with('error', 'Invalid email or password.');
+    }
+
+    private function rememberSignupRedirect(Request $request): void
+    {
+        $next = $request->query('next', $request->input('next'));
+        if ($next === 'custom_test') {
+            session(['signup_redirect' => 'custom_test']);
+        }
+    }
+
+    private function intendedAfterAuth(): string
+    {
+        $intended = session()->pull('signup_redirect');
+        if ($intended === 'custom_test') {
+            return route('custom_test');
+        }
+        return route('index');
+    }
+
+    private function mobileAlreadyRegistered(string $mobile): bool
+    {
+        $exists = User::where('mobile_number', $mobile);
+        if (Schema::hasColumn((new User)->getTable(), 'is_deleted')) {
+            $exists->where(function ($query) {
+                $query->where('is_deleted', 0)->orWhereNull('is_deleted');
+            });
+        }
+        if ($exists->exists()) {
+            return true;
+        }
+
+        return User_apply::where('mobile_number', $mobile)->exists();
     }
 }

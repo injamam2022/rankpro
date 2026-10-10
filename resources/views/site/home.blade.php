@@ -67,6 +67,15 @@
 
 <!-- banner Start (Veluno-left + neetprep-right hero) -->
     <section class="rh">
+        <div class="rh__timer" id="neetTimer" data-target="2027-05-03T09:00:00+05:30">
+            <span class="rh__timer-kicker">NEET 2027 countdown</span>
+            <div class="rh__timer-units" aria-live="polite">
+                <div class="rh__timer-unit"><b id="ntDays">00</b><span>Days</span></div>
+                <div class="rh__timer-unit"><b id="ntHours">00</b><span>Hours</span></div>
+                <div class="rh__timer-unit"><b id="ntMins">00</b><span>Mins</span></div>
+                <div class="rh__timer-unit"><b id="ntSecs">00</b><span>Secs</span></div>
+            </div>
+        </div>
         <div class="rh__inner">
             <!-- LEFT -->
             <div class="rh__left">
@@ -86,21 +95,10 @@
                             Start practising
                             <span class="rh__btn-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                         </a>
-                        <a href="{{ route('contact') }}" class="rh__btn rh__btn--pink">Talk to a mentor</a>
                     @endif
                 </div>
 
                 <div class="rh__lowerrow">
-                    <!-- rotating badge -->
-                    <div class="rh__badge" aria-hidden="true">
-                        <svg class="rh__badge-ring" viewBox="0 0 120 120">
-                            <defs><path id="rhcirc" d="M60,60 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0"/></defs>
-                            <text><textPath href="#rhcirc" startOffset="0">FREE MOCK TEST &middot; FREE MOCK TEST &middot; </textPath></text>
-                        </svg>
-                        <a href="{{ Auth::check() ? route('custom_test') : route('signup') }}" class="rh__badge-center">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </a>
-                    </div>
                     <!-- mini card -->
                     <a href="{{ route('new_light') }}" class="rh__mini">
                         <div class="rh__mini-img" style="background-image:url('{{ asset('web/images/scolar_test.png') }}');"></div>
@@ -141,10 +139,17 @@
                         <span class="rh__chap">Kinematics</span><span class="rh__chap">Optics</span><span class="rh__chap">Modern Physics</span>
                     </div>
 
-                    <a href="{{ Auth::check() ? route('custom_test') : route('signup') }}" class="rh__start-btn" id="rhStart">
-                        <span>Start Test</span>
-                        <span class="rh__start-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                    </a>
+                    @if (Auth::check())
+                        <a href="{{ route('custom_test') }}" class="rh__start-btn" id="rhStart">
+                            <span>Start Test</span>
+                            <span class="rh__start-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        </a>
+                    @else
+                        <a href="{{ route('signup', ['next' => 'custom_test']) }}" class="rh__start-btn" id="rhStart">
+                            <span>Start Test</span>
+                            <span class="rh__start-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        </a>
+                    @endif
                     <span class="rh__test-foot">No card needed &middot; Instant result &amp; rank prediction</span>
                 </div>
             </div>
@@ -152,215 +157,8 @@
     </section>
     <!-- banner End -->
 
-    <!-- Features slider -->
-    <section class="rf">
-        <div class="rf__inner">
-            <div class="rf__head">
-                <div class="rf__head-txt">
-                    <span class="rf__eyebrow"><i></i>Everything you need</span>
-                    <h2 class="rf__title">One platform to crack NEET, engineered end&nbsp;to&nbsp;end</h2>
-                </div>
-                <div class="rf__nav">
-                    <button class="rf__arrow" id="rfPrev" aria-label="Previous">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                    <button class="rf__arrow" id="rfNext" aria-label="Next">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="rf__viewport" id="rfViewport">
-                <div class="rf__track" id="rfTrack">
-                    @php
-                        $features = [
-                            ['n'=>'01','t'=>'Custom Test Generator','d'=>'Build your own NEET tests by subject, chapter, or difficulty in seconds.'],
-                            ['n'=>'02','t'=>'DPP Generator','d'=>'Daily practice problems auto-curated to your weak areas, every single day.'],
-                            ['n'=>'03','t'=>'AI Syllabus Tracker','d'=>'Know exactly what to study next with an AI plan that adapts to your pace.'],
-                            ['n'=>'04','t'=>'AI Youtube','d'=>'Instantly find the exact concept videos for any topic you\'re stuck on.'],
-                            ['n'=>'05','t'=>'Rank & College Predictor','d'=>'Predict your rank and target colleges - based on real NEET data.'],
-                            ['n'=>'06','t'=>'Chapterwise & Topicwise Test','d'=>'Master NEET one chapter at a time with targeted, exam-pattern tests.'],
-                            ['n'=>'07','t'=>'Live Poll Based Class','d'=>'Interactive live classes with real-time polls that keep you sharp.'],
-                        ];
-                    @endphp
-                    @foreach($features as $f)
-                        <article class="rf__card">
-                            <div class="rf__card-img">
-                                <div class="rf__card-photo rf__card-photo--{{ ($loop->index % 4) + 1 }}"></div>
-                                <div class="rf__card-label" aria-hidden="true"><span>{{ $f['t'] }}</span></div>
-                                <span class="rf__card-num">{{ $f['n'] }}</span>
-                            </div>
-                            <div class="rf__card-body">
-                                <h3 class="rf__card-title">{{ $f['t'] }}</h3>
-                                <p class="rf__card-desc">{{ $f['d'] }}</p>
-                                <span class="rf__card-link">Explore
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                </span>
-                            </div>
-                        </article>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Features slider end -->
-
-    <!-- How it works -->
-    <section class="hw">
-        <div class="hw__inner">
-            <div class="hw__head">
-                <span class="hw__eyebrow"><i></i>See it in action</span>
-                <h2 class="hw__headline" id="hwHeadline">Watch how RankPro works</h2>
-                <p class="hw__sub">In just 2 minutes, see how thousands of aspirants go from their first mock test to a predicted NEET rank - with AI analysis, real exam patterns, and mentorship built in.</p>
-                <div class="hw__points">
-                    <span class="hw__point"><i></i>Set up in under a minute</span>
-                    <span class="hw__point"><i></i>No credit card needed</span>
-                    <span class="hw__point"><i></i>See your weak chapters instantly</span>
-                </div>
-            </div>
-
-            <a href="https://www.youtube.com" target="_blank" rel="noopener" class="hw__video" id="hwVideo">
-                <div class="hw__video-photo hw__video-photo--local"></div>
-                <div class="hw__video-shade"></div>
-                <span class="hw__video-title">RankPro Walkthrough</span>
-                <span class="hw__play" id="hwPlay">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </span>
-                <span class="hw__playlabel">Watch the walkthrough</span>
-                <span class="hw__meta"><span class="hw__meta-dot"></span>2:14 &middot; Full walkthrough</span>
-            </a>
-        </div>
-    </section>
-    <!-- How it works end -->
-
-    <!-- Paper proof -->
-    <section class="pp">
-        <div class="pp__inner">
-            <div class="pp__left">
-                <span class="pp__eyebrow"><i></i>Real overlap &middot; Paper proof</span>
-                <h2 class="pp__title">Questions from <span class="pp__grad">NEET&nbsp;2027</span> you already solved here</h2>
-                <p class="pp__sub">See how what you practised on RankPro lines up with the actual paper - tap a subject to open the proof PDF.</p>
-
-                <div class="pp__subjects">
-                    @php
-                        $proof = [
-                            ['s'=>'Physics','d'=>'Numericals & conceptual frames you already drilled.','pdf'=>'#'],
-                            ['s'=>'Chemistry','d'=>'Organic, inorganic & physical hits from your streaks.','pdf'=>'#'],
-                            ['s'=>'Biology','d'=>'Diagram- and NCERT-tight repeats straight from your bank.','pdf'=>'#'],
-                        ];
-                    @endphp
-                    @foreach($proof as $i => $p)
-                        <a href="{{ $p['pdf'] }}" target="_blank" rel="noopener" class="pp__row">
-                            <span class="pp__row-ico">
-                                @if($i===0)<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.8" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.8" transform="rotate(120 12 12)"/></svg>
-                                @elseif($i===1)<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 3h6M10 3v6l-4 8a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-8V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                @else<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4c6 2 6 8 0 10M20 4c-6 2-6 8 0 10M4 4c4 6 12 6 16 0M4 20c4-6 12-6 16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>@endif
-                            </span>
-                            <div class="pp__row-txt">
-                                <strong>{{ $p['s'] }}</strong>
-                                <span>{{ $p['d'] }}</span>
-                            </div>
-                            <span class="pp__row-cta">Open proof PDF
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </span>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="pp__right" id="ppRight">
-                <div class="pp__viewport">
-                    <div class="pp__slides" id="ppSlides">
-                        @php
-                            $proofs = [
-                                ['sub'=>'Physics','match'=>'98%','p'=>'A body is projected with velocity u at angle &theta;. Find the maximum height reached.','e'=>'A body is projected with velocity u at an angle &theta; with the horizontal. The maximum height reached is:'],
-                                ['sub'=>'Chemistry','match'=>'96%','p'=>'Arrange the given species in order of increasing stability.','e'=>'The correct order of stability of the given species is:'],
-                                ['sub'=>'Biology','match'=>'99%','p'=>'Correct sequence of events during sexual reproduction in flowering plants.','e'=>'The correct sequence of events during sexual reproduction in flowering plants is:'],
-                                ['sub'=>'Physics','match'=>'95%','p'=>'In an ideal transformer, turns ratio Np/Ns = 1/2. Find Vs : Vp.','e'=>'In an ideal transformer, the turns ratio is Np/Ns = 1/2. The ratio Vs : Vp is equal to:'],
-                            ];
-                        @endphp
-                        @foreach($proofs as $pr)
-                            <div class="pp__proof">
-                                <div class="pp__proof-head">
-                                    <span class="pp__proof-tag">NEET 2027 &middot; {{ $pr['sub'] }}</span>
-                                    <span class="pp__proof-match"><i></i>{{ $pr['match'] }} match</span>
-                                </div>
-                                <div class="pp__proof-pair">
-                                    <div class="pp__q pp__q--practised">
-                                        <span class="pp__q-label">You practised on RankPro</span>
-                                        <p class="pp__q-text">{{ $pr['p'] }}</p>
-                                    </div>
-                                    <div class="pp__link-icon">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
-                                    </div>
-                                    <div class="pp__q pp__q--exam">
-                                        <span class="pp__q-label">Appeared in NEET 2027</span>
-                                        <p class="pp__q-text">{{ $pr['e'] }}</p>
-                                        <span class="pp__q-verified">&#10003; Verified from question bank</span>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="pp__dots" id="ppDots"></div>
-            </div>
-        </div>
-    </section>
-    <!-- Paper proof end -->
-
-   <!-- Rankers top mate (spotlight marquee) -->
-    <section class="rk">
-        <div class="rk__glow rk__glow--a"></div>
-        <div class="rk__glow rk__glow--b"></div>
-        <div class="rk__inner">
-            <div class="rk__head">
-                <span class="rk__eyebrow"><i></i>Real results &middot; Real rankers</span>
-                <h2 class="rk__title">Aspirants who trained on RankPro<br><span class="rk__grad">and cracked NEET</span></h2>
-                <p class="rk__sub">Every rank below is a student who practised here. Learn from them, then connect one-on-one.</p>
-            </div>
-        </div>
-
-        <div class="rk__marquee" id="rkMarquee">
-            <div class="rk__track" id="rkTrack">
-                @if($ranker_list->isNotEmpty())
-                    @for($pass = 0; $pass < 3; $pass++)
-                        @foreach($ranker_list as $index => $ranker)
-                            <article class="rk__card">
-                                <div class="rk__card-photo" style="background-image:url('{{ asset('uploads/ranker/' . ($ranker->icon ?? 'default.png')) }}');"></div>
-                                <div class="rk__card-wash"></div>
-                                <div class="rk__card-top">
-                                    <span class="rk__card-airlbl">AIR</span>
-                                    <span class="rk__card-air">{{ $ranker->air }}</span>
-                                </div>
-                                <div class="rk__card-body">
-                                    <h5 class="rk__card-name">{{ $ranker->name }}</h5>
-                                    <div class="rk__card-stats">
-                                        <span><b>{{ $ranker->score }}</b>Score</span>
-                                        <span><b>{{ $ranker->year }}</b>Year</span>
-                                    </div>
-                                    <span class="rk__card-college">{{ $ranker->college }}</span>
-                                    <a href="{{ route('ranker.detail', encrypt($ranker->id)) }}" class="rk__card-btn">Connect
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    </a>
-                                </div>
-                            </article>
-                        @endforeach
-                    @endfor
-                @endif
-            </div>
-        </div>
-
-        <div class="rk__foot">
-            <a href="{{ route('ranker') }}" class="rk__explore">Explore all rankers
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-        </div>
-    </section>
-    <!-- Rankers top mate ends -->
-
     <!-- Pricing -->
-    <section class="pr">
+    <section class="pr" id="pricing">
         <div class="pr__inner">
             <div class="pr__head">
                 <div>
@@ -408,6 +206,34 @@
     </section>
     <!-- Pricing end -->
 
+    <!-- How it works -->
+    <section class="hw" id="features">
+        <div class="hw__inner">
+            <div class="hw__head">
+                <span class="hw__eyebrow"><i></i>See it in action</span>
+                <h2 class="hw__headline" id="hwHeadline">Watch how RankPro works</h2>
+                <p class="hw__sub">In just 2 minutes, see how thousands of aspirants go from their first mock test to a predicted NEET rank - with AI analysis, real exam patterns, and mentorship built in.</p>
+                <div class="hw__points">
+                    <span class="hw__point"><i></i>Set up in under a minute</span>
+                    <span class="hw__point"><i></i>No credit card needed</span>
+                    <span class="hw__point"><i></i>See your weak chapters instantly</span>
+                </div>
+            </div>
+
+            <a href="https://www.youtube.com" target="_blank" rel="noopener" class="hw__video" id="hwVideo">
+                <div class="hw__video-photo hw__video-photo--local"></div>
+                <div class="hw__video-shade"></div>
+                <span class="hw__video-title">RankPro Walkthrough</span>
+                <span class="hw__play" id="hwPlay">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span class="hw__playlabel">Watch the walkthrough</span>
+                <span class="hw__meta"><span class="hw__meta-dot"></span>2:14 &middot; Full walkthrough</span>
+            </a>
+        </div>
+    </section>
+    <!-- How it works end -->
+
     <!-- Benefits flow -->
     <section class="bf">
         <div class="bf__inner">
@@ -450,6 +276,140 @@
         </div>
     </section>
     <!-- Benefits flow end -->
+
+    <section class="cn">
+        <a href="{{ Auth::check() ? route('custom_test') : route('signup') }}" class="cn__btn">Crack NEET 2027</a>
+    </section>
+
+    <!-- Paper proof -->
+    <section class="pp">
+        <div class="pp__inner">
+            <div class="pp__left">
+                <span class="pp__eyebrow"><i></i>Real overlap &middot; Paper proof</span>
+                <h2 class="pp__title">Questions from <span class="pp__grad">NEET&nbsp;2026</span> you already solved here</h2>
+                <p class="pp__sub">See how what you practised on RankPro lines up with the actual paper - tap a subject to open the proof PDF.</p>
+
+                <div class="pp__subjects">
+                    @php
+                        $proof = [
+                            ['s'=>'Physics','d'=>'Numericals & conceptual frames you already drilled.','pdf'=>'#'],
+                            ['s'=>'Chemistry','d'=>'Organic, inorganic & physical hits from your streaks.','pdf'=>'#'],
+                            ['s'=>'Biology','d'=>'Diagram- and NCERT-tight repeats straight from your bank.','pdf'=>'#'],
+                        ];
+                    @endphp
+                    @foreach($proof as $i => $p)
+                        <a href="{{ $p['pdf'] }}" target="_blank" rel="noopener" class="pp__row">
+                            <span class="pp__row-ico">
+                                @if($i===0)<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.8" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.8" transform="rotate(120 12 12)"/></svg>
+                                @elseif($i===1)<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 3h6M10 3v6l-4 8a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-8V3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                @else<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4c6 2 6 8 0 10M20 4c-6 2-6 8 0 10M4 4c4 6 12 6 16 0M4 20c4-6 12-6 16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>@endif
+                            </span>
+                            <div class="pp__row-txt">
+                                <strong>{{ $p['s'] }}</strong>
+                                <span>{{ $p['d'] }}</span>
+                            </div>
+                            <span class="pp__row-cta">Open proof PDF
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="pp__right" id="ppRight">
+                <div class="pp__viewport">
+                    <div class="pp__slides" id="ppSlides">
+                        @php
+                            $proofs = [
+                                ['sub'=>'Physics','match'=>'98%','p'=>'A body is projected with velocity u at angle &theta;. Find the maximum height reached.','e'=>'A body is projected with velocity u at an angle &theta; with the horizontal. The maximum height reached is:'],
+                                ['sub'=>'Chemistry','match'=>'96%','p'=>'Arrange the given species in order of increasing stability.','e'=>'The correct order of stability of the given species is:'],
+                                ['sub'=>'Biology','match'=>'99%','p'=>'Correct sequence of events during sexual reproduction in flowering plants.','e'=>'The correct sequence of events during sexual reproduction in flowering plants is:'],
+                                ['sub'=>'Physics','match'=>'95%','p'=>'In an ideal transformer, turns ratio Np/Ns = 1/2. Find Vs : Vp.','e'=>'In an ideal transformer, the turns ratio is Np/Ns = 1/2. The ratio Vs : Vp is equal to:'],
+                            ];
+                        @endphp
+                        @foreach($proofs as $pr)
+                            <div class="pp__proof">
+                                <div class="pp__proof-head">
+                                    <span class="pp__proof-tag">NEET 2026 &middot; {{ $pr['sub'] }}</span>
+                                    <span class="pp__proof-match"><i></i>{{ $pr['match'] }} match</span>
+                                </div>
+                                <div class="pp__proof-pair">
+                                    <div class="pp__q pp__q--practised">
+                                        <span class="pp__q-label">You practised on RankPro</span>
+                                        <p class="pp__q-text">{{ $pr['p'] }}</p>
+                                    </div>
+                                    <div class="pp__link-icon">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
+                                    </div>
+                                    <div class="pp__q pp__q--exam">
+                                        <span class="pp__q-label">Appeared in NEET 2026</span>
+                                        <p class="pp__q-text">{{ $pr['e'] }}</p>
+                                        <span class="pp__q-verified">&#10003; Verified from question bank</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="pp__dots" id="ppDots"></div>
+            </div>
+        </div>
+    </section>
+    <!-- Paper proof end -->
+
+   <!-- Rankers top mate (spotlight marquee) -->
+    <section class="rk">
+        <div class="rk__glow rk__glow--a"></div>
+        <div class="rk__glow rk__glow--b"></div>
+        <div class="rk__inner">
+            <div class="rk__head">
+                <span class="rk__eyebrow"><i></i>Real results &middot; Real rankers</span>
+                <h2 class="rk__title">Aspirants who trained on RankPro<br><span class="rk__grad">and cracked NEET</span></h2>
+                <p class="rk__sub">Every rank below is a student who practised here.</p>
+            </div>
+        </div>
+
+        <div class="rk__marquee" id="rkMarquee">
+            <div class="rk__track" id="rkTrack">
+                @if($ranker_list->isNotEmpty())
+                    @for($pass = 0; $pass < 3; $pass++)
+                        @foreach($ranker_list as $index => $ranker)
+                            <article class="rk__card">
+                                <div class="rk__card-photo" style="background-image:url('{{ asset('uploads/ranker/' . ($ranker->icon ?? 'default.png')) }}');"></div>
+                                <div class="rk__card-wash"></div>
+                                <div class="rk__card-top">
+                                    <span class="rk__card-airlbl">AIR</span>
+                                    <span class="rk__card-air">{{ $ranker->air }}</span>
+                                </div>
+                                <div class="rk__card-body">
+                                    <h5 class="rk__card-name">{{ $ranker->name }}</h5>
+                                    <div class="rk__card-stats">
+                                        <span><b>{{ $ranker->score }}</b>Score</span>
+                                        <span><b>{{ $ranker->year }}</b>Year</span>
+                                    </div>
+                                    <span class="rk__card-college">{{ $ranker->college }}</span>
+                                    @php
+                                        $rankerQuote = optional($ranker->feedbacks->first())->text
+                                            ?: ($ranker->about ?: $ranker->description);
+                                        if (!$rankerQuote && isset($success_story) && $success_story->isNotEmpty()) {
+                                            $story = $success_story[$index % $success_story->count()];
+                                            $rankerQuote = optional($story->descriptions->first())->text;
+                                        }
+                                        $rankerQuote = trim(preg_replace('/\s+/', ' ', strip_tags((string) $rankerQuote)));
+                                    @endphp
+                                    @if($rankerQuote !== '')
+                                        <blockquote class="rk__card-quote">{{ \Illuminate\Support\Str::limit($rankerQuote, 110) }}</blockquote>
+                                    @endif
+                                </div>
+                            </article>
+                        @endforeach
+                    @endfor
+                @endif
+            </div>
+        </div>
+
+    </section>
+    <!-- Rankers top mate ends -->
 
 
     <!--<div class="advisorycommittee rankers-carousel wow fadeInUp" data-wow-delay="0.1s">-->
@@ -514,94 +474,6 @@
     <!--    </div>-->
     <!--</div>-->
     <!-- scholarship top mate ends -->
-   <!-- Upcoming Test (redesigned) -->
-    <section class="ut">
-        <div class="ut__inner">
-            <div class="ut__head">
-                <span class="ut__eyebrow"><i></i>Upcoming Tests</span>
-                <h2 class="ut__title">Smart prep with <span class="ut__grad">upcoming RankPro tests</span></h2>
-                <p class="ut__sub">Reserve your seat for the next exam-pattern test and walk in exam-ready.</p>
-            </div>
-
-            <div class="ut__grid">
-                @foreach($upcoming_test as $value)
-                    <article class="ut__card">
-                        <div class="ut__card-head">
-                            <span class="ut__card-badge">Exam &middot; {{ $value->exam_date }}</span>
-                            <img src="{{ asset('web/images/favicon.ico') }}" alt="RankPro" class="ut__card-logo">
-                        </div>
-
-                        <h5 class="ut__card-name">{{ $value->name }}</h5>
-
-                        <div class="ut__card-meta">
-                            <span class="ut__meta-row">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                                Exam Date <b>{{ $value->exam_date }}</b>
-                            </span>
-                            <span class="ut__meta-row">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 1 1 14 0c0 4.7-7 11-7 11z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
-                                Location <b>{{ $value->location_name }}</b>
-                            </span>
-                        </div>
-
-                        <a href="{{ route('testseries.details', encrypt($value->id)) }}" class="ut__card-btn">
-                            Buy Now
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </a>
-                    </article>
-                @endforeach
-            </div>
-        </div>
-    </section>
-    <!-- Upcoming Test end -->
-
-    <!-- Test Centers (map) -->
-    <section class="tc">
-        <div class="tc__inner">
-            <div class="tc__head">
-                <span class="tc__eyebrow"><i></i>Test Center</span>
-                <h2 class="tc__title">RankPro <span class="tc__grad">test center</span> near you</h2>
-                <p class="tc__sub">Visit our Krishna Building center and enroll for your offline test.</p>
-            </div>
-
-            <div class="tc__split">
-                <div class="tc__list">
-                    @php
-                        $centerAddress = '224A AJC Bose Road, Krishna Building, 2nd Floor (Near Minto Park), Opp. La Martiniere for Girls School, Suite No. 212, 214, Kolkata, West Bengal 700017';
-                        $centerMapsQuery = urlencode('224A AJC Bose Road Krishna Building near Minto Park opposite La Martiniere for Girls Kolkata 700017');
-                    @endphp
-                    <article class="tc__item is-active">
-                        <div class="tc__item-top">
-                            <span class="tc__item-pin">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 1 1 14 0c0 4.7-7 11-7 11z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
-                            </span>
-                            <h5 class="tc__item-name">Krishna Building</h5>
-                        </div>
-                        <p class="tc__item-addr">{{ $centerAddress }}</p>
-                        <div class="tc__item-foot">
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ $centerMapsQuery }}" class="tc__item-phone" target="_blank" rel="noopener noreferrer">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 1 1 14 0c0 4.7-7 11-7 11z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
-                                Get Directions
-                            </a>
-                            <a href="{{ route('contact') }}" class="tc__item-cta">Enroll Now &rarr;</a>
-                        </div>
-                    </article>
-                </div>
-
-                <div class="tc__mapwrap">
-                    <iframe
-                        class="tc__map"
-                        title="RankPro Krishna Building, AJC Bose Road, Kolkata"
-                        src="https://www.google.com/maps?q={{ $centerMapsQuery }}&z=17&output=embed"
-                        allowfullscreen
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Test Centers end -->
 
 
     <!--<div class="cusContainer havequeries wow fadeInUp" data-wow-delay="0.1s">-->
@@ -676,44 +548,6 @@
         </div>
     @endif -->
 
-    @if ($real_story || $success_story->isNotEmpty())
-    <!-- Testimonials (marquee) -->
-    <section class="ts">
-        <div class="ts__inner">
-            <div class="ts__head">
-                <span class="ts__eyebrow"><i></i>Real stories &middot; Real success</span>
-                <h2 class="ts__title">Aspirants who made it <span class="ts__grad">with RankPro</span></h2>
-                @if ($real_story)
-                    <p class="ts__sub">{!! $real_story->text !!}</p>
-                @endif
-            </div>
-        </div>
-
-        @if ($success_story->isNotEmpty())
-        <div class="ts__marquee" id="tsMarquee">
-            <div class="ts__track" id="tsTrack">
-                @for($pass = 0; $pass < 2; $pass++)
-                    @foreach ($success_story as $story)
-                        <figure class="ts__card">
-                            <span class="ts__quote">"</span>
-                            <blockquote class="ts__text">
-                                @foreach ($story->descriptions as $desc)
-                                    {!! strip_tags($desc->text) !!}
-                                @endforeach
-                            </blockquote>
-                            <figcaption class="ts__by">
-                                <strong class="ts__name">{{ $story->name }}</strong>
-                                <span class="ts__loc">{{ $story->address }}</span>
-                            </figcaption>
-                        </figure>
-                    @endforeach
-                @endfor
-            </div>
-        </div>
-        @endif
-    </section>
-    <!-- Testimonials end -->
-    @endif
 
     <!--<div class="cusContainer hurry">-->
     <!--    <div class="row">-->
@@ -822,28 +656,6 @@
     </section>
     <!-- FAQ end -->
 
-    @if($gallery->isNotEmpty())
-    <!-- Gallery (redesigned) -->
-    <section class="gl">
-        <div class="gl__inner">
-            <div class="gl__head">
-                <span class="gl__eyebrow"><i></i>Inside RankPro</span>
-                <h2 class="gl__title">Take a closer look at <span class="gl__grad">RankPro</span></h2>
-                <p class="gl__sub">Real centers, real students, real preparation in action.</p>
-            </div>
-
-            <div class="gl__grid">
-                @foreach($gallery as $index => $image)
-                    <figure class="gl__item gl__item--{{ ($index % 5) }}">
-                        <img src="{{ asset('uploads/gallery/' . ($image->image ?? 'default.png')) }}" alt="RankPro gallery" class="gl__img" loading="lazy">
-                        <span class="gl__overlay"></span>
-                    </figure>
-                @endforeach
-            </div>
-        </div>
-    </section>
-    <!-- Gallery end -->
-    @endif
 
     @if($as_mention->isNotEmpty())
     <!-- As mentioned in (redesigned) -->
@@ -863,39 +675,7 @@
     @endif
 
 
-   <!-- Subscribe CTA (redesigned) -->
-    <section class="cta">
-        <div class="cta__inner">
-            <div class="cta__glow cta__glow--a"></div>
-            <div class="cta__glow cta__glow--b"></div>
-            <div class="cta__grid"></div>
-
-            <div class="cta__content">
-                <span class="cta__eyebrow"><i></i>Start today</span>
-                <h2 class="cta__title">RankPro makes<br>learning <span class="cta__grad">effortless</span></h2>
-                <p class="cta__sub">Get tests delivered to your doorstep and excel from home. Join thousands of NEET aspirants.</p>
-
-                <form action="{{ route('save_subscription') }}" method="get" onsubmit="return rankProFormValidation();" class="cta__form">
-                    <div class="cta__field">
-                        <input type="text" id="name" name="name" placeholder="Your name" class="cta__input">
-                    </div>
-                    <div class="cta__field">
-                        <input type="text" id="email" name="email" placeholder="Your email" class="cta__input">
-                    </div>
-                    <button type="submit" class="cta__btn" id="ctaBtn">
-                        Submit now
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                </form>
-
-                <span class="cta__note">No spam. Unsubscribe anytime.</span>
-            </div>
-        </div>
-    </section>
-    <!-- Subscribe CTA end -->
-
     @include('site.include.footer')
-    @include('site.include.call_to_action')
     @include('site.include.back_to_top')
 
    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -1082,45 +862,29 @@
         });
 
 
-        // ===== Features slider (arrows + scroll reveal) =====
+        // ===== NEET countdown =====
             (function(){
-                var track = document.getElementById("rfTrack");
-                var vp = document.getElementById("rfViewport");
-                var prev = document.getElementById("rfPrev");
-                var next = document.getElementById("rfNext");
-                if(!track || !vp) return;
-
-                var pos = 0;
-                function step(){
-                    var card = track.querySelector(".rf__card");
-                    return card ? card.offsetWidth + 22 : 380;
+                var root = document.getElementById("neetTimer");
+                if(!root) return;
+                var target = new Date(root.getAttribute("data-target")).getTime();
+                var daysEl = document.getElementById("ntDays");
+                var hoursEl = document.getElementById("ntHours");
+                var minsEl = document.getElementById("ntMins");
+                var secsEl = document.getElementById("ntSecs");
+                function pad(n){ return String(Math.max(0, n)).padStart(2, "0"); }
+                function tick(){
+                    var diff = Math.max(0, target - Date.now());
+                    var days = Math.floor(diff / 86400000);
+                    var hours = Math.floor((diff % 86400000) / 3600000);
+                    var mins = Math.floor((diff % 3600000) / 60000);
+                    var secs = Math.floor((diff % 60000) / 1000);
+                    if(daysEl) daysEl.textContent = pad(days);
+                    if(hoursEl) hoursEl.textContent = pad(hours);
+                    if(minsEl) minsEl.textContent = pad(mins);
+                    if(secsEl) secsEl.textContent = pad(secs);
                 }
-                function maxPos(){ return Math.max(0, track.scrollWidth - vp.offsetWidth); }
-                function apply(){
-                    pos = Math.max(0, Math.min(pos, maxPos()));
-                    track.style.transform = "translateX(-" + pos + "px)";
-                    if(prev) prev.disabled = pos <= 0;
-                    if(next) next.disabled = pos >= maxPos() - 2;
-                }
-                if(next) next.addEventListener("click", function(){ pos += step(); apply(); });
-                if(prev) prev.addEventListener("click", function(){ pos -= step(); apply(); });
-                window.addEventListener("resize", apply);
-                apply();
-
-                // scroll reveal
-                if(window.gsap && window.ScrollTrigger){
-                    gsap.registerPlugin(ScrollTrigger);
-                    gsap.from(".rf__head", {
-                        scrollTrigger:{ trigger:".rf", start:"top 80%" },
-                        y:30, opacity:0, duration:.7, ease:"power3.out"
-                    });
-                    gsap.set(".rf__card", { y:60, opacity:0 });
-                    ScrollTrigger.batch(".rf__card", {
-                        start:"top 90%",
-                        onEnter:function(b){ gsap.to(b, { y:0, opacity:1, duration:.8, stagger:.1, ease:"power3.out" }); },
-                        once:true
-                    });
-                }
+                tick();
+                setInterval(tick, 1000);
             })();
 
             // ===== How it works =====

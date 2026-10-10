@@ -7,7 +7,18 @@
         <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse rowreverse" id="navbarCollapse">
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav header-midnav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('index') }}#features">Features</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('index') }}#pricing">Pricing</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('contact') }}">Contact us</a>
+                </li>
+            </ul>
             <div class="headerright">
                 @if (Auth::check())
                     <div class="loginRegistration">
@@ -21,9 +32,6 @@
                         <a href="{{ route('login') }}" class="{{ request()->is('login') ? ' active' : '' }}">Login</a>
                     </div>
                 @endif
-                <!-- <div class="languageconv">
-                    <a href="#" class="active">English</a><a href="#">Bengali</a>
-                </div> -->
             </div>
         </div>
     </div>

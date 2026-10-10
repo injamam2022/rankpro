@@ -86,7 +86,9 @@ class HomeController extends Controller
                                     $query->where('language', $language_id);
                                 }])->where('status', 1)->get();
 
-        $data['ranker_list'] = Ranker::where('status',1)->get();
+        $data['ranker_list'] = Ranker::with(['feedbacks' => function ($query) {
+                                    $query->where('status', 1)->latest();
+                                }])->where('status', 1)->get();
         // dd($data);
         return view('site.home',$data);
     }

@@ -65,7 +65,7 @@
                   <div class="col-md-6">
                     <div class="loginLeft">
                       <div class="formTitle text-left">Welcome back!</div>
-                      <div class="formTexts text-left">Don't have an account? <a href="{{ route('signup') }}">Sign up now</a></div>
+                      <div class="formTexts text-left">Don't have an account? <a href="{{ route('signup', request()->only('next')) }}">Sign up now</a></div>
 
                       @if (session('success'))
                         <div class="auth-alert success" role="alert">{{ session('success') }}</div>
@@ -76,6 +76,7 @@
 
                       <form action="{{ route('login.submit') }}" method="POST">
                         @csrf
+                        <input type="hidden" name="next" value="{{ request('next') }}">
                         <div class="form-group">
                           <label for="email_id">Email or phone <span class="req" aria-hidden="true">*</span></label>
                           <div class="auth-input">
