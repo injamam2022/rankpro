@@ -83,6 +83,11 @@ class ResultController extends Controller
     }
 
     public function air(Request $request){
+        // Module temporarily disabled — set config rankpro.student_modules.air = true to restore.
+        if (! config('rankpro.student_modules.air')) {
+            return redirect()->route('dashboard');
+        }
+
         $language_id = $this->getLanguageId();
         $data = [];
         $data['user'] = Auth::user();

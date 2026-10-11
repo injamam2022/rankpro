@@ -27,6 +27,15 @@
                             </select>
                         </div>
                         <div class="col-sm-6">
+                            <label class="form-label" for="class_level">Class <span class="text-danger">*</span></label>
+                            <select class="form-control" id="class_level" name="class_level">
+                                <option value="">Select class</option>
+                                <option value="11" @if((int)$details->class_level === 11) selected @endif>Class 11</option>
+                                <option value="12" @if((int)$details->class_level === 12) selected @endif>Class 12</option>
+                                <option value="0" @if((int)$details->class_level === 0) selected @endif>Both</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
                             <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
                             <input class="form-control" id="name" type="text" name="name" placeholder=""  value="{{$details->name}}" />
                         </div>
@@ -46,8 +55,14 @@
 
                         
                         <div class="col-lg-12 mt-5 text-center">
-                            <a href="javascript:void(0);" onclick="history.go(-1);" class="btn btn-secondary cancelButton" type="button">Cancel</a>
-                            <button class="btn btn-primary" type="submit">Submit</button>
+                            <a href="javascript:void(0);" onclick="history.go(-1);" class="rp-act rp-act-ghost cancelButton">
+                                <i class="material-icons">close</i>
+                                Cancel
+                            </a>
+                            <button class="rp-act rp-act-add" type="submit">
+                                <i class="material-icons">check</i>
+                                Submit
+                            </button>
                         </div>
                         <div class="mb-5">
                             &nbsp;
@@ -73,6 +88,14 @@
                 document.getElementById('subject_id').classList.remove('dangerBoader');
             }else{
                 document.getElementById('subject_id').classList.add('dangerBoader');
+                successFlag = false;
+            }
+
+            data.class_level = document.getElementById('class_level').value;
+            if(data.class_level !== ''){
+                document.getElementById('class_level').classList.remove('dangerBoader');
+            }else{
+                document.getElementById('class_level').classList.add('dangerBoader');
                 successFlag = false;
             }
 

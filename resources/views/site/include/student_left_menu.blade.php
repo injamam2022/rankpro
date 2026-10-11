@@ -190,16 +190,23 @@
             <a href="{{ route('common_confusion') }}"><img src="{{ asset('') }}web/images/d_conf_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Mistake Monitor</span></a>
         </li>
 
+        @if(config('rankpro.student_modules.rankpro_ai'))
         <li class="">
             <a href="#"><img src="{{ asset('') }}web/images/d_ai_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>RankPro AI</span></a>
         </li>
+        @endif
 
+        @if(config('rankpro.student_modules.air'))
         <li class="{{ request()->is('air') || request()->is('air/*') ? 'active' : '' }}">
             <a href="{{ route('air') }}"><img src="{{ asset('') }}web/images/d_air_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>AIR</span></a>
         </li>
+        @endif
+
+        @if(config('rankpro.student_modules.ranker_motivation'))
         <li class="{{ request()->is('rankers-for-rankers') || request()->is('rankers-for-rankers/*') ? 'active' : '' }}">
             <a href="{{ route('rankers_for_rankers') }}"><img src="{{ asset('') }}web/images/d_one_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>1 to 1 Ranker Motivation</span></a>
         </li>
+        @endif
         <li class="{{ request()->is('report-problem') || request()->is('report-problem/*') ? 'active' : '' }}">
             <a href="{{ route('report_problem') }}"><img src="{{ asset('') }}web/images/d_headset_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Report a problem</span></a>
         </li>

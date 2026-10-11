@@ -80,48 +80,21 @@
                     </div>
                     
                     <div class="row mt-2">
-
-                        <div class="col-sm-12">
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    <label class="form-label" for="hard_level">Hard %</label>
-                                    <div class="form-control">
-                                        {{$details->hard_level}}
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <label class="form-label" for="medium_level">Medium %</label>
-                                    <div class="form-control">
-                                        {{$details->medium_level}}
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <label class="form-label" for="easy_level">Easy %</label>
-                                    <div class="form-control">
-                                        {{$details->easy_level}}
-                                    </div>
-                                </div>
+                        <div class="col-sm-4">
+                            <label class="form-label">Difficulty</label>
+                            <div class="form-control">
+                                @php
+                                    $h = (float) $details->hard_level;
+                                    $m = (float) $details->medium_level;
+                                    $e = (float) $details->easy_level;
+                                    $diffLabel = '—';
+                                    if ($h >= $m && $h >= $e && $h > 0) $diffLabel = 'Hard';
+                                    elseif ($m >= $e && $m > 0) $diffLabel = 'Medium';
+                                    elseif ($e > 0) $diffLabel = 'Easy';
+                                @endphp
+                                {{ $diffLabel }}
                             </div>
-                        </div>                            
-                    </div>
-                    
-                    <div class="row mt-2">
-
-                        <div class="col-sm-12">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <h5>Question Type</h5>
-                                </div>
-                                @foreach($question_paper_question_type as $value)
-                                    <div class="col-sm-2">
-                                        <label class="form-label" for="hard_level">{{$value->name}}</label>
-                                        <div class="form-control">
-                                            {{$value->value}}
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>                            
+                        </div>
                     </div>
                     <div class="row mt-2">
 
@@ -192,7 +165,10 @@
 
                         
                         <div class="col-lg-12 mt-5 text-center">
-                            <a href="javascript:void(0);" onclick="history.go(-1);" class="btn btn-secondary cancelButton" type="button">Cancel</a>
+                            <a href="javascript:void(0);" onclick="history.go(-1);" class="rp-act rp-act-ghost cancelButton">
+                                <i class="material-icons">close</i>
+                                Cancel
+                            </a>
                         </div>
                         <div class="mb-5">
                             &nbsp;

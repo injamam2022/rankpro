@@ -14,7 +14,11 @@
             </div>
         </div>
 
-        <table id="datatablesSimple">
+        <form method="get" class="admin-list-bar">
+            @include('admin.include.list_toolbar')
+        </form>
+
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>#</th>
@@ -24,22 +28,21 @@
                     <th>Questions</th>
                     <th>Duration</th>
                     <th>Status</th>
-                    <th>Created at</th>
+                    <th>Added</th>
+                    <th>Updated</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($list as $key => $row)
+                @forelse ($list as $row)
                     @php
                         $student = $row->user;
                         $studentName = $student
                             ? trim(($student->first_name ?? '').' '.($student->last_name ?? ''))
                             : '—';
-                        $created = $row->created_at
-                            ? $row->created_at->format('d M Y, h:i A')
-                            : '—';
                     @endphp
                     <tr>
-                        <td>{{ $key + 1 }}</td>
+                        <td>{{ $list->firstItem() + $loop->index }}</td>
                         <td>{{ $row->name }}</td>
                         <td>{{ $studentName !== '' ? $studentName : '—' }}</td>
                         <td>{{ $student->rankpro_id ?? '—' }}</td>
@@ -50,15 +53,27 @@
                                 {{ ucfirst($row->status) }}
                             </span>
                         </td>
-                        <td>{{ $created }}</td>
+                        <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>
+                        <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->updated_at) }}</td>
+                        <td>
+                            <div class="rp-actions">
+                                @include('admin.include.icon_btn', [
+                                    'href' => route('admin.custom_test_bank.answers', ['id' => $row->id]),
+                                    'variant' => 'view',
+                                    'icon' => 'library_books',
+                                    'title' => 'View questions & student answers',
+                                ])
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted">No custom practice tests yet.</td>
+                        <td colspan="10" class="text-center text-muted">No custom practice tests yet.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
+        @include('admin.include.list_pager')
     </div>
 @endsection
 

@@ -15,6 +15,10 @@ use App\Models\User;
 use App\Models\Notice_user;
 use App\Models\Subject;
 use App\Models\Exam;
+use App\Models\Exam_user;
+use App\Services\StudentNotificationService;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class NoticeController extends Controller
 {
@@ -57,20 +61,35 @@ class NoticeController extends Controller
             $test_series = $request->test_series;
             $user_id = $request->user_id;
 
+            $recipientIds = collect();
             if(!empty($user_id)){
-                $insertData = [];
-                $insertData['notice_id'] = $notice->id;
-                $insertData['user_id'] = $request->user_id;
-
-                Notice_user::create($insertData);
-            }else if(!empty($test_series)){
-
+                $recipientIds = collect([(int) $user_id]);
             }else if(!empty($exam_id)){
+                $recipientIds = DB::table('exam_assignments')->where('exam_id', $exam_id)->pluck('user_id')
+                    ->merge(Exam_user::where('exam_id', $exam_id)->pluck('user_id'))
+                    ->unique()->values();
+            }
 
-            }else if(!empty($exam_type)){
+            foreach ($recipientIds as $rid) {
+                Notice_user::create([
+                    'notice_id' => $notice->id,
+                    'user_id' => $rid,
+                ]);
+            }
 
-            }else if(!empty($class_id)){
-
+            if (Schema::hasTable('student_notifications') && $recipientIds->isNotEmpty()) {
+                app(StudentNotificationService::class)->notify(
+                    $recipientIds,
+                    StudentNotificationService::TYPE_ADMIN_NOTICE,
+                    $notice->name,
+                    [
+                        'body' => \Illuminate\Support\Str::limit(strip_tags($notice->description ?? ''), 180),
+                        'is_important' => (int) $notice->is_urgent === 1,
+                        'notifiable_type' => Notice::class,
+                        'notifiable_id' => $notice->id,
+                        'action_url' => route('notice'),
+                    ]
+                );
             }
 
             toastr()->success('Notice added successfully.');

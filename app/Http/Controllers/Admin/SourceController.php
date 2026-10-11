@@ -12,14 +12,18 @@ use Illuminate\Support\Arr;
 
 use App\Models\Source;
 use App\Models\Subject;
+use App\Support\AdminListQuery;
 
 class SourceController extends Controller
 {
-    public function list(){
+    public function list(Request $request){
         $data = [];
-        $data['list'] = Source::select(['sources.*','subjects.name as subject_name'])
-                            ->leftJoin('subjects', 'sources.subject_id', '=', 'subjects.id')
-                            ->get();
+        $data['q'] = AdminListQuery::q($request);
+        $data['per_page'] = AdminListQuery::perPage($request);
+        $query = Source::select(['sources.*','subjects.name as subject_name'])
+                            ->leftJoin('subjects', 'sources.subject_id', '=', 'subjects.id');
+        AdminListQuery::applySearch($query, $data['q'], ['sources.name', 'subjects.name']);
+        $data['list'] = $query->orderByDesc('sources.id')->paginate($data['per_page'])->withQueryString();
         return view('admin.source.list',$data);
     }
 

@@ -10,62 +10,35 @@
 			}
 		</style>
 	</head>
-	<body style="margin: 0px;font-family: 'Calibri';width: 700px; margin: 0px auto;">
+	<body style="margin: 0px;font-family: DejaVu Sans, sans-serif;width: 700px; margin: 0px auto; font-size: 12px;">
 		<header style="height: 60px;">
 			<div style="">
-				<img src="{{ asset('') }}web/images/logo.png" alt="RankPro - Educational Advisory solutions" width="100px" style="">
+				@if(!empty($pdf_logo))
+					<img src="{{ $pdf_logo }}" alt="RankPro" width="100" style="width:100px;height:auto;">
+				@endif
 			</div>
 		</header>
 		@php $page_count = 1; @endphp
-		<div style="height: 920px;">
+		@php $global_q = 1; @endphp
+		<div>
 			@foreach($subject_list as $k1=>$v1)
-				
 				<table style="width: 100%;border: 1px solid black; border-collapse: collapse;margin-top: 20px;">
 					<tr>
-						<td colspan="10" align="center" style="border: 1px solid black;">{{$v1->subject_name}}</td>
+						<td colspan="10" align="center" style="border: 1px solid black; padding: 6px; font-weight: 600;">{{ $v1->subject_name }} — {{ $details->name }}</td>
 					</tr>
 					<tr>
-
 						@foreach($v1->question_list as $k2=>$v2)
 							@if((($k2) % 10) == 0 && $k2 != 0)
 								</tr>
-
 								<tr>
-
 							@endif
-							<td  style="border: 1px solid black;width: 20%;">
-								<div>
-									{{$k2+1}} - {{$v2->answer}}
-								</div>
+							<td style="border: 1px solid black;width: 10%; padding: 6px; text-align: center;">
+								{{ $global_q }} - {{ $v2->answer }}
+								@php $global_q++; @endphp
 							</td>
 						@endforeach
 					</tr>
 				</table>
-
-				@if(count($subject_list) > $page_count)
-					</div>
-
-					<footer style="height: 30px;">
-						<table  style="width: 100%;">
-							<tr>
-								<td style="width:20%;" align="left">{{$page_count}} | Page</td>
-								<td style="width:60%;" align="center">{{url('')}}</td>
-								<td style="width:20%;" align="right"></td>
-							</tr>
-						</table>
-					</footer>
-
-					<div class="page-break"></div>
-
-
-					<header style="height: 60px;">
-						<div style="">
-							<img src="{{ asset('') }}web/images/logo.png" alt="RankPro - Educational Advisory solutions" width="100px" style="">
-						</div>
-					</header>
-					<div style="height: 920px;">
-					@php $page_count = $page_count+1; @endphp
-				@endif
 			@endforeach
 		</div>
 
@@ -73,7 +46,7 @@
 			<table  style="width: 100%;">
 				<tr>
 					<td style="width:20%;" align="left">{{$page_count}} | Page</td>
-					<td style="width:60%;" align="center">{{url('')}}</td>
+					<td style="width:60%;" align="center">RankPro</td>
 					<td style="width:20%;" align="right"></td>
 				</tr>
 			</table>

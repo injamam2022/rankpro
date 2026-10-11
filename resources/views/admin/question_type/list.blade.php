@@ -12,50 +12,70 @@
                 <h1 class="page-header mb-0">Question Type</h1>
             </div>
             <div>
-                <a href="{{route('admin.question_type.add')}}" style="display: flex;font-size: 20px;text-decoration: none !important;">
-                    <i class="material-icons">add</i> 
+                <a href="{{route('admin.question_type.add')}}" class="rp-act rp-act-add">
+                    <i class="material-icons">add</i>
                     Add
                 </a>
             </div>
         </div>
-        <!-- Simple DataTables example-->
-        <table id="datatablesSimple">
+        <form method="get" class="admin-list-bar">
+            @include('admin.include.list_toolbar')
+        </form>
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
-                    <!-- <th>Per question time</th> -->
-                    <!-- <th>Per exam no of question</th> -->
+                    <th>Description</th>
+                    <th>Added</th>
+                    <th>Updated</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                @if(count($list)>0)
-                    @foreach ($list as $key=>$row)
-                        <tr>
-                            <td>{{$row->id}}</td>
-                            <td>{{$row->name}}</td>
-                            <!-- <td>{{$row->per_question_time}}</td> -->
-                            <!-- <td>{{$row->per_exam_no_of_question}}</td> -->
-                            <td>
-                                <a href="{{route('admin.question_type.change',['id'=>$row->id])}}" title="Click to change status" style="text-decoration: none;" onclick="return confirm('Do you realy want to change status?');">
-                                    @if($row->status == 1)
-                                        <span class="btn btn-success btn-sm">Active</span>
-                                    @else
-                                        <span class="btn btn-danger btn-sm">Inactive</span>
-                                    @endif
-                                </a>
-                            </td>
-                            <td>
-                                <a href="{{route('admin.question_type.edit',['id'=>$row->id])}}" class="btn btn-primary btn-sm mr-1"><i class="material-icons">edit</i></a>
-                                <a href="{{route('admin.question_type.delete',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you realy want to delete?');"><i class="material-icons">close</i></a>
-                            </td>
-                        </tr>
-                    @endforeach
-                @endif
+                @forelse ($list as $row)
+                    <tr>
+                        <td>{{$row->id}}</td>
+                        <td>{{$row->name}}</td>
+                        <td>{{$row->description}}</td>
+                        <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>
+                        <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->updated_at) }}</td>
+                        <td>
+                            @include('admin.include.icon_btn', [
+                                'href' => route('admin.question_type.change', ['id' => $row->id]),
+                                'variant' => $row->status == 1 ? 'on' : 'off',
+                                'icon' => $row->status == 1 ? 'toggle_on' : 'toggle_off',
+                                'title' => $row->status == 1 ? 'Active — click to deactivate' : 'Inactive — click to activate',
+                                'onclick' => "return confirm('Do you really want to change status?');",
+                            ])
+                        </td>
+                        <td>
+                            <div class="rp-actions">
+                                @include('admin.include.icon_btn', [
+                                    'href' => route('admin.question_type.edit', ['id' => $row->id]),
+                                    'variant' => 'edit',
+                                    'icon' => 'edit',
+                                    'title' => 'Edit',
+                                ])
+                                @include('admin.include.icon_btn', [
+                                    'href' => route('admin.question_type.delete', ['id' => $row->id]),
+                                    'variant' => 'delete',
+                                    'icon' => 'delete',
+                                    'title' => 'Delete',
+                                    'onclick' => "return confirm('Do you really want to delete?');",
+                                ])
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No records found.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
+        @include('admin.include.list_pager')
     </div>
 
 @endsection

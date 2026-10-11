@@ -94,8 +94,8 @@
                 <h1 class="page-header mb-0">Question</h1>
             </div>
             <div>
-                <a href="{{route('admin.question.add')}}" style="display: flex;font-size: 20px;text-decoration: none !important;">
-                    <i class="material-icons">add</i> 
+                <a href="{{route('admin.question.add')}}" class="rp-act rp-act-add">
+                    <i class="material-icons">add</i>
                     Add
                 </a>
             </div>
@@ -139,21 +139,56 @@
                     </select>
                 </div>
                 <div class="col-sm-1">
-                    <button class="btn btn-primary" type="submit" style="margin-top: 25px;">Search</button>
+                    <button class="rp-act rp-act-add" type="submit" style="margin-top: 25px;">
+                        <i class="material-icons">search</i>
+                        Search
+                    </button>
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="admin-list-bar">
+                <input class="form-control" type="search" name="q" value="{{ $q ?? '' }}" placeholder="Search question, subject, chapter..." style="max-width:320px;">
+                <label class="mb-0" style="font-size:13px;color:#64748b;">Per page</label>
+                <select class="form-control" name="per_page" style="width:90px;" onchange="this.form.submit()">
+                    @foreach([10, 25, 50] as $n)
+                        <option value="{{ $n }}" @if((int)($per_page ?? 10) === $n) selected @endif>{{ $n }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap" style="gap:10px;">
                 <label class="mb-0" style="font-weight: 600;">
                     <input type="checkbox" name="duplicates" value="1" @if(!empty($duplicates)) checked @endif onchange="this.form.submit()">
                     Show duplicates only
                 </label>
-                @if(!empty($duplicate_count))
-                    <span style="background:#fff3cd;color:#856404;border:1px solid #ffe69c;border-radius:4px;padding:4px 10px;font-size:13px;">
-                        {{ $duplicate_count }} duplicate {{ $duplicate_count == 1 ? 'question' : 'questions' }}
-                    </span>
-                @endif
+                <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
+                    @if(!empty($duplicate_count))
+                        <span style="background:#fff3cd;color:#856404;border:1px solid #ffe69c;border-radius:4px;padding:4px 10px;font-size:13px;">
+                            {{ $duplicate_count }} duplicate {{ $duplicate_count == 1 ? 'question' : 'questions' }}
+                        </span>
+                    @endif
+                    @if(!empty($duplicates) && !empty($removable_duplicate_count))
+                        <button type="button"
+                                class="rp-act rp-act-delete rp-act-label"
+                                title="Delete duplicate copies (keeps one original each)"
+                                onclick="if(confirm('Delete {{ (int)$removable_duplicate_count }} duplicate question(s)?\n\nOne original is kept for each set. Current filters still apply.')){ document.getElementById('bulkDupForm').submit(); }">
+                            <i class="material-icons">delete_sweep</i>
+                            Bulk delete duplicates ({{ $removable_duplicate_count }})
+                        </button>
+                    @endif
+                </div>
             </div>
         </form>
+        @if(!empty($duplicates) && !empty($removable_duplicate_count))
+            <form id="bulkDupForm" method="post" action="{{ route('admin.question.bulk_delete_duplicates') }}" style="display:none;">
+                @csrf
+                <input type="hidden" name="duplicates" value="1">
+                <input type="hidden" name="subject_id" value="{{ $subject_id }}">
+                <input type="hidden" name="chapter_id" value="{{ $chapter_id }}">
+                <input type="hidden" name="topic_id" value="{{ $topic_id }}">
+                <input type="hidden" name="sub_topic_id" value="{{ $sub_topic_id }}">
+                <input type="hidden" name="q" value="{{ $q ?? '' }}">
+                <input type="hidden" name="per_page" value="{{ $per_page ?? 10 }}">
+            </form>
+        @endif
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -161,6 +196,8 @@
                     <th>Chapter</th>
                     <th>Source</th>
                     <th>Question</th>
+                    <th>Added</th>
+                    <th>Updated</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -231,27 +268,44 @@
                                     </div>
                                 </div>
                             </td>
+                            <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>
+                            <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->updated_at) }}</td>
                             <td>
-                                <a href="{{route('admin.question.change',['id'=>$row->id])}}" title="Click to change status" style="text-decoration: none;" onclick="return confirm('Do you realy want to change status?');">
-                                    @if($row->status == 1)
-                                        <span class="btn btn-success btn-sm">Active</span>
-                                    @else
-                                        <span class="btn btn-danger btn-sm">Inactive</span>
-                                    @endif
-                                </a>
+                                @include('admin.include.icon_btn', [
+                                    'href' => route('admin.question.change', ['id' => $row->id]),
+                                    'variant' => $row->status == 1 ? 'on' : 'off',
+                                    'icon' => $row->status == 1 ? 'toggle_on' : 'toggle_off',
+                                    'title' => $row->status == 1 ? 'Active — click to deactivate' : 'Inactive — click to activate',
+                                    'onclick' => "return confirm('Do you really want to change status?');",
+                                ])
                             </td>
                             <td>
-                                <a href="{{route('admin.question.edit',['id'=>$row->id])}}" class="btn btn-primary btn-sm mr-1"><i class="material-icons">edit</i></a>
-                                <a href="{{route('admin.question.delete',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you realy want to delete?');"><i class="material-icons">close</i></a>
+                                <div class="rp-actions">
+                                    @include('admin.include.icon_btn', [
+                                        'href' => route('admin.question.edit', ['id' => $row->id]),
+                                        'variant' => 'edit',
+                                        'icon' => 'edit',
+                                        'title' => 'Edit',
+                                    ])
+                                    @include('admin.include.icon_btn', [
+                                        'href' => route('admin.question.delete', ['id' => $row->id]),
+                                        'variant' => 'delete',
+                                        'icon' => 'delete',
+                                        'title' => 'Delete',
+                                        'onclick' => "return confirm('Do you really want to delete?');",
+                                    ])
+                                </div>
                             </td>
                         </tr>
                     @endforeach
+                @else
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">No records found.</td>
+                    </tr>
                 @endif
             </tbody>
         </table>
-        <div class="pagination">
-            {{ $list->links() }}
-        </div>
+        @include('admin.include.list_pager')
     </div>
 
 @endsection

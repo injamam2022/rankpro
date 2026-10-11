@@ -41,7 +41,21 @@ class CommonController extends Controller
     public function chapter(Request $request){
         $subject_id = $request->subject_id;
         $data = [];
-        $data['result'] = Chapter::where('subject_id',$subject_id)->where('status',1)->get();
+        $query = Chapter::where('subject_id',$subject_id)->where('status',1);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('chapters', 'class_level')) {
+            $query->orderBy('class_level');
+        }
+        $data['result'] = $query->orderBy('name')->get()
+            ->map(function ($row) {
+                $label = $row->name;
+                $level = (int) ($row->class_level ?? 0);
+                if ($level === 11) {
+                    $label .= ' (Class 11)';
+                } elseif ($level === 12) {
+                    $label .= ' (Class 12)';
+                }
+                return ['id' => $row->id, 'name' => $label, 'class_level' => $level];
+            })->values();
         echo json_encode($data);
     }
     

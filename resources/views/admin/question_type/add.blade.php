@@ -40,8 +40,14 @@
 
                         
                         <div class="col-lg-12 mt-5 text-center">
-                            <a href="javascript:void(0);" onclick="history.go(-1);" class="btn btn-secondary cancelButton" type="button">Cancel</a>
-                            <button class="btn btn-primary" type="submit">Submit</button>
+                            <a href="javascript:void(0);" onclick="history.go(-1);" class="rp-act rp-act-ghost cancelButton">
+                                <i class="material-icons">close</i>
+                                Cancel
+                            </a>
+                            <button class="rp-act rp-act-add" type="submit">
+                                <i class="material-icons">check</i>
+                                Submit
+                            </button>
                         </div>
                         <div class="mb-5">
                             &nbsp;

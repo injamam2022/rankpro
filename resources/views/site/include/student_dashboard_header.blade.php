@@ -55,6 +55,51 @@
                     <span class="rp-timer__date">{{ $neetDateLabel }}</span>
                 @endif
             </div>
+            <div class="rp-bell-wrap" id="rpBellWrap"
+                 data-unread="{{ (int) ($notif_unread ?? 0) }}"
+                 data-count-url="{{ route('notifications.unread_count') }}">
+                <button type="button" class="rp-bell rp-bell-mute" id="rpNotifMuteBtn" aria-label="Mute notification sound" title="Mute notification sound">
+                    <i class="fas fa-volume-up" id="rpNotifMuteIcon"></i>
+                </button>
+                <button type="button" class="rp-bell" id="rpBellBtn" aria-label="Notifications">
+                    <i class="far fa-bell"></i>
+                    <span class="rp-bell__badge" id="rpBellBadge" @if(empty($notif_unread)) hidden @endif>{{ !empty($notif_unread) && $notif_unread > 99 ? '99+' : (int) ($notif_unread ?? 0) }}</span>
+                </button>
+                <div class="rp-bell-panel" role="menu">
+                    <div class="rp-bell-panel__head">
+                        <span>Notifications</span>
+                        <div class="rp-bell-panel__head-actions">
+                            @if(!empty($notif_unread))
+                                <form method="post" action="{{ route('notifications.read_all') }}" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="rp-link-sm" style="border:0;background:none;color:#2563eb;font-size:12px;">Mark all read</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="rp-bell-panel__tabs">
+                        <a href="{{ route('notice') }}">All</a>
+                        <a href="{{ route('notice', ['tab' => 'upcoming', 'type' => 5]) }}">Upcoming exams</a>
+                        <a href="{{ route('notice', ['tab' => 'important', 'type' => 6]) }}">Important</a>
+                    </div>
+                    @forelse(($notif_preview ?? []) as $n)
+                        <form method="post" action="{{ route('notifications.read') }}">
+                            @csrf
+                            <input type="hidden" name="id" value="{{ $n->id }}">
+                            <input type="hidden" name="to" value="{{ $n->action_url ?: route('notice') }}">
+                            <button type="submit" class="rp-bell-item {{ $n->read_at ? '' : 'is-unread' }}" style="width:100%;text-align:left;border:0;background:transparent;cursor:pointer;">
+                                <div class="rp-bell-item__title">{{ $n->title }}</div>
+                                <div class="rp-bell-item__meta">{{ $n->created_at ? $n->created_at->diffForHumans() : '' }}</div>
+                            </button>
+                        </form>
+                    @empty
+                        <div class="rp-bell-item__meta" style="padding:16px 12px;">No notifications yet.</div>
+                    @endforelse
+                    <div class="rp-bell-panel__foot">
+                        <a href="{{ route('notice') }}">View all</a>
+                    </div>
+                </div>
+            </div>
             <a href="{{ route('upcoming_exam') }}" class="rp-btn-pink">
                 <i class="fas fa-bolt"></i>
                 Give Exam
@@ -124,5 +169,162 @@
 
     updateRpCountdown();
     setInterval(updateRpCountdown, 1000);
+})();
+(function () {
+    var wrap = document.getElementById('rpBellWrap');
+    var btn = document.getElementById('rpBellBtn');
+    if (!wrap || !btn) return;
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        wrap.classList.toggle('is-open');
+    });
+    document.addEventListener('click', function (e) {
+        if (!wrap.contains(e.target)) wrap.classList.remove('is-open');
+    });
+})();
+(function () {
+    if (window.__rpNotifSoundStarted) return;
+    window.__rpNotifSoundStarted = true;
+
+    var wrap = document.getElementById('rpBellWrap');
+    var muteBtn = document.getElementById('rpNotifMuteBtn');
+    var muteIcon = document.getElementById('rpNotifMuteIcon');
+    var badge = document.getElementById('rpBellBadge');
+    if (!wrap || !muteBtn || !muteIcon) return;
+
+    var MUTE_KEY = 'rp_notif_muted';
+    var COUNT_KEY = 'rp_notif_heard_unread';
+    var countUrl = wrap.getAttribute('data-count-url') || '';
+    var currentCount = parseInt(wrap.getAttribute('data-unread') || '0', 10) || 0;
+    var heardCount = parseInt(localStorage.getItem(COUNT_KEY) || '0', 10);
+    if (isNaN(heardCount)) heardCount = 0;
+
+    var audioCtx = null;
+    var pendingWelcomeChime = currentCount > heardCount;
+
+    function isMuted() {
+        return localStorage.getItem(MUTE_KEY) === '1';
+    }
+
+    function setMuted(muted) {
+        localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
+        muteBtn.classList.toggle('is-muted', muted);
+        muteIcon.className = muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        muteBtn.setAttribute('aria-label', muted ? 'Unmute notification sound' : 'Mute notification sound');
+        muteBtn.setAttribute('title', muted ? 'Unmute notification sound' : 'Mute notification sound');
+    }
+
+    function ensureAudio() {
+        if (!audioCtx) {
+            var Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return null;
+            audioCtx = new Ctx();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(function () {});
+        }
+        return audioCtx;
+    }
+
+    function playChime() {
+        if (isMuted()) return;
+        var ctx = ensureAudio();
+        if (!ctx) return;
+        var now = ctx.currentTime;
+        [880, 1174.7].forEach(function (freq, i) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02 + i * 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28 + i * 0.08);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + i * 0.06);
+            osc.stop(now + 0.35 + i * 0.08);
+        });
+    }
+
+    function markHeard(count) {
+        heardCount = Math.max(0, count);
+        localStorage.setItem(COUNT_KEY, String(heardCount));
+    }
+
+    function updateBadge(count) {
+        if (!badge) return;
+        if (count > 0) {
+            badge.hidden = false;
+            badge.textContent = count > 99 ? '99+' : String(count);
+        } else {
+            badge.hidden = true;
+            badge.textContent = '0';
+        }
+    }
+
+    function onCount(count) {
+        count = Math.max(0, parseInt(count, 10) || 0);
+        currentCount = count;
+        if (count !== heardCount) {
+            markHeard(count);
+        }
+        updateBadge(count);
+    }
+
+    function remindIfUnread() {
+        if (currentCount > 0 && !isMuted()) {
+            playChime();
+        }
+    }
+
+    setMuted(isMuted());
+    updateBadge(currentCount);
+
+    muteBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        ensureAudio();
+        var next = !isMuted();
+        setMuted(next);
+        if (!next) {
+            playChime(); // preview when unmuting
+        }
+        if (pendingWelcomeChime) {
+            pendingWelcomeChime = false;
+            markHeard(currentCount);
+        }
+    });
+
+    document.addEventListener('click', function once() {
+        ensureAudio();
+        if (pendingWelcomeChime) {
+            pendingWelcomeChime = false;
+            if (!isMuted() && currentCount > 0) {
+                playChime();
+            }
+            markHeard(currentCount);
+        }
+        document.removeEventListener('click', once);
+    }, { once: true, capture: true });
+
+    function poll() {
+        if (!countUrl) return;
+        fetch(countUrl, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+            cache: 'no-store'
+        }).then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+              if (!data || typeof data.unread === 'undefined') return;
+              pendingWelcomeChime = false;
+              onCount(data.unread);
+          }).catch(function () {});
+    }
+
+    var TEN_MIN = 10 * 60 * 1000;
+    // Refresh unread count and play reminder sound every 10 minutes (if unread & not muted).
+    setInterval(function () {
+        poll();
+        remindIfUnread();
+    }, TEN_MIN);
 })();
 </script>

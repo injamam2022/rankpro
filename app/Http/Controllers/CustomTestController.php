@@ -102,10 +102,21 @@ class CustomTestController extends Controller
     {
         $subject = Subject::where('id', $subjectId)->where('status', 1)->firstOrFail();
 
-        $chapters = Chapter::where('subject_id', $subject->id)
-            ->where('status', 1)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $chapterQuery = Chapter::where('subject_id', $subject->id)->where('status', 1);
+        $hasClass = \Illuminate\Support\Facades\Schema::hasColumn('chapters', 'class_level');
+        if ($hasClass) {
+            $chapterQuery->orderBy('class_level');
+        }
+        $chapters = $chapterQuery->orderBy('name')->get($hasClass ? ['id', 'name', 'class_level'] : ['id', 'name'])
+            ->map(function ($ch) {
+                $level = (int) ($ch->class_level ?? 0);
+                if ($level === 11) {
+                    $ch->name .= ' (Class 11)';
+                } elseif ($level === 12) {
+                    $ch->name .= ' (Class 12)';
+                }
+                return $ch;
+            });
 
         $topics = Topic::where('subject_id', $subject->id)
             ->where('status', 1)

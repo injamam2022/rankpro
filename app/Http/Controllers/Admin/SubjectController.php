@@ -11,12 +11,17 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Arr;
 
 use App\Models\Subject;
+use App\Support\AdminListQuery;
 
 class SubjectController extends Controller
 {
-    public function list(){
+    public function list(Request $request){
         $data = [];
-        $data['list'] = Subject::get();
+        $data['q'] = AdminListQuery::q($request);
+        $data['per_page'] = AdminListQuery::perPage($request);
+        $query = Subject::query();
+        AdminListQuery::applySearch($query, $data['q'], ['name']);
+        $data['list'] = $query->orderByDesc('id')->paginate($data['per_page'])->withQueryString();
         return view('admin.subject.list',$data);
     }
 

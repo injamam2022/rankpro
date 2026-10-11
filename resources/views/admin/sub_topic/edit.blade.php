@@ -28,8 +28,8 @@
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="chapter_id">Chapter <span class="text-danger">*</span></label>
-                            <select class="form-select" name="chapter_id" id="chapter_id">
-                                <option>Select Chapter</option>
+                            <select class="form-select" name="chapter_id" id="chapter_id" onchange="changeChapter();">
+                                <option value="">Select Chapter</option>
                                 @foreach($chapter_list as $key => $value)
                                     <option value="{{$value->id}}" @if($details->chapter_id == $value->id) selected  @endif>{{$value->name}}</option>
                                 @endforeach
@@ -64,8 +64,14 @@
 
                         
                         <div class="col-lg-12 mt-5 text-center">
-                            <a href="javascript:void(0);" onclick="history.go(-1);" class="btn btn-secondary cancelButton" type="button">Cancel</a>
-                            <button class="btn btn-primary" type="submit">Submit</button>
+                            <a href="javascript:void(0);" onclick="history.go(-1);" class="rp-act rp-act-ghost cancelButton">
+                                <i class="material-icons">close</i>
+                                Cancel
+                            </a>
+                            <button class="rp-act rp-act-add" type="submit">
+                                <i class="material-icons">check</i>
+                                Submit
+                            </button>
                         </div>
                         <div class="mb-5">
                             &nbsp;

@@ -152,11 +152,13 @@
 
                         <div class="ct-meta">{{ $unattempted }} unattempted · Time: {{ $timeMinutes }}m</div>
 
+                        @if(config('rankpro.student_modules.air'))
                         <div class="ct-card">
                             <h3>NEET rank &amp; college predictions</h3>
                             <p>See your predicted rank based on this attempt.</p>
                             <a class="ct-link" href="{{ route('air') }}">View predictions →</a>
                         </div>
+                        @endif
 
                         <div class="ct-section-title">Subject-wise Performance</div>
 

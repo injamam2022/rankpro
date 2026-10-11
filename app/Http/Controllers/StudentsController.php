@@ -837,6 +837,11 @@ class StudentsController extends Controller
     }
 
     public function rankers_for_rankers(){
+        // Module temporarily disabled — set config rankpro.student_modules.ranker_motivation = true to restore.
+        if (! config('rankpro.student_modules.ranker_motivation')) {
+            return redirect()->route('dashboard');
+        }
+
         $language_id = $this->getLanguageId();
         $data = [];
         $data['ranker_list'] = Payment::select(['payments.*','rankers.name','rankers.icon'])

@@ -1041,7 +1041,7 @@
             successFlag = false;
           }
         }*/
-
+        
         var currentPassword = document.getElementById('current_password');
         var newPassword = document.getElementById('new_password');
         var confirmPassword = document.getElementById('new_password_confirmation');

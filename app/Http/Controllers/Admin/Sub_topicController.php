@@ -14,16 +14,20 @@ use App\Models\Chapter;
 use App\Models\Subject;
 use App\Models\Topic;
 use App\Models\Sub_topic;
+use App\Support\AdminListQuery;
 
 class Sub_topicController extends Controller
 {
-    public function list(){
+    public function list(Request $request){
         $data = [];
-        $data['list'] = Sub_topic::select(['sub_topics.*','chapters.name as chapter_name','subjects.name as subject_name','topics.name as topic_name'])
+        $data['q'] = AdminListQuery::q($request);
+        $data['per_page'] = AdminListQuery::perPage($request);
+        $query = Sub_topic::select(['sub_topics.*','chapters.name as chapter_name','subjects.name as subject_name','topics.name as topic_name'])
                             ->leftJoin('topics', 'sub_topics.topic_id', '=', 'topics.id')
                             ->leftJoin('chapters', 'sub_topics.chapter_id', '=', 'chapters.id')
-                            ->leftJoin('subjects', 'sub_topics.subject_id', '=', 'subjects.id')
-                            ->get();
+                            ->leftJoin('subjects', 'sub_topics.subject_id', '=', 'subjects.id');
+        AdminListQuery::applySearch($query, $data['q'], ['sub_topics.name', 'topics.name', 'chapters.name', 'subjects.name']);
+        $data['list'] = $query->orderByDesc('sub_topics.id')->paginate($data['per_page'])->withQueryString();
         return view('admin.sub_topic.list',$data);
     }
 
@@ -42,9 +46,11 @@ class Sub_topicController extends Controller
 
         $input = $request->all();
 
-        // $loginCheck = Sub_topic::where('name',$request->name)->first();
+        $loginCheck = Sub_topic::where('name',$request->name)
+            ->where('topic_id', $request->topic_id)
+            ->first();
 
-        if (1){
+        if (!$loginCheck){
             $insertData = [];
             $insertData['name'] = $request->name;
             $insertData['subject_id'] = $request->subject_id;

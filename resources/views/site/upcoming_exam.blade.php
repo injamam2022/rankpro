@@ -26,7 +26,7 @@
     <link href="{{ asset('web/css/dashboard.css') }}" rel="stylesheet">
     <link href="{{ asset('web/css/dashboard-v2.css') }}" rel="stylesheet">
     <link href="{{ asset('web/css/give-exam.css') }}" rel="stylesheet">
-
+    
     <style>
         .calltoaction { display: none; }
     </style>
@@ -82,18 +82,18 @@
     @include('site.include.student_dashboard_header')
 
     <section id="dashboard">
-        <div class="container-fluid">
-            <div class="dashboardAll dashboardPh">
-                <div class="menuBarBtn menuBarBtnOpen">
-                    <i class="fas fa-bars"></i>
-                </div>
+      <div class="container-fluid">
+          <div class="dashboardAll dashboardPh">
+              <div class="menuBarBtn menuBarBtnOpen">
+                  <i class="fas fa-bars"></i>
+              </div>
+              
+              <div class="dashboardLeft dashboardLeftOff">
+                  @include('site.include.student_left_menu')
+              </div>
 
-                <div class="dashboardLeft dashboardLeftOff">
-                    @include('site.include.student_left_menu')
-                </div>
-
-                <div class="dashboardRight">
-                    <div class="dashboardRightBody">
+              <div class="dashboardRight">
+                  <div class="dashboardRightBody">
                         <div class="ge-portal">
 
                             {{-- Hero + metrics --}}
@@ -103,14 +103,14 @@
                                         <span class="ge-hero__icon"><i class="far fa-calendar-check"></i></span>
                                         <h1 class="ge-hero__title">Give Exam &amp; Mock Test Portal</h1>
                                         <span class="ge-badge-pink">NEET 2027</span>
-                                    </div>
+                                        </div>
 
                                     <div class="ge-tabs" role="tablist">
                                         <button type="button" class="ge-tab is-active" data-ge-tab="convenience">Take Mock at Convenience</button>
                                         <button type="button" class="ge-tab" data-ge-tab="schedule">Upcoming Exam Schedule &amp; Calendar</button>
                                         <button type="button" class="ge-tab" data-ge-tab="plan">Study Plan &amp; Timetable</button>
                                     </div>
-                                </div>
+                              </div>
 
                                 <div class="ge-metrics">
                                     <div class="ge-metric">
@@ -122,18 +122,18 @@
                                         <div class="ge-metric__label">Scheduled Dates</div>
                                         <div class="ge-metric__value">{{ $scheduledCount }} <span>upcoming</span></div>
                                         <div class="ge-metric__hint is-blue">Next: {{ $nextSlotLabel }}</div>
-                                    </div>
+                          </div>
                                     <div class="ge-metric ge-metric--pink">
                                         <div class="ge-metric__label">Mocks Attempted</div>
                                         <div class="ge-metric__value">{{ $attemptedCount }} <span>completed</span></div>
                                         <div class="ge-metric__hint is-pink">Highest: {{ $highestScore }} / {{ $highestMax }}</div>
-                                    </div>
+                              </div>
                                     <div class="ge-metric ge-metric--green">
                                         <div class="ge-metric__label">Study Plan Adherence</div>
                                         <div class="ge-metric__value" id="gePlanPct">{{ $planPct }}%</div>
                                         <div class="ge-metric__hint is-green" id="gePlanHint">{{ $planDone }} of {{ $planTotal }} sessions done</div>
                                         <div class="ge-metric__bar"><span id="gePlanBar" style="width: {{ $planPct }}%"></span></div>
-                                    </div>
+                          </div>
                                 </div>
 
                                 <div class="ge-notice">
@@ -146,10 +146,10 @@
                                         <div class="ge-notice__text">
                                             Automated push and SMS alerts for mock windows, schedule changes, and study-plan reminders will appear here soon.
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-
+                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                            
                             {{-- Tab: Convenience --}}
                             <div class="ge-card ge-panel ge-panel-section" data-ge-panel="convenience">
                                 <div class="ge-panel__head">
@@ -159,7 +159,7 @@
                                             <span class="ge-badge-blue">On Demand</span>
                                         </h2>
                                         <p class="ge-panel__sub">Start eligible mocks instantly, or wait for scheduled windows.</p>
-                                    </div>
+                                                                        </div>
                                     <div class="ge-panel__tools">
                                         <button type="button"
                                                 class="ge-search-toggle {{ $searchOpen ? 'is-active' : '' }}"
@@ -187,9 +187,9 @@
                                                 <i class="fas fa-bolt"></i> Quick Start Recommended Mock
                                             </button>
                                         @endif
-                                    </div>
-                                </div>
-
+                                                                    </div>
+                                                                </div>
+                                                        
                                 <div class="ge-search-panel {{ $searchOpen ? 'is-open' : '' }}" id="geSearchPanel" @if(!$searchOpen) hidden @endif>
                                     <form class="ge-search-form" method="get" action="{{ route('upcoming_exam') }}" role="search">
                                         @if(!empty($exam_type))
@@ -197,7 +197,7 @@
                                         @endif
                                         @if(!empty($subject_id))
                                             <input type="hidden" name="subject_id" value="{{ $subject_id }}">
-                                        @endif
+                                                                        @endif
                                         <div class="ge-search-field">
                                             <i class="fas fa-search"></i>
                                             <input type="search"
@@ -206,15 +206,15 @@
                                                    value="{{ $searchQ }}"
                                                    placeholder="Search by mock name or exam ID…"
                                                    autocomplete="off">
-                                        </div>
+                                                                    </div>
                                         <button type="submit" class="ge-btn ge-btn--blue ge-btn--sm">Search</button>
                                         @if($searchQ !== '')
                                             <a class="ge-btn ge-btn--ghost ge-btn--sm"
                                                href="{{ route('upcoming_exam', array_filter(['exam_type' => $exam_type ?: null, 'subject_id' => $subject_id ?: null])) }}">Clear</a>
                                         @endif
                                     </form>
-                                </div>
-
+                                                                </div>
+                                                        
                                 <div class="ge-mocks">
                                     @forelse($upcoming_exam_list as $value)
                                         @php
@@ -228,15 +228,15 @@
                                             <div class="ge-mock__top">
                                                 <div class="ge-mock__series">{{ $value->series_label ?? 'RANKPRO NEET ELITE SERIES 2027' }}</div>
                                                 <div class="ge-mock__duration"><i class="far fa-clock"></i> {{ $mins }} mins</div>
-                                            </div>
+                                                            </div>
                                             <h3 class="ge-mock__name">{{ $value->name }}</h3>
                                             <p class="ge-mock__desc">{{ $syllabus }}</p>
                                             <div class="ge-mock__meta">
                                                 <span>Questions: <strong>{{ $value->no_of_question ?? '—' }}</strong></span>
                                                 <span>Marks: <strong>{{ $value->totals_marks_for_exam ?? '—' }}</strong></span>
                                                 <span>Difficulty: <strong>{{ $value->difficulty_label ?? 'NTA Standard' }}</strong></span>
-                                            </div>
-
+                                                                    </div>
+                                                                
                                             @if($isOffline && $value->exam_status === null)
                                                 <div class="ge-accept-row">
                                                     <a href="{{ route('upcoming_exam.accept', ['id' => $value->id]) }}"
@@ -245,7 +245,7 @@
                                                     <a href="{{ route('upcoming_exam.reject', ['id' => $value->id]) }}"
                                                        class="ge-btn-reject"
                                                        onclick="return confirm('Do you really want to reject this exam?');">Reject</a>
-                                                </div>
+                                                                    </div>
                                             @endif
 
                                             <div class="ge-mock__foot">
@@ -284,8 +284,8 @@
                                             @endif
                                         </div>
                                     @endforelse
-                                </div>
-
+                                                                        </div>
+                                                                
                                 @if(method_exists($upcoming_exam_list, 'total') && $upcoming_exam_list->total() > 0)
                                     <div class="ge-pagination">
                                         <div class="ge-pagination__meta">
@@ -294,8 +294,8 @@
                                         {{ $upcoming_exam_list->onEachSide(1)->links('pagination::bootstrap-5') }}
                                     </div>
                                 @endif
-                            </div>
-
+                                                                        </div>
+                                                                
                             {{-- Tab: Schedule --}}
                             <div class="ge-card ge-panel ge-panel-section" data-ge-panel="schedule" hidden>
                                 <div class="ge-panel__head">
@@ -306,16 +306,16 @@
                                         </h2>
                                         <p class="ge-panel__sub">Your assigned exam windows on the calendar.</p>
                                     </div>
-                                </div>
-
+                                                                        </div>
+                                                                
                                 <div class="ge-cal">
                                     <div class="ge-cal__toolbar">
                                         <div class="ge-cal__month" id="geCalMonthLabel">—</div>
                                         <div class="ge-cal__nav">
                                             <button type="button" id="geCalPrev" aria-label="Previous month"><i class="fas fa-chevron-left"></i></button>
                                             <button type="button" id="geCalNext" aria-label="Next month"><i class="fas fa-chevron-right"></i></button>
-                                        </div>
-                                    </div>
+                                                                        </div>
+                                                                    </div>
                                     <div class="ge-cal__grid" id="geCalDows">
                                         <div class="ge-cal__dow">Sun</div>
                                         <div class="ge-cal__dow">Mon</div>
@@ -324,9 +324,9 @@
                                         <div class="ge-cal__dow">Thu</div>
                                         <div class="ge-cal__dow">Fri</div>
                                         <div class="ge-cal__dow">Sat</div>
-                                    </div>
+                                                                  </div>
                                     <div class="ge-cal__grid" id="geCalDays"></div>
-                                </div>
+                                                            </div>
 
                                 <div class="ge-schedule-list">
                                     <div class="ge-schedule-list__title">Upcoming Tests Detailed Schedule:</div>
@@ -343,25 +343,25 @@
                                                     {{ ((int)$value->type === 2) ? 'Offline Examination' : 'Online Examination' }}
                                                 </span>
                                                 <span class="ge-schedule-item__name">{{ $value->name }}</span>
-                                            </div>
+                                                        </div>
                                             <div class="ge-schedule-item__when">
                                                 <span><i class="far fa-calendar"></i> {{ $start->format('Y-m-d') }}</span>
                                                 <span><i class="far fa-clock"></i> {{ $start->format('h:i A') }} - {{ $end->format('h:i A') }} IST</span>
-                                            </div>
-                                        </div>
+                                                    </div>
+                                                </div>
                                     @empty
                                         <div class="ge-empty">No upcoming scheduled tests.</div>
                                     @endforelse
-                                </div>
-
+                                                                </div>
+                                                        
                                 <div class="ge-advice">
                                     <div class="ge-advice__title">Circadian Rhythm Advice for NEET 2027</div>
                                     <p class="ge-advice__text">
                                         Train your focus during the official NEET UG window (2:00 PM – 5:20 PM). Schedule at least one full mock in that slot each week so exam-day alertness feels natural.
                                     </p>
-                                </div>
-                            </div>
-
+                                                                            </div>
+                                                                        </div>
+                                                            
                             {{-- Tab: Study Plan --}}
                             <div class="ge-card ge-panel ge-panel-section" data-ge-panel="plan" hidden>
                                 <div class="ge-panel__head">
@@ -371,23 +371,23 @@
                                             <span class="ge-badge-blue">NCERT High-Yield</span>
                                         </h2>
                                         <p class="ge-panel__sub">Tap a row to mark it complete. Plans are saved on this device.</p>
-                                    </div>
+                                                                        </div>
                                     <div class="ge-plan-meta">
                                         <span>Today's Target: <strong id="gePlanHours">8.5 Study Hours</strong></span>
                                         <button type="button" class="ge-btn ge-btn--blue ge-btn--sm" id="geOpenPlanModal">
                                             <i class="fas fa-plus"></i> Add Study Plan
                                         </button>
-                                    </div>
-                                </div>
-
+                                                                    </div>
+                                                                </div>
+                                                        
                                 <div class="ge-plan-list" id="gePlanList"></div>
-                            </div>
-
-                        </div>
-                    </div>
+                                                                </div>
+                                                        
+                                                            </div>
+                                                        </div>
                 </div>
-            </div>
-        </div>
+                                                                    </div>
+                                                                    </div>
     </section>
 
     {{-- Add Study Plan Modal --}}
@@ -399,8 +399,8 @@
                     Add Study Plan &amp; Timetable Item
                 </h3>
                 <button type="button" class="ge-modal__close" data-ge-close>&times;</button>
-            </div>
-
+                                                                        </div>
+                                                                
             <div class="ge-error" id="gePlanError"></div>
 
             <form id="gePlanForm" autocomplete="off">
@@ -411,37 +411,37 @@
                         <button type="button" class="ge-subj-pick is-chem" data-subject="Chemistry">🧪 Chemistry</button>
                         <button type="button" class="ge-subj-pick is-bio is-active" data-subject="Biology">🧬 Biology</button>
                     </div>
-                </div>
-
+                                                                        </div>
+                                                                
                 <div class="ge-field">
                     <div class="ge-field__label">
                         <span>2. Topic <span style="color:#ef4444">* (Mandatory)</span></span>
                         <span class="ge-field__hint is-req">Required</span>
                     </div>
                     <input type="text" class="ge-input" id="gePlanTopic" placeholder="e.g. Endocrine System & Hormone Regulation" required>
-                </div>
-
+                                                                        </div>
+                                                                
                 <div class="ge-field">
                     <div class="ge-field__label">
                         <span>3. Sub-topic <span style="color:#94a3b8;font-weight:500">(Optional)</span></span>
                         <span class="ge-field__hint is-opt">Optional</span>
-                    </div>
+                                                                        </div>
                     <input type="text" class="ge-input" id="gePlanSubTopic" placeholder="e.g. Thyroid, Adrenal & Pituitary Hormones">
-                </div>
+                                                                    </div>
 
                 <div class="ge-row-2">
                     <div class="ge-field">
                         <div class="ge-field__label">Target Output Goal</div>
                         <input type="text" class="ge-input" id="gePlanTarget" value="Solve 45 High-Yield NCERT Questions">
-                    </div>
+                                                                  </div>
                     <div class="ge-field">
                         <div class="ge-field__label">Duration &amp; Slot</div>
                         <div class="ge-dur-row">
                             <input type="number" class="ge-input" id="gePlanDuration" min="15" max="240" step="15" value="60">
                             <input type="text" class="ge-input" id="gePlanSlot" value="06:00 PM – 07:00 PM">
-                        </div>
-                    </div>
-                </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
                 <div class="ge-modal__foot">
                     <div class="ge-priority">
@@ -449,19 +449,19 @@
                         <div class="ge-priority__group">
                             <button type="button" class="ge-priority__btn is-high is-active" data-priority="High">High</button>
                             <button type="button" class="ge-priority__btn is-med" data-priority="Medium">Medium</button>
-                        </div>
-                    </div>
+                                </div>
+                              </div>
                     <div class="ge-modal__actions">
                         <button type="button" class="ge-link-cancel" data-ge-close>Cancel</button>
                         <button type="submit" class="ge-btn ge-btn--blue">
                             <i class="fas fa-plus"></i> Add to Study Plan
                         </button>
-                    </div>
-                </div>
+                          </div>
+                      </div>
             </form>
-        </div>
-    </div>
-
+              </div>
+          </div>
+    
     @include('site.include.call_to_action')
     @include('site.include.how_to_use')
 
@@ -479,15 +479,15 @@
     <script>
       $(document).ready(function () {
         $(".menuBarBtn.menuBarBtnOpen").click(function () {
-          $(".dashboardLeft").removeClass("dashboardLeftOff");
+            $(".dashboardLeft").removeClass("dashboardLeftOff");
         });
         $(".menuBarBtn.menuBarBtnClose").click(function () {
-          $(".dashboardLeft").addClass("dashboardLeftOff");
+            $(".dashboardLeft").addClass("dashboardLeftOff");
         });
       });
     </script>
 
-    <script>
+        <script>
     (function () {
       var searchToggle = document.getElementById('geSearchToggle');
       var searchPanel = document.getElementById('geSearchPanel');
@@ -627,8 +627,8 @@
         if (!plan.length) {
           list.innerHTML = '<div class="ge-empty">No study plan items yet. Click “Add Study Plan”.</div>';
           updatePlanMetrics();
-          return;
-        }
+                        return;
+                    }
         list.innerHTML = plan.map(function (item) {
           var subj = subjectClass[item.subject] || 'ge-subj--bio';
           return (
@@ -757,8 +757,8 @@
           if (planTab) planTab.click();
         });
       }
-    })();
-    </script>
+            })();
+        </script>
 
     @include('site.include.start_exam_confirm_modal')
 </body>

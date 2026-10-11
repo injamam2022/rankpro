@@ -116,6 +116,9 @@
     Route::get('/notice/favorite', [NoticesController::class, 'notice_favorite'])->name('notice.favorite')->middleware(['verifyMembership']);
     Route::get('/notice/archive', [NoticesController::class, 'notice_archive'])->name('notice.archive')->middleware(['verifyMembership']);
     Route::get('/notice/delete', [NoticesController::class, 'notice_delete'])->name('notice.delete')->middleware(['verifyMembership']);
+    Route::post('/notifications/read', [NoticesController::class, 'notification_read'])->name('notifications.read')->middleware(['verifyMembership']);
+    Route::post('/notifications/read-all', [NoticesController::class, 'notification_read_all'])->name('notifications.read_all')->middleware(['verifyMembership']);
+    Route::get('/notifications/unread-count', [NoticesController::class, 'notification_unread_count'])->name('notifications.unread_count')->middleware(['verifyMembership']);
 
     Route::get('/upcoming-exam', [Upcoming_examController::class, 'upcoming_exam'])->name('upcoming_exam')->middleware(['verifyMembership']);
     Route::get('/upcoming-exam/accept', [Upcoming_examController::class, 'upcoming_exam_accept'])->name('upcoming_exam.accept')->middleware(['verifyMembership']);
@@ -410,9 +413,11 @@
         Route::get('/question/edit', [QuestionController::class, 'edit'])->name('question.edit');
         Route::post('/question/update', [QuestionController::class, 'update'])->name('question.update');
         Route::get('/question/delete', [QuestionController::class, 'delete'])->name('question.delete');
+        Route::post('/question/bulk-delete-duplicates', [QuestionController::class, 'bulkDeleteDuplicates'])->name('question.bulk_delete_duplicates');
         Route::get('/question/change', [QuestionController::class, 'change'])->name('question.change');
 
         Route::get('/question-upload', [QuestionController::class, 'upload'])->name('question.upload');
+        Route::get('/question-upload/sample', [QuestionController::class, 'upload_sample'])->name('question.upload_sample');
         Route::post('/question-upload/save', [QuestionController::class, 'upload_save'])->name('question.upload_save');
 
         Route::get('/chapter', [ChapterController::class, 'list'])->name('chapter');
@@ -420,7 +425,7 @@
         Route::post('/chapter/save', [ChapterController::class, 'save'])->name('chapter.save');
         Route::get('/chapter/edit', [ChapterController::class, 'edit'])->name('chapter.edit');
         Route::post('/chapter/update', [ChapterController::class, 'update'])->name('chapter.update');
-        Route::get('/chapter/delete', [ChapterController::class, 'delete'])->name('chapter.delete');
+        Route::post('/chapter/delete', [ChapterController::class, 'delete'])->name('chapter.delete');
         Route::get('/chapter/change', [ChapterController::class, 'change'])->name('chapter.change');
 
         Route::get('/topic', [TopicController::class, 'list'])->name('topic');
@@ -466,12 +471,14 @@
         Route::get('/question-paper', [Question_paperController::class, 'list'])->name('question_paper');
         Route::get('/question-paper/add', [Question_paperController::class, 'add'])->name('question_paper.add');
         Route::post('/question-paper/save', [Question_paperController::class, 'save'])->name('question_paper.save');
+        Route::post('/question-paper/mix-preview', [Question_paperController::class, 'mixPreview'])->name('question_paper.mix_preview');
         Route::get('/question-paper/edit', [Question_paperController::class, 'edit'])->name('question_paper.edit');
         Route::post('/question-paper/update', [Question_paperController::class, 'update'])->name('question_paper.update');
-        Route::get('/question-paper/delete', [Question_paperController::class, 'delete'])->name('question_paper.delete');
-        Route::get('/question-paper/change', [Question_paperController::class, 'change'])->name('question_paper.change');
+        Route::post('/question-paper/delete', [Question_paperController::class, 'delete'])->name('question_paper.delete');
+        Route::post('/question-paper/change', [Question_paperController::class, 'change'])->name('question_paper.change');
         Route::get('/question-paper/view', [Question_paperController::class, 'view'])->name('question_paper.view');
         Route::get('/question-paper/question', [Question_paperController::class, 'question'])->name('question_paper.question');
+        Route::get('/question-paper/search-questions', [Question_paperController::class, 'searchQuestions'])->name('question_paper.search_questions');
         Route::get('/question-paper/download-question', [Question_paperController::class, 'download_question'])->name('question_paper.download_question');
         Route::get('/question-paper/download-answer', [Question_paperController::class, 'download_answer'])->name('question_paper.download_answer');
         Route::get('/question-paper/change-question', [Question_paperController::class, 'change_question'])->name('question_paper.change_question');
@@ -520,6 +527,9 @@
         Route::get('/online_exam/proctoring_snapshot', [Online_examController::class, 'proctoring_snapshot'])->name('online_exam.proctoring_snapshot');
 
         Route::get('/custom-test-bank', [CustomTestBankController::class, 'list'])->name('custom_test_bank');
+        Route::get('/custom-test-bank/answers', [CustomTestBankController::class, 'answers'])->name('custom_test_bank.answers');
+        Route::get('/custom-test-bank/download-question', [CustomTestBankController::class, 'download_question'])->name('custom_test_bank.download_question');
+        Route::get('/custom-test-bank/download-answer', [CustomTestBankController::class, 'download_answer'])->name('custom_test_bank.download_answer');
 
         Route::get('/ranker', [RankerController::class, 'list'])->name('ranker');
         Route::get('/ranker/add', [RankerController::class, 'add'])->name('ranker.add');

@@ -85,11 +85,40 @@
                                     <!-- Tabs -->
                                     <div class="notice-tabs">
                                         <a href="{{ route('notice') }}?type=1" class="notice-tab  @if($type == 1 || $type == '') active @endif">All {{$notice_count}} <span>Notice</span></a>
+                                        <a href="{{ route('notice') }}?tab=upcoming&amp;type=5" class="notice-tab @if(($type ?? '') == 5 || ($notif_tab ?? '') === 'upcoming') active @endif">Upcoming <span>exams</span></a>
+                                        <a href="{{ route('notice') }}?tab=important&amp;type=6" class="notice-tab @if(($type ?? '') == 6 || ($notif_tab ?? '') === 'important') active @endif">Important</a>
                                         <a href="{{ route('notice') }}?type=2" class="notice-tab @if($type == 2) active @endif"> {{$archive_count}} <span>Archive</span></a>
                                         <a href="{{ route('notice') }}?type=3" class="notice-tab @if($type == 3) active @endif"> {{$favorite_count}} <span>Favorite</span></a>
                                         <a href="{{ route('notice') }}?type=4" class="notice-tab @if($type == 4) active @endif"> {{$urgent_count}} <span>Urgent</span></a>
                                     </div>
                                 
+                                    @if(in_array((string)($type ?? ''), ['5','6'], true) || in_array($notif_tab ?? '', ['upcoming','important'], true))
+                                        @forelse(($notifications ?? []) as $item)
+                                            <div class="notice-card">
+                                                <div class="notice-left">
+                                                    <div class="brand-notice-text">
+                                                        <div class="brand">{{ $item->is_important ? 'Important' : 'Update' }}</div>
+                                                        <div class="notice-text">{{ $item->title }}</div>
+                                                        @if($item->body)<div class="notice-text" style="font-weight:400;color:#64748b;">{{ $item->body }}</div>@endif
+                                                    </div>
+                                                </div>
+                                                <div class="notice-right">
+                                                    <div>{{ $item->created_at ? $item->created_at->diffForHumans() : '' }}</div>
+                                                    <form method="post" action="{{ route('notifications.read') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="id" value="{{ $item->id }}">
+                                                        <input type="hidden" name="to" value="{{ $item->action_url ?: route('notice') }}">
+                                                        <button type="submit" class="btn btn-sm btn-primary">Open</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="rp-empty">No notifications in this tab.</div>
+                                        @endforelse
+                                        @if(method_exists($notifications, 'links'))
+                                            <div class="mt-3">{{ $notifications->onEachSide(1)->links('pagination::bootstrap-5') }}</div>
+                                        @endif
+                                    @else
                                     <!-- Card 1 -->
                                     @foreach($notice_list as $value)
                                         <div class="notice-card">
@@ -122,6 +151,7 @@
                                             </div>
                                         </div>
                                     @endforeach
+                                    @endif
                                 </div>
                               </div>
                           </div>

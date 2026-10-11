@@ -26,7 +26,7 @@
                         <div class="col-sm-6">
                             <label class="form-label" for="subject_id">Subject <span class="text-danger">*</span></label>
                             <select class="form-control" id="subject_id" name="subject_id" onchange="changeSubject();">
-                                <option>Select Subject</option>
+                                <option value="">Select Subject</option>
                                 @foreach($subject_list as $key => $value)
                                     <option value="{{$value->id}}" @if($details->subject_id == $value->id) selected  @endif>{{$value->name}}</option>
                                 @endforeach
@@ -35,7 +35,7 @@
                         <div class="col-sm-6">
                             <label class="form-label" for="chapter_id">Chapter <span class="text-danger">*</span></label>
                             <select class="form-control" id="chapter_id" name="chapter_id" onchange="changeChapter();">
-                                <option>Select Chapter</option>
+                                <option value="">Select Chapter</option>
                                 @foreach($chapter_list as $key => $value)
                                     <option value="{{$value->id}}" @if($details->chapter_id == $value->id) selected  @endif>{{$value->name}}</option>
                                 @endforeach
@@ -44,7 +44,7 @@
                         <div class="col-sm-6">
                             <label class="form-label" for="source_id">Source <span class="text-danger">*</span> </label>
                             <select class="form-control" id="source_id" name="source_id">
-                                <option>Select Source</option>
+                                <option value="">Select Source</option>
                                 @foreach($source_list as $key => $value)
                                     <option value="{{$value->id}}" @if($details->source_id == $value->id) selected  @endif>{{$value->name}}</option>
                                 @endforeach
@@ -68,23 +68,22 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-sm-2">
-                            <label class="form-label" for="difficulty_level">Difficulty Level  <span class="text-danger">*</span></label>
-                            <select class="form-control" id="difficulty_level" name="difficulty_level">
-                                <option value="">Select Difficulty Level</option>
-                                <option value="1" @if($details->difficulty_level == 1) selected  @endif>Easy</option>
-                                <option value="2" @if($details->difficulty_level == 2) selected  @endif>Medium</option>
-                                <option value="3" @if($details->difficulty_level == 3) selected  @endif>Hard</option>
-                            </select>
-                        </div>
-                        <div class="col-sm-4">
-                            <label class="form-label" for="question_type_id">Question Type  <span class="text-danger">*</span></label>
-                            <select class="form-control" id="question_type_id" name="question_type_id">
-                                <option value="">Select Question Type</option>
-                                @foreach($question_type_list as $value)
-                                    <option value="{{$value->id}}" @if($details->question_type_id == $value->id) selected  @endif>{{$value->name}}</option>
-                                @endforeach
-                            </select>
+                        <div class="col-sm-6">
+                            <label class="form-label">Difficulty Level <span class="text-danger">*</span></label>
+                            <div class="rp-diff-radios" id="difficulty_level">
+                                <label class="rp-diff is-easy">
+                                    <input type="radio" name="difficulty_level" value="1" @if((int)$details->difficulty_level === 1) checked @endif>
+                                    <span>Easy</span>
+                                </label>
+                                <label class="rp-diff is-medium">
+                                    <input type="radio" name="difficulty_level" value="2" @if((int)$details->difficulty_level === 2) checked @endif>
+                                    <span>Medium</span>
+                                </label>
+                                <label class="rp-diff is-hard">
+                                    <input type="radio" name="difficulty_level" value="3" @if((int)$details->difficulty_level === 3) checked @endif>
+                                    <span>Hard</span>
+                                </label>
+                            </div>
                         </div>
 
 
@@ -354,8 +353,14 @@
 
                         
                         <div class="col-lg-12 mt-5 text-center">
-                            <a href="javascript:void(0);" onclick="history.go(-1);" class="btn btn-secondary cancelButton" type="button">Cancel</a>
-                            <button class="btn btn-primary" type="submit">Submit</button>
+                            <a href="javascript:void(0);" onclick="history.go(-1);" class="rp-act rp-act-ghost cancelButton">
+                                <i class="material-icons">close</i>
+                                Cancel
+                            </a>
+                            <button class="rp-act rp-act-add" type="submit">
+                                <i class="material-icons">check</i>
+                                Submit
+                            </button>
                         </div>
                         <div class="mb-5">
                             &nbsp;
@@ -447,6 +452,8 @@
                   </option>`
                 });
                 document.getElementById('chapter_id').innerHTML = role_modal_body;
+                document.getElementById('topic_id').innerHTML = `<option value="">Select Topic</option>`;
+                document.getElementById('sub_topic_id').innerHTML = `<option value="">Select Sub Topic</option>`;
               });
 
             $.get("{{route('admin.common.source')}}", data)
@@ -481,6 +488,7 @@
                   </option>`
                 });
                 document.getElementById('topic_id').innerHTML = role_modal_body;
+                document.getElementById('sub_topic_id').innerHTML = `<option value="">Select Sub Topic</option>`;
               });
         }
 
@@ -573,19 +581,13 @@
                 successFlag = false;
             }
 
-            data.difficulty_level = document.getElementById('difficulty_level').value;
+            var difficultyChecked = document.querySelector('input[name="difficulty_level"]:checked');
+            data.difficulty_level = difficultyChecked ? difficultyChecked.value : '';
+            var difficultyWrap = document.getElementById('difficulty_level');
             if(data.difficulty_level){
-                document.getElementById('difficulty_level').classList.remove('dangerBoader');
+                if (difficultyWrap) difficultyWrap.classList.remove('dangerBoader');
             }else{
-                document.getElementById('difficulty_level').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.question_type_id = document.getElementById('question_type_id').value;
-            if(data.question_type_id){
-                document.getElementById('question_type_id').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('question_type_id').classList.add('dangerBoader');
+                if (difficultyWrap) difficultyWrap.classList.add('dangerBoader');
                 successFlag = false;
             }
 

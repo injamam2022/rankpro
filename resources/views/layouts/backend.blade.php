@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
+        <meta name="csrf-token" content="{{ csrf_token() }}" />
         <title>RankPro</title>
         <!-- Load Favicon-->
         <link href="{{asset('')}}admin/img/favicon.ico" rel="shortcut icon" type="image/x-icon" />
@@ -27,6 +28,130 @@
 
           .dangerBoader{
             border: 1px solid red !important;
+          }
+          .admin-list-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+          }
+          .admin-list-pager {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+          }
+          .admin-list-pager .pagination { margin: 0; }
+          .admin-when { white-space: nowrap; font-size: 13px; color: #475569; }
+          .rp-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+          }
+          .rp-act {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            border: 1px solid transparent;
+            transition: transform .12s ease, background .12s ease, color .12s ease, box-shadow .12s ease;
+            flex-shrink: 0;
+            line-height: 1;
+            cursor: pointer;
+          }
+          .rp-act .material-icons {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+          }
+          .rp-act:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+          }
+          .rp-act-edit { color: #6d28d9; background: #f3e8ff; }
+          .rp-act-edit:hover { color: #fff; background: #7c3aed; }
+          .rp-act-delete { color: #b91c1c; background: #fee2e2; }
+          .rp-act-delete:hover { color: #fff; background: #dc2626; }
+          .rp-act-view { color: #1d4ed8; background: #dbeafe; }
+          .rp-act-view:hover { color: #fff; background: #2563eb; }
+          .rp-act-preview { color: #0f766e; background: #ccfbf1; }
+          .rp-act-preview:hover { color: #fff; background: #0d9488; }
+          .rp-act-on { color: #15803d; background: #dcfce7; }
+          .rp-act-on:hover { color: #fff; background: #16a34a; }
+          .rp-act-off { color: #b45309; background: #ffedd5; }
+          .rp-act-off:hover { color: #fff; background: #d97706; }
+          .rp-act-swap { color: #c2410c; background: #ffedd5; }
+          .rp-act-swap:hover { color: #fff; background: #ea580c; }
+          .rp-act-download { color: #1e40af; background: #e0e7ff; }
+          .rp-act-download:hover { color: #fff; background: #4f46e5; }
+          .rp-act-add {
+            width: auto;
+            height: 36px;
+            padding: 0 14px;
+            gap: 4px;
+            background: #7c3aed;
+            color: #fff !important;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 0;
+            cursor: pointer;
+          }
+          .rp-act-add:hover { background: #6d28d9; color: #fff !important; }
+          .rp-act-add .material-icons { font-size: 20px; width: 20px; height: 20px; line-height: 20px; }
+          .rp-act-label {
+            width: auto;
+            height: 36px;
+            padding: 0 12px;
+            gap: 4px;
+            font-weight: 600;
+            font-size: 13px;
+          }
+          .rp-act-ghost {
+            width: auto;
+            height: 36px;
+            padding: 0 12px;
+            gap: 4px;
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            font-size: 13px;
+            border: 0;
+          }
+          .rp-act-ghost:hover { background: #e2e8f0; color: #0f172a; }
+          .rp-diff-radios {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+          }
+          .rp-diff {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0;
+            user-select: none;
+          }
+          .rp-diff input { accent-color: #7c3aed; }
+          .rp-diff.is-hard { background: #fef2f2; color: #991b1b; }
+          .rp-diff.is-medium { background: #fff7ed; color: #9a3412; }
+          .rp-diff.is-easy { background: #f0fdf4; color: #166534; }
+          .rp-diff:has(input:checked) {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
           }
         </style>
 
@@ -321,7 +446,6 @@
                                     {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}
                                     {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}
-                                    {{ request()->is('admin/question_type') ? ' active' : '' }} {{ request()->is('admin/question_type/*') ? ' active' : '' }}
 
                                     " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseQuestion" aria-expanded="false" aria-controls="collapseQuestion">
                                         <div class="nav-link-icon"><i class="material-icons">menu_book</i></div>
@@ -339,7 +463,7 @@
                                         @if(isUserPermitted('topic-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/topic') ? ' active' : '' }} {{ request()->is('admin/topic/*') ? ' active' : '' }}" href="{{route('admin.topic')}}">Topic</a>
                                         @endif
-                                        @if(isUserPermitted('topic-list', 'list'))
+                                        @if(isUserPermitted('sub-topic-list', 'list') || isUserPermitted('topic-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/sub-topic') ? ' active' : '' }} {{ request()->is('admin/sub-topic/*') ? ' active' : '' }}" href="{{route('admin.sub_topic')}}">Sub Topic</a>
                                         @endif
                                         @if(isUserPermitted('source-list', 'list'))
@@ -347,9 +471,6 @@
                                         @endif
                                         @if(isUserPermitted('question-source-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/question-source') ? ' active' : '' }} {{ request()->is('admin/question-source/*') ? ' active' : '' }}" href="{{route('admin.question_source')}}">Question source</a>
-                                        @endif
-                                        @if(isUserPermitted('question-type-list', 'list'))
-                                            <a class="nav-link {{ request()->is('admin/question_type') ? ' active' : '' }} {{ request()->is('admin/question_type/*') ? ' active' : '' }}" href="{{route('admin.question_type')}}">Question Type</a>
                                         @endif
                                         @if(isUserPermitted('question-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/question') ? ' active' : '' }} {{ request()->is('admin/question/*') ? ' active' : '' }}" href="{{route('admin.question')}}">Question</a>
@@ -580,5 +701,23 @@
             }
         </style>
         @yield('js_after')
+        <script>
+        window.rpConfirmPost = function (url, message) {
+            if (!confirm(message || 'Are you sure?')) {
+                return false;
+            }
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            var token = document.createElement('input');
+            token.type = 'hidden';
+            token.name = '_token';
+            token.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            form.appendChild(token);
+            document.body.appendChild(form);
+            form.submit();
+            return false;
+        };
+        </script>
     </body>
 </html>

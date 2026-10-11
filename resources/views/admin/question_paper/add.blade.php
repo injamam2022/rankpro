@@ -2,7 +2,35 @@
 
 
 @section('css_after')
-
+<style>
+    .qb-mix { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 18px 10px; }
+    .qb-mix__head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
+    .qb-mix__head h5 { margin:0; font-weight:700; }
+    .qb-mix__hint { margin:4px 0 0; font-size:12px; color:#64748b; max-width:640px; }
+    .qb-mix__grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .qb-mix__card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; }
+    .qb-mix__card.is-focus { border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,.12); }
+    .qb-mix__card label { font-weight:600; margin-bottom:6px; }
+    .qb-mix__bar { height:6px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin-top:8px; }
+    .qb-mix__bar span { display:block; height:100%; width:0; background:#7c3aed; }
+    .qb-mix__card.is-hard .qb-mix__bar span { background:#dc2626; }
+    .qb-mix__card.is-medium .qb-mix__bar span { background:#d97706; }
+    .qb-mix__card.is-easy .qb-mix__bar span { background:#16a34a; }
+    .qb-mix__meta { display:flex; justify-content:space-between; font-size:12px; color:#64748b; margin-top:6px; }
+    .qb-mix__sum { margin-top:10px; font-size:13px; font-weight:600; }
+    .qb-mix__sum.is-bad { color:#dc2626; }
+    .qb-mix__sum.is-ok { color:#15803d; }
+    .qb-types { margin-top:8px; }
+    .qb-types__head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+    .qb-types__head h5 { margin:0; font-weight:700; }
+    .qb-type { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px 10px; height:100%; }
+    .qb-type.is-zero { opacity:.55; }
+    .qb-type.is-focus { border-color:#7c3aed; }
+    .qb-type label { font-size:12px; margin-bottom:4px; line-height:1.25; }
+    .qb-type small { display:block; font-size:11px; color:#64748b; margin-top:4px; }
+    .qb-warn { font-size:12px; color:#b45309; margin-top:8px; }
+    .qb-types-total { font-size:13px; font-weight:600; }
+</style>
 @endsection
 
 @section('content')
@@ -64,46 +92,32 @@
                             <input class="form-control" id="negative_marking_per_question" type="text" name="negative_marking_per_question" placeholder=""  value="" />
                         </div>
                     </div>
-                    <div class="row mt-2">
-
+                    <div class="row mt-3">
                         <div class="col-sm-12">
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    <label class="form-label" for="hard_level">Hard %</label>
-                                    <input class="form-control" id="hard_level" type="number" name="hard_level" placeholder=""  value="" />
-                                </div>
-                                <div class="col-sm-4">
-                                    <label class="form-label" for="medium_level">Medium %</label>
-                                    <input class="form-control" id="medium_level" type="text" name="medium_level" placeholder=""  value="" />
-                                </div>
-                                <div class="col-sm-4">
-                                    <label class="form-label" for="easy_level">Easy %</label>
-                                    <input class="form-control" id="easy_level" type="text" name="easy_level" placeholder=""  value="" />
-                                </div>
-                                <div class="col-sm-12">
-                                    <small class="text-danger" id="level_message">&nbsp;</small>
-                                </div>
-                            </div>
-                        </div>                            
-                    </div>
-                    <div class="row mt-2">
-
-                        <div class="col-sm-12">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <h5>Question Type</h5>
-                                </div>
-                                @foreach($question_type_list as $value)
-                                    <div class="col-sm-2">
-                                        <label class="form-label" for="question_type">{{$value->name}}</label>
-                                        <input class="form-control question_type_list" id="question_type_{{$value->id}}" type="number" name="question_type[{{$value->id}}]" placeholder=""  value="" />
+                            <div class="qb-mix">
+                                <div class="qb-mix__head">
+                                    <div>
+                                        <h5>Difficulty <span class="text-danger">*</span></h5>
+                                        <p class="qb-mix__hint">Choose one. The paper will pick questions of that difficulty only.</p>
                                     </div>
-                                @endforeach
-                                <div class="col-sm-12">
-                                    <small class="text-danger" id="question_type_message">&nbsp;</small>
                                 </div>
+                                <div class="rp-diff-radios">
+                                    <label class="rp-diff is-hard">
+                                        <input type="radio" name="difficulty" value="hard">
+                                        <span>Hard</span>
+                                    </label>
+                                    <label class="rp-diff is-medium">
+                                        <input type="radio" name="difficulty" value="medium">
+                                        <span>Medium</span>
+                                    </label>
+                                    <label class="rp-diff is-easy">
+                                        <input type="radio" name="difficulty" value="easy">
+                                        <span>Easy</span>
+                                    </label>
+                                </div>
+                                <div class="qb-mix__sum" id="level_message"></div>
                             </div>
-                        </div>                            
+                        </div>
                     </div>
                     <div class="row mt-2">
 
@@ -151,7 +165,7 @@
                                     </div>
                                     <div class="col-sm-2">
                                         <label class="form-label" for="total_no_of_question_0">No Of questions <span class="text-danger">*</span></label>
-                                        <input class="form-control total_no_of_question" id="total_no_of_question_0" type="number" name="total_no_of_question[]" placeholder=""  value="" />
+                                        <input class="form-control total_no_of_question" id="total_no_of_question_0" type="number" name="total_no_of_question[0]" placeholder=""  value="" />
                                     </div>
                                     <div class="col-sm-1" style="margin-top: 25px;">
                                         
@@ -179,8 +193,14 @@
 
                         
                         <div class="col-lg-12 mt-5 text-center">
-                            <a href="javascript:void(0);" onclick="history.go(-1);" class="btn btn-secondary cancelButton" type="button">Cancel</a>
-                            <button class="btn btn-primary" type="submit">Submit</button>
+                            <a href="javascript:void(0);" onclick="history.go(-1);" class="rp-act rp-act-ghost cancelButton">
+                                <i class="material-icons">close</i>
+                                Cancel
+                            </a>
+                            <button class="rp-act rp-act-add" type="submit">
+                                <i class="material-icons">check</i>
+                                Submit
+                            </button>
                         </div>
                         <div class="mb-5">
                             &nbsp;
@@ -199,7 +219,237 @@
         var subject_count = 0;
         var globalData = {
             subject_list : <?php echo json_encode($subject_list);?>,
+        };
+        var qbTypesLocked = false;
+        var qbLinking = false;
+        var qbPreviewTimer = null;
+        var qbMixUrl = @json(route('admin.question_paper.mix_preview'));
+
+        function qbNum(id) {
+            var el = document.getElementById(id);
+            var n = parseFloat(el && el.value ? el.value : 0);
+            return isNaN(n) ? 0 : n;
         }
+
+        function qbTotalQuestions() {
+            return parseInt(document.getElementById('no_of_question').value || 0, 10) || 0;
+        }
+
+        function qbSplitCounts(total, weights) {
+            var keys = Object.keys(weights);
+            var out = {};
+            var sum = 0;
+            keys.forEach(function (k) {
+                sum += Math.max(0, Number(weights[k]) || 0);
+                out[k] = 0;
+            });
+            if (total <= 0 || keys.length === 0) return out;
+            if (sum <= 0) {
+                out[keys[0]] = total;
+                return out;
+            }
+            var frac = [];
+            keys.forEach(function (k) {
+                var exact = total * (Math.max(0, Number(weights[k]) || 0) / sum);
+                out[k] = Math.floor(exact);
+                frac.push({ k: k, f: exact - out[k] });
+            });
+            var remain = total - keys.reduce(function (s, k) { return s + out[k]; }, 0);
+            frac.sort(function (a, b) { return b.f - a.f; });
+            for (var i = 0; i < frac.length && remain > 0; i++) {
+                out[frac[i].k]++;
+                remain--;
+            }
+            return out;
+        }
+
+        function qbUpdateMixUi() {
+            var hard = qbNum('hard_level');
+            var medium = qbNum('medium_level');
+            var easy = qbNum('easy_level');
+            var totalPct = hard + medium + easy;
+            var n = qbTotalQuestions();
+            var counts = qbSplitCounts(n, { hard: hard, medium: medium, easy: easy });
+            ['hard', 'medium', 'easy'].forEach(function (k) {
+                var bar = document.getElementById('mix_bar_' + k);
+                var countEl = document.getElementById('mix_count_' + k);
+                var card = document.getElementById('mix_card_' + k);
+                var pct = k === 'hard' ? hard : (k === 'medium' ? medium : easy);
+                if (bar) bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+                if (countEl) countEl.textContent = (counts[k] || 0) + ' questions';
+                if (card) card.classList.remove('is-focus');
+            });
+            var focus = 'medium';
+            if (hard >= medium && hard >= easy) focus = 'hard';
+            else if (easy > hard && easy > medium) focus = 'easy';
+            var focusCard = document.getElementById('mix_card_' + focus);
+            if (focusCard && totalPct > 0) focusCard.classList.add('is-focus');
+
+            var msg = document.getElementById('level_message');
+            if (msg) {
+                if (!n) {
+                    msg.textContent = 'Enter total questions, then set the mix.';
+                    msg.className = 'qb-mix__sum';
+                } else if (Math.round(totalPct) !== 100) {
+                    msg.textContent = 'Difficulty total is ' + totalPct + '%. It must be 100%.';
+                    msg.className = 'qb-mix__sum is-bad';
+                } else {
+                    var label = focus.charAt(0).toUpperCase() + focus.slice(1);
+                    msg.textContent = '100% · ' + n + ' questions · focus ' + label + ' (' + (counts[focus] || 0) + '). Types below follow this mix.';
+                    msg.className = 'qb-mix__sum is-ok';
+                }
+            }
+            qbUpdateTypeTotal();
+        }
+
+        function qbUpdateTypeTotal() {
+            var n = qbTotalQuestions();
+            var sum = 0;
+            document.querySelectorAll('input.question_type_list').forEach(function (input) {
+                if (input.value) sum += parseInt(input.value, 10) || 0;
+            });
+            var label = document.getElementById('question_type_total_label');
+            if (label) label.textContent = sum + ' / ' + n;
+            var msg = document.getElementById('question_type_message');
+            if (msg) {
+                msg.textContent = (n && sum && sum !== n) ? ('Question type counts must equal ' + n + '.') : '';
+            }
+        }
+
+        function qbLinkDifficulty(changed) {
+            if (qbLinking) return;
+            qbLinking = true;
+            var keys = ['hard', 'medium', 'easy'];
+            var ids = { hard: 'hard_level', medium: 'medium_level', easy: 'easy_level' };
+            var vals = {
+                hard: qbNum('hard_level'),
+                medium: qbNum('medium_level'),
+                easy: qbNum('easy_level')
+            };
+            var v = Math.max(0, Math.min(100, vals[changed]));
+            document.getElementById(ids[changed]).value = v === 0 && document.getElementById(ids[changed]).value === '' ? '' : v;
+            vals[changed] = v;
+            var rest = 100 - v;
+            var others = keys.filter(function (k) { return k !== changed; });
+            var otherSum = others.reduce(function (s, k) { return s + vals[k]; }, 0);
+            if (otherSum <= 0) {
+                document.getElementById(ids[others[0]]).value = rest;
+                document.getElementById(ids[others[1]]).value = 0;
+            } else {
+                var split = qbSplitCounts(rest, { a: vals[others[0]], b: vals[others[1]] });
+                document.getElementById(ids[others[0]]).value = split.a;
+                document.getElementById(ids[others[1]]).value = split.b;
+            }
+            qbLinking = false;
+            qbUpdateMixUi();
+            qbSchedulePreview();
+        }
+
+        function qbCollectSections() {
+            var subject_id = {};
+            document.querySelectorAll('select.subject_id').forEach(function (el) {
+                var m = el.id.match(/subject_id_(\d+)/);
+                if (m) subject_id[m[1]] = el.value;
+            });
+            var payload = {
+                _token: document.querySelector('input[name="_token"]').value,
+                no_of_question: qbTotalQuestions(),
+                hard_level: qbNum('hard_level'),
+                medium_level: qbNum('medium_level'),
+                easy_level: qbNum('easy_level'),
+                subject_id: {},
+                chapter_id: {},
+                topic_id: {},
+                sub_topic_id: {},
+                total_no_of_question: {}
+            };
+            Object.keys(subject_id).forEach(function (idx) {
+                payload.subject_id[idx] = document.getElementById('subject_id_' + idx).value;
+                payload.chapter_id[idx] = document.getElementById('chapter_id_' + idx).value;
+                payload.topic_id[idx] = document.getElementById('topic_id_' + idx).value;
+                payload.sub_topic_id[idx] = document.getElementById('sub_topic_id_' + idx).value;
+                payload.total_no_of_question[idx] = document.getElementById('total_no_of_question_' + idx).value;
+            });
+            return payload;
+        }
+
+        function qbSchedulePreview() {
+            clearTimeout(qbPreviewTimer);
+            qbPreviewTimer = setTimeout(qbFetchPreview, 280);
+        }
+
+        function qbFetchPreview() {
+            qbUpdateMixUi();
+            if (!qbTotalQuestions() || Math.round(qbNum('hard_level') + qbNum('medium_level') + qbNum('easy_level')) !== 100) {
+                return;
+            }
+            $.ajax({
+                url: qbMixUrl,
+                method: 'POST',
+                data: qbCollectSections(),
+                dataType: 'json'
+            }).done(function (res) {
+                ['hard', 'medium', 'easy'].forEach(function (k) {
+                    var poolEl = document.getElementById('mix_pool_' + k);
+                    if (poolEl && res.difficulty && res.difficulty[k]) {
+                        poolEl.textContent = 'pool ' + res.difficulty[k].pool;
+                    }
+                });
+                if (!qbTypesLocked && res.types) {
+                    res.types.forEach(function (t) {
+                        var input = document.getElementById('question_type_' + t.id);
+                        var card = document.getElementById('qb_type_card_' + t.id);
+                        var pool = document.getElementById('qb_type_pool_' + t.id);
+                        if (input) input.value = t.count > 0 ? t.count : '';
+                        if (card) {
+                            card.classList.toggle('is-zero', !t.count);
+                            card.classList.toggle('is-focus', t.count > 0 && t.pool && t.pool.hard >= t.pool.easy && t.pool.hard >= t.pool.medium);
+                        }
+                        if (pool) {
+                            pool.textContent = t.pool.total
+                                ? ('pool ' + t.pool.total + ' · H' + t.pool.hard + ' M' + t.pool.medium + ' E' + t.pool.easy)
+                                : 'none in pool';
+                        }
+                    });
+                    qbUpdateTypeTotal();
+                }
+                var warn = document.getElementById('qb_mix_warnings');
+                if (warn) warn.textContent = (res.warnings || []).join(' ');
+            });
+        }
+
+        ['hard_level', 'medium_level', 'easy_level'].forEach(function (id) {
+            var key = id.replace('_level', '');
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', function () { qbLinkDifficulty(key); });
+            el.addEventListener('change', function () { qbLinkDifficulty(key); });
+        });
+        var noQ = document.getElementById('no_of_question');
+        if (noQ) {
+            noQ.addEventListener('input', function () {
+                qbUpdateMixUi();
+                qbSchedulePreview();
+            });
+        }
+        document.querySelectorAll('input.question_type_list').forEach(function (input) {
+            input.addEventListener('input', function () {
+                qbTypesLocked = true;
+                qbUpdateTypeTotal();
+            });
+        });
+        var resetBtn = document.getElementById('qbResetTypes');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                qbTypesLocked = false;
+                qbFetchPreview();
+            });
+        }
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.classList.contains('total_no_of_question')) {
+                qbSchedulePreview();
+            }
+        });
         function changeTotalMarkForExam(){
             var no_of_question = document.getElementById('no_of_question').value;
             var marks_per_question = document.getElementById('marks_per_question').value;
@@ -289,7 +539,9 @@
                   </option>`
                 });
                 document.getElementById('chapter_id_'+indd).innerHTML = role_modal_body;
+                qbSchedulePreview();
               });
+            qbSchedulePreview();
         }
 
         function changeChapter(indd){
@@ -309,7 +561,9 @@
                   </option>`
                 });
                 document.getElementById('topic_id_'+indd).innerHTML = role_modal_body;
+                qbSchedulePreview();
               });
+            qbSchedulePreview();
         }
 
         function changeTopic(indd){
@@ -330,7 +584,9 @@
                   </option>`
                 });
                 document.getElementById('sub_topic_id_'+indd).innerHTML = role_modal_body;
+                qbSchedulePreview();
               });
+            qbSchedulePreview();
         }
 
         const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
@@ -339,22 +595,7 @@
         function formValidation(){
             var data = {};
             var successFlag = true;
-             document.getElementById('question_type_message').innerHTML = "";
-            var question_type_list = document.querySelectorAll('input.question_type_list');
-            console.log(question_type_list);
-
-            var question_type_total = 0;
-            question_type_list.forEach(input => {
-                console.log(input.value);
-                if(input.value){
-                    question_type_total = question_type_total + parseInt(input.value);   
-                }
-            });
-
-            if(question_type_total != 100){
-                document.getElementById('question_type_message').innerHTML = "Question type total 100% ";
-                successFlag = false;
-            }
+            var wanted = parseInt(document.getElementById('no_of_question').value || 0, 10) || 0;
 
             data.name = document.getElementById('name').value;
             if(data.name){
@@ -388,33 +629,36 @@
                 successFlag = false;
             }
 
-            data.hard_level = document.getElementById('hard_level').value;
-            data.medium_level = document.getElementById('medium_level').value;
-            data.easy_level = document.getElementById('easy_level').value;
-            
-            data.hard_level = (data.hard_level)?data.hard_level:0;
-            data.medium_level = (data.medium_level)?data.medium_level:0;
-            data.easy_level = (data.easy_level)?data.easy_level:0;
-            // console.log(data);
-            var total_level = parseInt(data.hard_level) + parseInt(data.medium_level) + parseInt(data.easy_level);
-            // console.log(total_level);
-            document.getElementById('level_message').innerHTML = "&nbsp;";
-            if(total_level != 100){
-                document.getElementById('level_message').innerHTML = "Difficulty level total 100%";
+            var difficultyChecked = document.querySelector('input[name="difficulty"]:checked');
+            var levelMsg = document.getElementById('level_message');
+            if (levelMsg) levelMsg.textContent = '';
+            if (!difficultyChecked) {
+                if (levelMsg) {
+                    levelMsg.textContent = 'Select Hard, Medium or Easy.';
+                    levelMsg.className = 'qb-mix__sum is-bad';
+                }
                 successFlag = false;
             }
             
             var inputs = document.querySelectorAll('input.total_no_of_question');
-            // console.log(inputs);
+            var sectionSum = 0;
+            if (inputs.length === 1 && !inputs[0].value && wanted) {
+                inputs[0].value = wanted;
+            }
             inputs.forEach(input => {
                 if(input.value){
                     input.classList.remove('dangerBoader');
+                    sectionSum += parseInt(input.value, 10) || 0;
                 }else{
                     input.classList.add('dangerBoader');
                     successFlag = false;
                 }
-              // console.log(input.id); // Get each textbox's value
             });
+            if (wanted && sectionSum && sectionSum !== wanted) {
+                document.getElementById('level_message').innerHTML = "Subject question counts (" + sectionSum + ") must equal total (" + wanted + ").";
+                document.getElementById('level_message').className = 'qb-mix__sum is-bad';
+                successFlag = false;
+            }
             
             var subject_id = document.querySelectorAll('select.subject_id');
             console.log(subject_id);

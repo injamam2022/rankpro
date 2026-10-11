@@ -13,15 +13,19 @@ use Illuminate\Support\Arr;
 use App\Models\Chapter;
 use App\Models\Subject;
 use App\Models\Topic;
+use App\Support\AdminListQuery;
 
 class TopicController extends Controller
 {
-    public function list(){
+    public function list(Request $request){
         $data = [];
-        $data['list'] = Topic::select(['topics.*','chapters.name as chapter_name','subjects.name as subject_name'])
+        $data['q'] = AdminListQuery::q($request);
+        $data['per_page'] = AdminListQuery::perPage($request);
+        $query = Topic::select(['topics.*','chapters.name as chapter_name','subjects.name as subject_name'])
                             ->leftJoin('chapters', 'topics.chapter_id', '=', 'chapters.id')
-                            ->leftJoin('subjects', 'topics.subject_id', '=', 'subjects.id')
-                            ->get();
+                            ->leftJoin('subjects', 'topics.subject_id', '=', 'subjects.id');
+        AdminListQuery::applySearch($query, $data['q'], ['topics.name', 'chapters.name', 'subjects.name']);
+        $data['list'] = $query->orderByDesc('topics.id')->paginate($data['per_page'])->withQueryString();
         return view('admin.topic.list',$data);
     }
 
@@ -40,7 +44,7 @@ class TopicController extends Controller
 
         $input = $request->all();
 
-        $loginCheck = Topic::where('name',$request->name)->first();
+        $loginCheck = Topic::where('name',$request->name)->where('chapter_id', $request->chapter_id)->first();
 
         if (!$loginCheck){
             $insertData = [];

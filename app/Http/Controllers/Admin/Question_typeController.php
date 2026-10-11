@@ -11,12 +11,17 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Arr;
 
 use App\Models\Question_type;
+use App\Support\AdminListQuery;
 
 class Question_typeController extends Controller
 {
-    public function list(){
+    public function list(Request $request){
         $data = [];
-        $data['list'] = Question_type::get();
+        $data['q'] = AdminListQuery::q($request);
+        $data['per_page'] = AdminListQuery::perPage($request);
+        $query = Question_type::query();
+        AdminListQuery::applySearch($query, $data['q'], ['name', 'description']);
+        $data['list'] = $query->orderByDesc('id')->paginate($data['per_page'])->withQueryString();
         return view('admin.question_type.list',$data);
     }
 

@@ -15,6 +15,9 @@ use App\Models\Exam;
 use App\Models\Subject;
 use App\Models\Exam_user;
 use App\Models\Notice_user;
+use App\Models\StudentNotification;
+use App\Services\StudentNotificationService;
+use Illuminate\Support\Facades\Schema;
 
 use DB;
 
@@ -65,7 +68,52 @@ class NoticesController extends Controller
         }
 
         $data['notice_list'] = $data['notice_list']->where('notices.status',1)->get();
+
+        $data['notifications'] = collect();
+        $data['notif_tab'] = $request->get('tab', 'all');
+        if (Schema::hasTable('student_notifications')) {
+            $tab = $data['notif_tab'];
+            $q = StudentNotification::where('user_id', Auth::id())->orderByDesc('id');
+            if ($request->get('type') == 5 || $tab === 'upcoming') {
+                $q->whereIn('type', [
+                    StudentNotificationService::TYPE_EXAM_ASSIGNED,
+                    StudentNotificationService::TYPE_EXAM_UPCOMING,
+                    StudentNotificationService::TYPE_EXAM_LIVE,
+                ]);
+            } elseif ($request->get('type') == 6 || $tab === 'important') {
+                $q->where('is_important', 1);
+            }
+            $data['notifications'] = $q->paginate(20)->withQueryString();
+        }
+
         return view('site.notice',$data);
+    }
+
+    public function notification_read(Request $request, StudentNotificationService $svc)
+    {
+        $svc->markRead(Auth::id(), (int) $request->id);
+        $go = $request->input('to');
+        if ($go) {
+            return redirect()->to($go);
+        }
+        return back();
+    }
+
+    public function notification_read_all(Request $request, StudentNotificationService $svc)
+    {
+        $svc->markRead(Auth::id());
+        return back();
+    }
+
+    public function notification_unread_count(StudentNotificationService $svc)
+    {
+        if (!Schema::hasTable('student_notifications')) {
+            return response()->json(['unread' => 0]);
+        }
+
+        return response()->json([
+            'unread' => (int) $svc->unreadCount(Auth::id()),
+        ]);
     }
 
     public function notice_favorite(Request $request){
