@@ -11,13 +11,45 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Arr;
 
 use App\Models\Footer;
+use App\Support\WebsiteSettings;
 
 class FooterController extends Controller
 {
     public function list(){
         $data = [];
-        $data['list'] = Footer::get();
-        return view('admin.footer.list',$data);
+        $data['settings'] = WebsiteSettings::all();
+        return view('admin.footer.settings',$data);
+    }
+
+    public function saveSettings(Request $request)
+    {
+        foreach (WebsiteSettings::defaults() as $key => $meta) {
+            $value = trim((string) $request->input($key, ''));
+            Footer::updateOrCreate(
+                ['key_name' => $key],
+                [
+                    'name' => $meta['name'],
+                    'value' => $value,
+                    'status' => 1,
+                ]
+            );
+        }
+
+        $phone = trim((string) $request->input('phone', ''));
+        if ($phone !== '') {
+            Footer::updateOrCreate(
+                ['key_name' => 'contact_us'],
+                [
+                    'name' => 'Contact Us',
+                    'value' => $phone,
+                    'status' => 1,
+                ]
+            );
+        }
+
+        WebsiteSettings::flush();
+        toastr()->success('Website settings saved successfully.');
+        return redirect()->route('admin.footer');
     }
 
 
@@ -81,6 +113,7 @@ class FooterController extends Controller
             $insertData['status'] = $request->status;
 
             $loginCheck->update($insertData);
+            WebsiteSettings::flush();
             toastr()->success('Footer updated successfully.');
             return redirect()->route('admin.footer');
         }else{
@@ -92,6 +125,7 @@ class FooterController extends Controller
     public function delete(Request $request){
         $id = $request->id;
         Footer::where('id',$id)->delete();
+        WebsiteSettings::flush();
         toastr()->success('Footer deleted successfully.');
         return redirect()->route('admin.footer');
     }
@@ -109,6 +143,7 @@ class FooterController extends Controller
             }
         }
 
+        WebsiteSettings::flush();
         toastr()->success('Footer status change successfully.');
         return redirect()->route('admin.footer');
     }

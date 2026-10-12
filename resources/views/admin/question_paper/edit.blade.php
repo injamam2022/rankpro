@@ -135,6 +135,7 @@
                                     </a>
                                 </div>
                             </div>
+                            <p class="qb-mix__hint">If you do not choose Chapter, Topic, or Sub Topic, all will be selected by default.</p>
                             <div id="subject_list_view">
                                 @forelse($subject_rows as $idx => $block)
                                     @php $row = $block['row']; @endphp
@@ -346,7 +347,7 @@
             if (focusCard && totalPct > 0) focusCard.classList.add('is-focus');
 
             var msg = document.getElementById('level_message');
-            if (msg) {
+            if (msg && document.getElementById('hard_level')) {
                 if (!n) {
                     msg.textContent = 'Enter total questions, then set the mix.';
                     msg.className = 'qb-mix__sum';

@@ -245,9 +245,9 @@
 
             <div class="bf__flow" id="bfFlow">
                 <!-- animated connecting line -->
-                <svg class="bf__line" viewBox="0 0 1000 900" preserveAspectRatio="none" aria-hidden="true">
-                    <path class="bf__line-bg" d="M180,90 C420,90 560,230 700,230 C840,230 500,430 260,430 C60,430 300,650 620,650 C820,650 760,830 500,830" fill="none"/>
-                    <path class="bf__line-fg" id="bfPath" d="M180,90 C420,90 560,230 700,230 C840,230 500,430 260,430 C60,430 300,650 620,650 C820,650 760,830 500,830" fill="none"/>
+                <svg class="bf__line" aria-hidden="true">
+                    <path class="bf__line-bg" id="bfPathBg" fill="none"/>
+                    <path class="bf__line-fg" id="bfPath" fill="none"/>
                     <circle class="bf__line-dot" id="bfDot" r="7"/>
                 </svg>
 
@@ -271,15 +271,18 @@
                             <span class="bf__card-node"></span>
                         </article>
                     @endforeach
+                    <a href="{{ Auth::check() ? route('custom_test') : route('signup') }}" class="bf__card bf__card--center bf__card--cta">
+                        <span class="bf__card-num">06</span>
+                        <div class="bf__card-body">
+                            <h3 class="bf__card-title">Crack NEET 2027</h3>
+                        </div>
+                        <span class="bf__card-node"></span>
+                    </a>
                 </div>
             </div>
         </div>
     </section>
     <!-- Benefits flow end -->
-
-    <section class="cn">
-        <a href="{{ Auth::check() ? route('custom_test') : route('signup') }}" class="cn__btn">Crack NEET 2027</a>
-    </section>
 
     <!-- Paper proof -->
     <section class="pp">
@@ -569,7 +572,7 @@
     <!-- leftfixt2 -->
 
    <!-- FAQ (redesigned) -->
-    <section class="fq">
+    <section class="fq" id="faq">
         <div class="fq__inner">
             <div class="fq__head">
                 <span class="fq__eyebrow"><i></i>FAQ</span>
@@ -676,6 +679,7 @@
 
 
     @include('site.include.footer')
+    @include('site.include.call_to_action')
     @include('site.include.back_to_top')
 
    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -1027,36 +1031,83 @@
             (function(){
                 var flow = document.getElementById("bfFlow");
                 var path = document.getElementById("bfPath");
+                var pathBg = document.getElementById("bfPathBg");
                 var dot = document.getElementById("bfDot");
-                if(!flow || !path || !window.gsap || !window.ScrollTrigger) return;
-                gsap.registerPlugin(ScrollTrigger);
+                if(!flow || !path) return;
 
                 // inject gradient def for the line
                 var svg = flow.querySelector(".bf__line");
                 var ns = "http://www.w3.org/2000/svg";
                 var defs = document.createElementNS(ns,"defs");
-                defs.innerHTML = '<linearGradient id="bfGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#345ff4"/><stop offset="1" stop-color="#f20b81"/></linearGradient>';
+                defs.innerHTML = '<linearGradient id="bfGrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#345ff4"/><stop offset="1" stop-color="#f20b81"/></linearGradient>';
                 svg.insertBefore(defs, svg.firstChild);
+                var grad = defs.firstChild;
 
-                var len = path.getTotalLength();
-                gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+                var cards = flow.querySelectorAll(".bf__card");
+                var len = 0, progress = 0;
 
-                // draw the line as the section scrolls through
-                gsap.to(path, {
-                    strokeDashoffset: 0,
-                    ease: "none",
-                    scrollTrigger: { trigger: flow, start: "top 70%", end: "bottom 80%", scrub: 0.6 }
-                });
+                // Each card gets an entry/exit point at its node and a tangent direction there,
+                // so every segment leaves and lands on a node instead of a fixed drawing.
+                function anchors(card){
+                    // offset* ignores the GSAP reveal transforms still applied to unrevealed cards
+                    var steps = card.offsetParent;
+                    var x = card.offsetLeft + steps.offsetLeft, y = card.offsetTop + steps.offsetTop;
+                    var w = card.offsetWidth, h = card.offsetHeight;
+                    if (card.classList.contains("bf__card--left"))
+                        return { inP:[x+w, y+h/2], inD:[-1,0], outP:[x+w, y+h/2], outD:[1,0] };
+                    if (card.classList.contains("bf__card--right"))
+                        return { inP:[x, y+h/2], inD:[1,0], outP:[x, y+h/2], outD:[-1,0] };
+                    return { inP:[x+w/2, y], inD:[0,1], outP:[x+w/2, y+h], outD:[0,1] };
+                }
 
-                // travel the dot along the path
-                var dotObj = { p: 0 };
-                gsap.to(dotObj, {
-                    p: 1, ease: "none",
-                    scrollTrigger: { trigger: flow, start: "top 70%", end: "bottom 80%", scrub: 0.6 },
-                    onUpdate: function(){
-                        var pt = path.getPointAtLength(dotObj.p * len);
+                function render(){
+                    if (len) {
+                        path.style.strokeDashoffset = len * (1 - progress);
+                        var pt = path.getPointAtLength(progress * len);
                         dot.setAttribute("cx", pt.x); dot.setAttribute("cy", pt.y);
                     }
+                }
+
+                function build(){
+                    var w = flow.offsetWidth, h = flow.offsetHeight;
+                    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+                    grad.setAttribute("y2", h);
+                    var d = "", prev = null;
+                    cards.forEach(function(card){
+                        var a = anchors(card);
+                        if (!prev) {
+                            d = "M" + a.outP[0] + "," + a.outP[1];
+                        } else {
+                            var dx = Math.abs(a.inP[0] - prev.outP[0]), dy = Math.abs(a.inP[1] - prev.outP[1]);
+                            var k1 = Math.max(60, dx * 0.5, dy * 0.45);
+                            var k2 = k1;
+                            d += " C" + (prev.outP[0] + prev.outD[0]*k1) + "," + (prev.outP[1] + prev.outD[1]*k1)
+                               + " " + (a.inP[0] - a.inD[0]*k2) + "," + (a.inP[1] - a.inD[1]*k2)
+                               + " " + a.inP[0] + "," + a.inP[1];
+                            if (a.outP[0] !== a.inP[0] || a.outP[1] !== a.inP[1]) d += " L" + a.outP[0] + "," + a.outP[1];
+                        }
+                        prev = a;
+                    });
+                    path.setAttribute("d", d);
+                    pathBg.setAttribute("d", d);
+                    len = path.getTotalLength();
+                    path.style.strokeDasharray = len;
+                    render();
+                }
+
+                build();
+                window.addEventListener("resize", build);
+                window.addEventListener("load", build);
+
+                if(!window.gsap || !window.ScrollTrigger) { progress = 1; render(); return; }
+                gsap.registerPlugin(ScrollTrigger);
+
+                // draw the line and travel the dot as the section scrolls through
+                var prog = { p: 0 };
+                gsap.to(prog, {
+                    p: 1, ease: "none",
+                    scrollTrigger: { trigger: flow, start: "top 70%", end: "bottom 80%", scrub: 0.6 },
+                    onUpdate: function(){ progress = prog.p; render(); }
                 });
 
                 // reveal cards in sequence

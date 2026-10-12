@@ -2852,3 +2852,266 @@ footer dd a:hover {
         font-size: 14px;
     }
 }
+
+/* ============================================================
+   RankPro footer + floating Call Us / WhatsApp
+   ============================================================ */
+footer.rp-ft {
+    background: #071433;
+    padding-top: 0;
+    color: #fff;
+    font-family: "Inter", "Poppins", sans-serif;
+}
+.rp-ft__inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 56px 24px 28px;
+}
+.rp-ft__grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1.1fr .9fr;
+    gap: 36px 28px;
+}
+.rp-ft__title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #89a7ff;
+    margin: 0 0 16px;
+}
+.rp-ft__title--spaced { margin-top: 28px; }
+.rp-ft__links,
+.rp-ft__contact,
+.rp-ft__social-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.rp-ft__links--split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 18px;
+}
+.rp-ft__links li,
+.rp-ft__contact li,
+.rp-ft__social-list li {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: rgba(255,255,255,.82);
+    line-height: 1.45;
+}
+.rp-ft__links a,
+.rp-ft__contact a,
+.rp-ft__social-list a {
+    color: rgba(255,255,255,.86);
+    text-decoration: none;
+}
+.rp-ft__links a:hover,
+.rp-ft__contact a:hover,
+.rp-ft__social-list a:hover {
+    color: #f20b81;
+    text-decoration: none;
+}
+.rp-ft__contact span {
+    display: block;
+    font-size: 12px;
+    color: rgba(255,255,255,.55);
+    margin-bottom: 2px;
+}
+.rp-ft__address {
+    font-size: 14px;
+    color: rgba(255,255,255,.82);
+    line-height: 1.55;
+    margin: 0 0 12px;
+    white-space: pre-line;
+}
+.rp-ft__social-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.rp-ft__social-list i { width: 18px; text-align: center; }
+.rp-ft__bottom {
+    border-top: 1px solid rgba(255,255,255,.12);
+}
+.rp-ft__bottom-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 18px 24px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.rp-ft__bottom p {
+    margin: 0;
+    color: rgba(255,255,255,.7);
+    font-size: 14px;
+}
+.rp-ft__icons { display: flex; gap: 8px; }
+.rp-ft__icons a {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    font-size: 16px;
+    text-decoration: none;
+}
+.rp-ft__icons a:hover { background: #f20b81; color: #fff; }
+
+.calltoaction.rp-cta {
+    position: fixed;
+    right: 18px;
+    top: 34%;
+    width: auto !important;
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    pointer-events: auto !important;
+}
+.calltoaction.rp-cta a {
+    height: auto !important;
+    width: auto !important;
+    border-radius: 18px;
+    overflow: visible !important;
+    background: transparent;
+    margin: 0;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+.rp-cta__card {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    gap: 0;
+    padding: 8px;
+    background: #fff !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 36px rgba(12,10,40,.16);
+    text-decoration: none !important;
+    color: #0c0a14;
+    cursor: pointer;
+    pointer-events: auto !important;
+    transition: gap .3s ease, padding .3s ease, box-shadow .25s ease;
+}
+.calltoaction.rp-cta a:hover,
+.rp-cta__card:hover {
+    background: #fff !important;
+    box-shadow: 0 20px 40px rgba(12,10,40,.2);
+}
+.rp-cta__card:hover,
+.rp-cta__card:focus-visible {
+    gap: 12px;
+    padding-right: 18px;
+}
+.rp-cta__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: #fff;
+}
+.rp-cta__icon--wa { background: #25d366; }
+.rp-cta__icon--call { background: #345ff4; }
+.rp-cta__label {
+    font-family: "Space Grotesk", "Poppins", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+    white-space: nowrap;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width .3s ease, opacity .2s ease;
+}
+.rp-cta__card:hover .rp-cta__label,
+.rp-cta__card:focus-visible .rp-cta__label {
+    max-width: 120px;
+    opacity: 1;
+}
+.rp-cta__pop {
+    position: absolute;
+    right: calc(100% + 12px);
+    bottom: 0;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 16px 36px rgba(12,10,40,.16);
+    font-family: "Space Grotesk", "Poppins", sans-serif;
+}
+.rp-cta__pop[hidden] { display: none; }
+.rp-cta__pop-label { font-size: 13px; color: #6b6880; }
+.calltoaction.rp-cta a.rp-cta__pop-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: #345ff4;
+    text-decoration: none;
+    border-radius: 0;
+}
+.calltoaction.rp-cta a.rp-cta__pop-num:hover { transform: none; box-shadow: none; text-decoration: underline; }
+.rp-cta__pop-copy {
+    margin-top: 4px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: #eef2ff;
+    color: #345ff4;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+}
+.rp-cta__pop-copy:hover { background: #345ff4; color: #fff; }
+
+.rp-page {
+    padding: 140px 24px 80px;
+    background: #fbfbfe;
+    min-height: 60vh;
+}
+.rp-page__inner {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px 36px;
+    box-shadow: 0 18px 44px rgba(12,10,40,.06);
+}
+.rp-page__inner h1 {
+    font-size: 34px;
+    margin: 0 0 18px;
+    color: #0c0a14;
+}
+.rp-page__inner p,
+.rp-page__inner li {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #4b5565;
+}
+.rp-page__inner a { color: #345ff4; }
+
+@media (max-width: 991px) {
+    .rp-ft__grid { grid-template-columns: 1fr 1fr; }
+    .rp-ft__links--split { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+    .rp-ft__grid { grid-template-columns: 1fr; gap: 28px; }
+    .rp-ft__bottom-inner { flex-direction: column; text-align: center; }
+    .calltoaction.rp-cta { right: 8px; top: auto; bottom: 120px; gap: 10px; }
+    .rp-cta__label { font-size: 16px; }
+    .rp-cta__icon { width: 38px; height: 38px; }
+    .rp-page { padding: 120px 16px 56px; }
+    .rp-page__inner { padding: 28px 20px; }
+}

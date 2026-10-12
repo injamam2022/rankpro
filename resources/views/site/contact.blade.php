@@ -78,28 +78,33 @@
                             <h1>Contact US</h1>
                         </div>
                         <div class="footercont">
-                            @if(isset($footer_detail['contact_us']))
-                                <h6 style="color: black;">Contact Us</h6>
-                                <span style="color: black;">{{$footer_detail['contact_us']}}</span>
+                            @php
+                                $contactPhone = \App\Support\WebsiteSettings::displayPhone('phone');
+                                $contactWa = \App\Support\WebsiteSettings::displayPhone('whatsapp');
+                                $contactEmail = website_setting('email');
+                                $contactAddress = website_setting('address');
+                            @endphp
+                            @if($contactPhone)
+                                <h6 style="color: black;">Call Us</h6>
+                                <span style="color: black;"><a href="{{ \App\Support\WebsiteSettings::telHref('phone') }}" style="color:black;">{{ $contactPhone }}</a></span>
                             @endif
-                            @if(isset($footer_detail['toll_free']))
-                                <h6 style="color: black;">Toll Free</h6>
-                                <span style="color: black;">{{$footer_detail['toll_free']}}</span>
-                                <img src="{{ asset('') }}web/images/icons/footer_contact.png" alt="">
+                            @if($contactWa)
+                                <h6 style="color: black;">WhatsApp</h6>
+                                <span style="color: black;"><a href="{{ \App\Support\WebsiteSettings::whatsappHref() }}" style="color:black;" target="_blank" rel="noopener noreferrer">{{ $contactWa }}</a></span>
                             @endif
                         </div>
                         
-                        @if(isset($footer_detail['email']))
+                        @if($contactEmail)
                             <div class="footeremail">
                                 <h6 style="color: black;">Email</h6>
-                                <a href="mailto:{{$footer_detail['email']}}" style="color: black;">{{$footer_detail['email']}}</a>
+                                <a href="mailto:{{ $contactEmail }}" style="color: black;">{{ $contactEmail }}</a>
                                 <img src="{{ asset('') }}web/images/icons/footer_email.png" alt="">
                             </div>
                         @endif
-                        @if(isset($footer_detail['address']))
+                        @if($contactAddress)
                             <div class="footeradd">
                                 <h6 style="color: black;">Address</h6>
-                                <span style="color: black;">{{$footer_detail['address']}}</span>
+                                <span style="color: black;">{{ $contactAddress }}</span>
                                 <img src="{{ asset('') }}web/images/icons/footer_address.png" alt="">
                             </div>
                         @endif

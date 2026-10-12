@@ -1,94 +1,130 @@
 @php
-    $footerSlides = \App\Models\Footer::where('status',1)->get();
-    $exam = \App\Models\Exam::where('status',1)->where('type',2)->where('is_in_footer',1)->get();
-    $testSeries = \App\Models\TestSeriesHeading::select(["test_series_headings.heading","test_series.id"])
-                        ->leftJoin('test_series', 'test_series.id', '=', 'test_series_headings.test_series_id')
-                        ->where('test_series.status', 1)->where('test_series_headings.language', 1)->get();
+    use App\Support\WebsiteSettings;
 
-    $footer_detail = [];
+    $ws = WebsiteSettings::all();
+    $wsPhone = WebsiteSettings::displayPhone('phone');
+    $wsWhatsapp = WebsiteSettings::displayPhone('whatsapp');
+    $wsTel = WebsiteSettings::telHref('phone');
+    $wsWa = WebsiteSettings::whatsappHref();
+    $wsEmail = $ws['email'] ?? '';
+    $wsAddress = $ws['address'] ?? '';
 
-    foreach($footerSlides as $value){
-        $footer_detail[$value->key_name] = $value->value;
-    }
+    $exam = \App\Models\Exam::where('status', 1)->where('type', 2)->where('is_in_footer', 1)->orderByDesc('id')->limit(8)->get();
+    $locations = \App\Models\Location::where('status', 1)->orderBy('location_name')->limit(8)->get();
 @endphp
 
-<footer>
-    <div class="cusContainer" style="max-width:1420px;">
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-sm-6 ffirstblk">
-                <dl>
-                    <dt>Menu</dt>
-                    <dd><a href="{{ route('ranker') }}">Ranker</a></dd>
-                    <!-- <dd><a href="#">Free Customise Test</a></dd>
-                    <dd><a href="#">Advisory committee</a></dd>
-                    <dd><a href="#">Blogs</a></dd>
-                    <dd><a href="#"></a>New light</a></dd> -->
-                </dl>
+<footer class="rp-ft">
+    <div class="rp-ft__inner">
+        <div class="rp-ft__grid">
+            <div class="rp-ft__col">
+                <h3 class="rp-ft__title">Menu</h3>
+                <ul class="rp-ft__links rp-ft__links--split">
+                    <li><a href="{{ route('about') }}">About Us</a></li>
+                    <li><a href="{{ route('testseries') }}">Upcoming Test</a></li>
+                    <li><a href="{{ route('index') }}#pricing">Product pricing</a></li>
+                    <li><a href="{{ Auth::check() ? route('custom_test') : route('signup') }}">Practice Test</a></li>
+                    <li><a href="{{ route('blog') }}">Blog</a></li>
+                    <li><a href="{{ route('careers') }}">Careers</a></li>
+                    <li><a href="{{ route('ranker') }}">Ranker</a></li>
+                    <li><a href="{{ route('help') }}">Help &amp; Support</a></li>
+                    <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ route('terms') }}">Terms and condition</a></li>
+                </ul>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-6 fsecblk">
-                <dl>
-                    <dt>RankPro Test Series</dt>
-                    @foreach($exam as $value)
-                        <dd><a href="{{ route('testseries.details', encrypt($value->id)) }}">{{$value->name}}</a></dd>
-                    @endforeach
-                </dl>
+
+            <div class="rp-ft__col">
+                <h3 class="rp-ft__title">NEET Test Series</h3>
+                <ul class="rp-ft__links">
+                    @forelse($exam as $value)
+                        <li><a href="{{ route('testseries.details', encrypt($value->id)) }}">{{ $value->name }}</a></li>
+                    @empty
+                        <li><a href="{{ route('testseries') }}">NEET Test Series</a></li>
+                    @endforelse
+                </ul>
+                <h3 class="rp-ft__title rp-ft__title--spaced">Products</h3>
+                <ul class="rp-ft__links">
+                    <li><a href="{{ Auth::check() ? route('custom_test') : route('signup') }}">Practice Test</a></li>
+                    <li><a href="{{ route('ranker') }}">Ranker mentorship</a></li>
+                    <li><a href="{{ route('new_light') }}">NEET Pro Test Series</a></li>
+                    <li><a href="{{ route('index') }}#pricing">Product pricing</a></li>
+                </ul>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-6 fthrdblk">
-                <dl>
-                    <dt>New Light Test Series</dt>
-                    @foreach($testSeries as $value)
-                        <dd><a href="{{ route('new_light.details', encrypt($value->id)) }}">{!!$value->heading!!}</a></dd>
-                    @endforeach
-                </dl>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-6 ffourblk">
-                <div class="footercont">
-                    @if(isset($footer_detail['contact_us']))
-                        <h6>Contact Us</h6>
-                        <span>{{$footer_detail['contact_us']}}</span>
+
+            <div class="rp-ft__col">
+                <h3 class="rp-ft__title">Contact Us</h3>
+                <ul class="rp-ft__contact">
+                    @if($wsWhatsapp)
+                        <li>
+                            <span>WhatsApp</span>
+                            <a href="{{ $wsWa }}" target="_blank" rel="noopener noreferrer">{{ $wsWhatsapp }}</a>
+                        </li>
                     @endif
-                    @if(isset($footer_detail['toll_free']))
-                        <h6>Toll Free</h6>
-                        <span>{{$footer_detail['toll_free']}}</span>
-                        <img src="{{ asset('') }}web/images/icons/footer_contact.png" alt="">
+                    @if($wsPhone)
+                        <li>
+                            <span>Call Us</span>
+                            <a href="{{ $wsTel }}">{{ $wsPhone }}</a>
+                        </li>
                     @endif
-                </div>
-                
-                @if(isset($footer_detail['email']))
-                    <div class="footeremail">
-                        <h6>Email</h6>
-                        <a href="mailto:{{$footer_detail['email']}}">{{$footer_detail['email']}}</a>
-                        <img src="{{ asset('') }}web/images/icons/footer_email.png" alt="">
-                    </div>
+                    @if($wsEmail)
+                        <li>
+                            <span>Mail id</span>
+                            <a href="mailto:{{ $wsEmail }}">{{ $wsEmail }}</a>
+                        </li>
+                    @endif
+                </ul>
+
+                <h3 class="rp-ft__title rp-ft__title--spaced">Location</h3>
+                @if($wsAddress !== '')
+                    <p class="rp-ft__address">{{ $wsAddress }}</p>
                 @endif
-                @if(isset($footer_detail['address']))
-                    <div class="footeradd">
-                        <h6>Address</h6>
-                        <span>{{$footer_detail['address']}}</span>
-                        <img src="{{ asset('') }}web/images/icons/footer_address.png" alt="">
-                    </div>
-                @endif
+                <ul class="rp-ft__links">
+                    @foreach($locations as $location)
+                        <li>{{ $location->location_name }}</li>
+                    @endforeach
+                </ul>
+            </div>
+
+            <div class="rp-ft__col">
+                <h3 class="rp-ft__title">Social Media</h3>
+                <ul class="rp-ft__social-list">
+                    @if($wsWa)
+                        <li><a href="{{ $wsWa }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
+                    @endif
+                    @if(!empty($ws['facebook']))
+                        <li><a href="{{ $ws['facebook'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i> Facebook</a></li>
+                    @endif
+                    @if(!empty($ws['instagram']))
+                        <li><a href="{{ $ws['instagram'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i> Instagram</a></li>
+                    @endif
+                    @if(!empty($ws['linkedin']))
+                        <li><a href="{{ $ws['linkedin'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-linkedin-in"></i> LinkedIn</a></li>
+                    @endif
+                    @if(!empty($ws['youtube']))
+                        <li><a href="{{ $ws['youtube'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> YouTube</a></li>
+                    @endif
+                </ul>
             </div>
         </div>
     </div>
-    <div class="footerlinediv">
-        <div class="cusContainer" style="max-width:1420px;">
-            <div class="copyfooter">
-                @if(isset($footer_detail['copyright']))
-                    <p>&copy;Copyright {{date('Y')}} {{$footer_detail['copyright']}}</p>
+    <div class="rp-ft__bottom">
+        <div class="rp-ft__bottom-inner">
+            <p>&copy; {{ date('Y') }} {{ $ws['copyright'] ?? 'RankPro. All Rights Reserved.' }}</p>
+            <div class="rp-ft__icons">
+                @if($wsWa)
+                    <a href="{{ $wsWa }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                 @endif
-                <div class="footersocial">
-                    @if(isset($footer_detail['facebook']))
-                        <a href="{{$footer_detail['facebook']}}" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                    @endif
-                    @if(isset($footer_detail['youtube']))
-                        <a href="{{$footer_detail['youtube']}}" target="_blank"><i class="fab fa-youtube"></i></a>
-                    @endif
-                    @if(isset($footer_detail['instagram']))
-                        <a href="{{$footer_detail['instagram']}}" target="_blank"><i class="fab fa-instagram"></i></a>
-                    @endif
-                </div>
-                <p>Developed By <a href="https://zabingo.com/">zabingo.com</a></p>
+                @if(!empty($ws['facebook']))
+                    <a href="{{ $ws['facebook'] }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                @endif
+                @if(!empty($ws['instagram']))
+                    <a href="{{ $ws['instagram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                @endif
+                @if(!empty($ws['linkedin']))
+                    <a href="{{ $ws['linkedin'] }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                @endif
+                @if(!empty($ws['youtube']))
+                    <a href="{{ $ws['youtube'] }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                @endif
             </div>
         </div>
     </div>

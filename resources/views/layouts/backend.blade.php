@@ -153,6 +153,21 @@
             border-color: #7c3aed;
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
           }
+          .drawer-light .drawer-menu > .nav > .nav-link.active {
+            color: #6d28d9;
+            font-weight: 600;
+          }
+          .drawer-light .drawer-menu > .nav > .nav-link.active .nav-link-icon,
+          .drawer-light .drawer-menu > .nav > .nav-link.active .drawer-collapse-arrow {
+            color: #6d28d9;
+          }
+          .drawer-light .drawer-menu .drawer-menu-nested .nav-link.active {
+            color: #6d28d9;
+            background: #f3e8ff;
+            font-weight: 600;
+            border-left: 3px solid #7c3aed;
+            border-radius: 0 8px 8px 0;
+          }
         </style>
 
     </head>
@@ -618,7 +633,7 @@
                                             <a class="nav-link {{ request()->is('admin/video_tutorial') ? ' active' : '' }} {{ request()->is('admin/video_tutorial/*') ? ' active' : '' }}" href="{{route('admin.video_tutorial')}}">How To Use Video</a>
                                         @endif
                                         @if(isUserPermitted('footer-list', 'list'))
-                                            <a class="nav-link {{ request()->is('admin/footer') ? ' active' : '' }} {{ request()->is('admin/footer/*') ? ' active' : '' }}" href="{{route('admin.footer')}}">Footer</a>
+                                            <a class="nav-link {{ request()->is('admin/footer') ? ' active' : '' }} {{ request()->is('admin/footer/*') ? ' active' : '' }}" href="{{route('admin.footer')}}">Website Settings</a>
                                         @endif
                                     </nav>
                                 </div>
@@ -718,6 +733,52 @@
             form.submit();
             return false;
         };
+
+        (function () {
+            var drawer = document.getElementById('drawerAccordion');
+            if (!drawer) return;
+            var nested = Array.prototype.slice.call(drawer.querySelectorAll('.drawer-menu-nested .nav-link[href]'));
+            var current = nested.filter(function (a) { return a.classList.contains('active'); });
+
+            if (!current.length) {
+                var path = window.location.pathname.replace(/\/+$/, '');
+                var best = null, bestLen = 0;
+                nested.forEach(function (a) {
+                    var p = a.pathname.replace(/\/+$/, '');
+                    if (p && (path === p || path.indexOf(p + '/') === 0) && p.length > bestLen) {
+                        best = a;
+                        bestLen = p.length;
+                    }
+                });
+                if (best) {
+                    best.classList.add('active');
+                    current = [best];
+                }
+            }
+
+            current.forEach(function (link) {
+                var panel = link.closest('.collapse');
+                if (!panel) return;
+                panel.classList.add('show');
+                var toggle = panel.previousElementSibling;
+                if (toggle && toggle.classList.contains('nav-link')) {
+                    toggle.classList.remove('collapsed');
+                    toggle.classList.add('active');
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            if (current[0]) {
+                var box = current[0].parentElement;
+                while (box && box !== document.body && box.scrollHeight <= box.clientHeight) {
+                    box = box.parentElement;
+                }
+                if (box && box !== document.body) {
+                    var offset = current[0].getBoundingClientRect().top - box.getBoundingClientRect().top;
+                    box.scrollTop += offset - box.clientHeight / 2;
+                }
+            }
+        })();
         </script>
     </body>
 </html>

@@ -5,6 +5,7 @@
 
 
     use App\Http\Controllers\HomeController;
+    use App\Http\Controllers\SitePageController;
     use App\Http\Controllers\StudentsController;
     use App\Http\Controllers\ExamsController;
     use App\Http\Controllers\CustomTestController;
@@ -232,6 +233,12 @@
     //Sourav Start
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/save_contact', [HomeController::class, 'save_contact'])->name('save_contact');
+    Route::get('/about-us', [SitePageController::class, 'about'])->name('about');
+    Route::get('/privacy-policy', [SitePageController::class, 'privacy'])->name('privacy');
+    Route::get('/terms', [SitePageController::class, 'terms'])->name('terms');
+    Route::get('/careers', [SitePageController::class, 'careers'])->name('careers');
+    Route::get('/help-support', [SitePageController::class, 'help'])->name('help');
+    Route::get('/blog', [SitePageController::class, 'blog'])->name('blog');
 
     Route::get('/signup', [AdmissionController::class, 'signup'])->name('signup');
     Route::post('/admissionstore', [AdmissionController::class, 'store'])->name('admissionstore');
@@ -620,6 +627,7 @@
         Route::get('/location/change', [LocationController::class, 'change'])->name('location.change');
 
         Route::get('/footer', [FooterController::class, 'list'])->name('footer');
+        Route::post('/footer/settings', [FooterController::class, 'saveSettings'])->name('footer.settings');
         Route::get('/footer/add', [FooterController::class, 'add'])->name('footer.add');
         Route::post('/footer/save', [FooterController::class, 'save'])->name('footer.save');
         Route::get('/footer/edit', [FooterController::class, 'edit'])->name('footer.edit');

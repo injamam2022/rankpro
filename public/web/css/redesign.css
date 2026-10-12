@@ -707,7 +707,7 @@
 }
 
 /* Floating WhatsApp + call icons (home page only; calendar icon removed) */
-.calltoaction { display: block !important; }
+.calltoaction { display: flex !important; }
 
 
 /* ============================================================
@@ -1468,7 +1468,7 @@
 .bf {
     --blue:#345ff4; --pink:#f20b81; --ink:#0c0a14; --muted:#6b6577;
     position: relative;
-    padding: 110px 0;
+    padding: 110px 0 90px;
     background: #ffffff;
     font-family: "Inter", sans-serif;
     overflow: hidden;
@@ -1522,6 +1522,11 @@
 .bf__card--left .bf__card-node { right:-7px; }
 .bf__card--right .bf__card-node { left:-7px; }
 .bf__card--center .bf__card-node { top:-7px; left:50%; transform:translateX(-50%); }
+.bf__card--cta { text-decoration:none; transition:background .3s ease, transform .3s ease; }
+.bf__card--cta .bf__card-title { font-size:22px; font-weight:700; margin:0; transition:color .3s ease; }
+.bf__card--cta:hover { background:var(--pink); transform:translateY(-2px); }
+.bf__card--cta:hover .bf__card-title { color:#fff; }
+.bf__card--cta:hover .bf__card-num { background:#fff; color:var(--pink); }
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width:760px){
@@ -2006,24 +2011,30 @@ html { scroll-behavior: smooth; scroll-padding-top: 92px; }
 
 .cn {
     padding: 8px 24px 72px;
-    background: #f6f5f8;
+    background: #ffffff;
     text-align: center;
+}
+.cn__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
 }
 .cn__btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 280px;
-    padding: 18px 42px;
-    border-radius: 16px;
+    width: min(440px, 80%);
+    padding: 24px 26px;
+    border-radius: 20px;
     background: #fff;
     color: #0c0a14;
     font-family: "Space Grotesk", sans-serif;
     font-size: 22px;
     font-weight: 700;
     text-decoration: none;
-    box-shadow: 0 18px 40px rgba(12, 10, 20, .12);
-    border: 1px solid rgba(12, 10, 20, .06);
+    box-shadow: 0 20px 44px rgba(12, 10, 40, .08);
+    border: 1px solid rgba(12, 10, 20, .08);
     transition: background .3s ease, color .3s ease, transform .3s ease;
 }
 .cn__btn:hover {
@@ -2063,5 +2074,5 @@ html { scroll-behavior: smooth; scroll-padding-top: 92px; }
     .rh__timer { gap: 12px; margin-bottom: 20px; }
     .rh__timer-unit { min-width: 54px; padding: 8px 8px 6px; }
     .rh__timer-unit b { font-size: 18px; }
-    .cn__btn { min-width: 0; width: 100%; max-width: 360px; font-size: 18px; }
+    .cn__btn { min-width: 0; width: 100%; max-width: none; font-size: 18px; }
 }

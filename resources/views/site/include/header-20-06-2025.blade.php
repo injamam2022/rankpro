@@ -15,7 +15,7 @@
                     </div>
                 @else
                     <div class="loginRegistration">
-                        <a href="{{ route('signup') }}" class="{{ request()->is('signup') ? ' active' : '' }}">Join for free</a>
+                        <a href="{{ route('signup') }}" class="{{ request()->is('signup') ? ' active' : '' }}">SignUp</a>
                     </div>
                     <div class="loginRegistration" style="margin-left: 5px;">
                         <a href="{{ route('login') }}" class="{{ request()->is('login') ? ' active' : '' }}">Login</a>

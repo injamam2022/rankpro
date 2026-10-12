@@ -133,3 +133,10 @@ function getDefaultLanguage(){
 
     return $language_list->id;
 }
+
+if (!function_exists('website_setting')) {
+    function website_setting(string $key, $default = '')
+    {
+        return \App\Support\WebsiteSettings::get($key, $default);
+    }
+}
