@@ -675,6 +675,10 @@ body.rp-dash-body #dashboard .rp-side-quote strong {
   gap: 16px;
 }
 
+.rp-scope-filter-slot {
+  display: none !important;
+}
+
 .rp-filter {
   display: flex;
   flex-wrap: wrap;
@@ -683,6 +687,18 @@ body.rp-dash-body #dashboard .rp-side-quote strong {
   gap: 12px;
   padding: 10px 14px;
   border-radius: 12px;
+}
+
+.dashboardRightBody > .rp-filter.rp-filter--global {
+  margin: 0 0 16px;
+  position: sticky;
+  top: 56px;
+  z-index: 25;
+  background: #fff;
+}
+
+.rp-filter--subject-only {
+  justify-content: flex-end;
 }
 
 .rp-filter__group {

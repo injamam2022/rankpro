@@ -176,18 +176,24 @@
                             <div class="ct-alert ct-alert-ok">{{ session('success') }}</div>
                         @endif
 
+                        @php
+                            $ctScope = array_filter(['subject_id' => $subject_id ?? null]);
+                        @endphp
                         <div class="ct-tabs">
-                            <a class="ct-tab {{ $tab === 'create' ? 'active' : '' }}" href="{{ route('custom_test', ['tab' => 'create']) }}">Create New</a>
-                            <a class="ct-tab {{ $tab === 'attempted' ? 'active' : '' }}" href="{{ route('custom_test', ['tab' => 'attempted']) }}">Attempted tests</a>
+                            <a class="ct-tab {{ $tab === 'create' ? 'active' : '' }}" href="{{ route('custom_test', array_merge($ctScope, ['tab' => 'create'])) }}">Create New</a>
+                            <a class="ct-tab {{ $tab === 'attempted' ? 'active' : '' }}" href="{{ route('custom_test', array_merge($ctScope, ['tab' => 'attempted'])) }}">Attempted tests</a>
                         </div>
 
                         @if($tab === 'attempted')
                             <form class="ct-search" method="get" action="{{ route('custom_test') }}">
                                 <input type="hidden" name="tab" value="attempted">
+                                @if(!empty($subject_id))
+                                    <input type="hidden" name="subject_id" value="{{ $subject_id }}">
+                                @endif
                                 <i class="fas fa-search" aria-hidden="true"></i>
                                 <input type="search" name="q" value="{{ $search ?? '' }}" placeholder="Search attempted tests" autocomplete="off">
                                 @if(!empty($search))
-                                    <a class="ct-search__clear" href="{{ route('custom_test', ['tab' => 'attempted']) }}">Clear</a>
+                                    <a class="ct-search__clear" href="{{ route('custom_test', array_merge($ctScope, ['tab' => 'attempted'])) }}">Clear</a>
                                 @endif
                                 <button type="submit">Search</button>
                             </form>
@@ -208,6 +214,8 @@
                                     <div class="ct-empty">
                                         @if(!empty($search))
                                             No tests match “{{ $search }}”.
+                                        @elseif(!empty($subject_id))
+                                            No custom tests for this subject yet. Create one from the Create New tab.
                                         @else
                                             No custom tests yet. Create one from the Create New tab.
                                         @endif

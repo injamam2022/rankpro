@@ -61,12 +61,6 @@
             Strength &amp; Weakness Diagnostic Center
         </h1>
         <div class="sw-head__right">
-            <div class="sw-chips">
-                <a class="sw-chip {{ $subjectId === '' || $subjectId === null ? 'is-on' : '' }}" href="{{ $swUrl(['subject_id' => '']) }}">All Subjects</a>
-                @foreach($subject_list as $sub)
-                    <a class="sw-chip {{ (string) $subjectId === (string) $sub->id ? 'is-on' : '' }}" href="{{ $swUrl(['subject_id' => $sub->id]) }}">{{ $sub->name }}</a>
-                @endforeach
-            </div>
             <div class="sw-scope">
                 @include('site.include.analytics_exam_select')
             </div>

@@ -4,7 +4,6 @@
     $subjectId = $subject_id ?? '';
     $difficulty = (string) ($difficulty ?? '');
     $examId = $exam_id ?? null;
-    $isAllMode = $examType === '' || $examType === null || (string) $examType === '3';
 
     $aaUrl = function ($overrides = []) use ($aaRoute, $examType, $subjectId, $difficulty, $examId) {
         $params = [
@@ -122,23 +121,6 @@
     <div class="aa-filters">
         <div class="aa-filters__label"><i class="fas fa-filter"></i> Multi-filter diagnostic bar</div>
         <div class="aa-filters__row">
-            <div class="aa-filter">
-                <span class="aa-filter__name">Exam Mode</span>
-                <div class="aa-chips">
-                    <a class="aa-chip {{ $isAllMode ? 'is-on-dark' : '' }}" href="{{ $aaUrl(['exam_type' => '']) }}">All Modes</a>
-                    <a class="aa-chip {{ (string) $examType === '1' ? 'is-on-dark' : '' }}" href="{{ $aaUrl(['exam_type' => 1]) }}">Online CBT</a>
-                    <a class="aa-chip {{ (string) $examType === '2' ? 'is-on-dark' : '' }}" href="{{ $aaUrl(['exam_type' => 2]) }}">Offline OMR</a>
-                </div>
-            </div>
-            <div class="aa-filter">
-                <span class="aa-filter__name">Subject</span>
-                <div class="aa-chips">
-                    <a class="aa-chip {{ $subjectId === '' || $subjectId === null ? 'is-on' : '' }}" href="{{ $aaUrl(['subject_id' => '']) }}">All</a>
-                    @foreach($subject_list as $sub)
-                        <a class="aa-chip {{ (string) $subjectId === (string) $sub->id ? 'is-on' : '' }}" href="{{ $aaUrl(['subject_id' => $sub->id]) }}">{{ $sub->name }}</a>
-                    @endforeach
-                </div>
-            </div>
             <div class="aa-filter">
                 <span class="aa-filter__name">Question Difficulty</span>
                 <div class="aa-chips">
@@ -262,11 +244,6 @@
     <div class="aa-widget">
         <div class="aa-widget__head">
             <h2 class="aa-widget__title"><i class="fas fa-sliders-h"></i> Interactive Multi-Parameter Exam Diagnostic Widget</h2>
-            <div class="aa-chips">
-                <a class="aa-chip {{ $isAllMode ? 'is-on-dark' : '' }}" href="{{ $aaUrl(['exam_type' => '']) }}">All Modes</a>
-                <a class="aa-chip {{ (string) $examType === '1' ? 'is-on-dark' : '' }}" href="{{ $aaUrl(['exam_type' => 1]) }}">Online CBT</a>
-                <a class="aa-chip {{ (string) $examType === '2' ? 'is-on-dark' : '' }}" href="{{ $aaUrl(['exam_type' => 2]) }}">Offline OMR</a>
-            </div>
         </div>
         <div class="aa-tabs" id="aaWidgetTabs">
             <button type="button" class="aa-tab is-on" data-panel="aaPanelStrike">Level &amp; Strike Rate</button>

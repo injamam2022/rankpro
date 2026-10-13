@@ -29,6 +29,8 @@ class CustomTestController extends Controller
     {
         $tab = $request->get('tab', 'create');
         $search = trim((string) $request->get('q', ''));
+        $subjectId = \App\Support\StudentScope::subjectId();
+        $subjectId = $subjectId !== '' ? (int) $subjectId : null;
 
         $subjectCards = [];
         $attempted = collect();
@@ -37,6 +39,18 @@ class CustomTestController extends Controller
             $query = CustomTest::with('examUser')
                 ->where('user_id', Auth::id())
                 ->whereIn('status', ['ready', 'attempted']);
+
+            if ($subjectId) {
+                $query->where(function ($q) use ($subjectId) {
+                    $q->where('custom_tests.subject_id', $subjectId)
+                        ->orWhereExists(function ($sub) use ($subjectId) {
+                            $sub->selectRaw('1')
+                                ->from('question_paper_subjects')
+                                ->whereColumn('question_paper_subjects.question_paper_id', 'custom_tests.question_paper_id')
+                                ->where('question_paper_subjects.subject_id', $subjectId);
+                        });
+                });
+            }
 
             if ($search !== '') {
                 $query->where('name', 'like', '%'.addcslashes($search, '%_\\').'%');
@@ -76,6 +90,7 @@ class CustomTestController extends Controller
         return view('site.custom_test.index', [
             'tab' => $tab,
             'search' => $search,
+            'subject_id' => $subjectId,
             'subjectCards' => $subjectCards,
             'attempted' => $attempted,
         ]);
