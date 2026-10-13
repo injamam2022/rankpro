@@ -2,6 +2,7 @@
     $selectedExamId = $exam_id ?? null;
     $currentSubjectId = $subject_id ?? '';
     $currentExamType = $exam_type ?? '';
+    $currentDifficulty = $difficulty ?? '';
     $analyticsExamList = $analytics_exam_list ?? collect();
     $currentRouteName = optional(request()->route())->getName();
 
@@ -22,9 +23,11 @@
     $overallUrl = route($pickerRoutes['overall'], array_filter([
         'subject_id' => $currentSubjectId,
         'exam_type' => $currentExamType,
-    ]));
+        'difficulty' => $currentDifficulty,
+    ], function ($v) { return $v !== null && $v !== ''; }));
 
-    $selectedLabel = 'Overall (All Exams)';
+    $isAnalyticsPicker = in_array($pickerRoutes['overall'] ?? '', ['answers_analytics', 'strength'], true);
+    $selectedLabel = $isAnalyticsPicker ? 'All Mocks & Tests' : 'Overall (All Exams)';
     $selectedUrl = $overallUrl;
     $examOptions = [];
 
@@ -38,7 +41,8 @@
             'exam_id' => $attempt->user_exam_id,
             'subject_id' => $currentSubjectId,
             'exam_type' => $currentExamType,
-        ]));
+            'difficulty' => $currentDifficulty,
+        ], function ($v) { return $v !== null && $v !== ''; }));
         $searchText = strtolower(trim($name . ' ' . $code . ' ' . $date));
         $examOptions[] = [
             'id' => (string) $attempt->user_exam_id,
@@ -84,7 +88,7 @@
                     role="option"
                     @if($isOverallAnalytics) aria-selected="true" @endif
                 >
-                    <span class="ax-exam__option-title">Overall</span>
+                    <span class="ax-exam__option-title">{{ $isAnalyticsPicker ? 'All Mocks & Tests' : 'Overall' }}</span>
                     <span class="ax-exam__option-sub">All exams combined</span>
                 </button>
             </li>

@@ -119,7 +119,7 @@
         </li>
 
         <li class="{{ request()->is('notice') || request()->is('notice/*') ? 'active' : '' }}">
-            <a href="{{ route('notice') }}"><img src="{{ asset('') }}web/images/d_notice_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Notices</span></a>
+            <a href="{{ route('notice') }}"><img src="{{ asset('') }}web/images/d_notice_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Notices</span><span class="rp-menu-badge">Updates</span></a>
         </li>
 
         <li class="{{ request()->is('custom-test') || request()->is('custom-test/*') ? 'active' : '' }}">
@@ -140,11 +140,8 @@
                     <li class="{{ request()->is('exam-answers-analytics*') ? 'active' : '' }}">
                         <a href="{{ route('exam_answers_analytics', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
                     </li>
-                    <li class="{{ request()->is('exam-strength*') ? 'active' : '' }}">
-                        <a href="{{ route('exam_strength', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
-                    </li>
-                    <li class="{{ request()->is('exam-weakness*') ? 'active' : '' }}">
-                        <a href="{{ route('exam_weakness', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
+                    <li class="{{ request()->is('exam-strength*') || request()->is('exam-weakness*') ? 'active' : '' }}">
+                        <a href="{{ route('exam_strength', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength &amp; Weakness</span></a>
                     </li>
                     <li class="{{ request()->is('exam-progress-report*') ? 'active' : '' }}">
                         <a href="{{ route('exam_progress_report', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
@@ -171,11 +168,8 @@
                 <li class="{{ request()->is('answers-analytics*') ? 'active' : '' }}">
                     <a href="{{ route('answers_analytics') }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
                 </li>
-                <li class="{{ request()->is('strength*') ? 'active' : '' }}">
-                    <a href="{{ route('strength') }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
-                </li>
-                <li class="{{ request()->is('weakness*') ? 'active' : '' }}">
-                    <a href="{{ route('weakness') }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
+                <li class="{{ request()->is('strength*') || request()->is('weakness*') ? 'active' : '' }}">
+                    <a href="{{ route('strength') }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength &amp; Weakness</span></a>
                 </li>
                 <li class="{{ request()->is('progress-report*') ? 'active' : '' }}">
                     <a href="{{ route('progress_report') }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>

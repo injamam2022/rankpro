@@ -23,6 +23,8 @@ use DB;
 
 class NoticesController extends Controller
 {
+    public const PER_PAGE = 10;
+
     private function getLanguageId(){
         return 1;
     }
@@ -37,7 +39,7 @@ class NoticesController extends Controller
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['exam_type'] = $request->exam_type;
         $data['subject_id'] = $request->subject_id;
-        $data['type'] = $request->type;;
+        $data['type'] = $request->type;
         $data['notice_count'] = Notice_user::select(['notice_users.*','notices.name','notices.description'])
                                 ->leftJoin('notices', 'notices.id', '=', 'notice_users.notice_id')
                                 ->where('notice_users.user_id',Auth::user()->id)->where('notice_users.is_deleted',0)->where('notice_users.is_archive',0)->where('notices.status',1)->count();
@@ -54,7 +56,7 @@ class NoticesController extends Controller
                                 ->leftJoin('notices', 'notices.id', '=', 'notice_users.notice_id')
                                 ->where('notice_users.user_id',Auth::user()->id)->where('notices.is_urgent',1)->where('notice_users.is_archive',0)->where('notices.status',1)->count();
 
-        $data['notice_list'] = Notice_user::select(['notice_users.*','notices.name','notices.description'])
+        $data['notice_list'] = Notice_user::select(['notice_users.*','notices.name','notices.description','notices.is_urgent'])
                                 ->leftJoin('notices', 'notices.id', '=', 'notice_users.notice_id')
                                 ->where('notice_users.user_id',Auth::user()->id)->where('notice_users.is_deleted',0);
         if($data['type'] == 2){
@@ -67,7 +69,12 @@ class NoticesController extends Controller
             $data['notice_list'] = $data['notice_list']->where('notice_users.is_archive',0);
         }
 
-        $data['notice_list'] = $data['notice_list']->where('notices.status',1)->get();
+        $data['notice_list'] = $data['notice_list']
+            ->where('notices.status',1)
+            ->orderByDesc('notices.is_urgent')
+            ->orderByDesc('notice_users.created_at')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
         $data['notifications'] = collect();
         $data['notif_tab'] = $request->get('tab', 'all');
@@ -83,10 +90,31 @@ class NoticesController extends Controller
             } elseif ($request->get('type') == 6 || $tab === 'important') {
                 $q->where('is_important', 1);
             }
-            $data['notifications'] = $q->paginate(20)->withQueryString();
+            $data['notifications'] = $q->paginate(self::PER_PAGE)->withQueryString();
+        }
+
+        $isNotifTab = in_array((string) $request->get('type'), ['5', '6'], true)
+            || in_array($data['notif_tab'], ['upcoming', 'important'], true);
+        $activePager = $isNotifTab ? $data['notifications'] : $data['notice_list'];
+        $clamped = $this->redirectIfPageOutOfRange($activePager);
+        if ($clamped) {
+            return $clamped;
         }
 
         return view('site.notice',$data);
+    }
+
+    protected function redirectIfPageOutOfRange($paginator)
+    {
+        if (!$paginator || !method_exists($paginator, 'lastPage')) {
+            return null;
+        }
+        $last = max(1, (int) $paginator->lastPage());
+        if ((int) $paginator->currentPage() > $last) {
+            return redirect()->to($paginator->url($last));
+        }
+
+        return null;
     }
 
     public function notification_read(Request $request, StudentNotificationService $svc)
@@ -125,14 +153,14 @@ class NoticesController extends Controller
         if($notice_user){
             if($notice_user->is_favorite == 1){
                 $notice_user->update(['is_favorite'=>0]);
-                return redirect()->route('notice')->with('success', 'Notice removed from your favorites.');
+                return back()->with('success', 'Notice removed from your favorites.');
             }else{
                 $notice_user->update(['is_favorite'=>1]);
-                return redirect()->route('notice')->with('success', 'Notice added to your favorites.');
+                return back()->with('success', 'Notice added to your favorites.');
             }
             
         }else{
-            return redirect()->route('notice')->with('success', 'Notice added to your favorites.');
+            return back()->with('success', 'Notice added to your favorites.');
         }
         
     }
@@ -147,7 +175,7 @@ class NoticesController extends Controller
             $is_archive = ($notice_user->is_archive==1)?0:1;
             $notice_user->update(['is_archive'=>$is_archive]);
         }
-        return redirect()->route('notice')->with('success', 'Notice added to your archive.');
+        return back()->with('success', 'Notice added to your archive.');
     }
 
     public function notice_delete(Request $request){
@@ -160,7 +188,7 @@ class NoticesController extends Controller
             $notice_user->update(['is_deleted'=>1]);
         }
         
-        return redirect()->route('notice')->with('success', 'Notice deleted successfully.');
+        return back()->with('success', 'Notice deleted successfully.');
         
     }
 

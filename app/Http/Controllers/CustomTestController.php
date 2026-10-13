@@ -28,58 +28,54 @@ class CustomTestController extends Controller
     public function index(Request $request)
     {
         $tab = $request->get('tab', 'create');
-        $subjects = $this->activeSubjects();
-        $builder = $this->builder();
+        $search = trim((string) $request->get('q', ''));
 
         $subjectCards = [];
-        foreach ($subjects as $subject) {
-            $key = strtolower($subject->name);
-            $state = $builder['subjects'][$subject->id] ?? [];
-            $available = $this->countAvailableQuestions(
-                (int) $subject->id,
-                $state['selection'] ?? null
-            );
-            $subjectCards[] = [
-                'subject' => $subject,
-                'meta' => $this->subjectIcons[$key] ?? ['color' => '#5b4bb7', 'icon' => 'fas fa-book'],
-                'presets' => $key === 'biology' ? [10, 15, 20, 90] : [10, 15, 20, 45],
-                'question_count' => (int) ($state['question_count'] ?? 0),
-                'available' => $available,
-                'has_selection' => !empty($state['selection']),
-                'selection_label' => $this->selectionLabel($state['selection'] ?? null),
-            ];
-        }
+        $attempted = collect();
 
-        $attempted = CustomTest::with('examUser')
-            ->where('user_id', Auth::id())
-            ->whereIn('status', ['ready', 'attempted'])
-            ->orderByDesc('id')
-            ->limit(50)
-            ->get()
-            ->map(function (CustomTest $item) {
-                $examUser = $item->examUser;
-                $finished = $examUser
-                    && $examUser->percentage !== null
-                    && $examUser->percentage !== '';
-                $progress = $finished ? round((float) $examUser->percentage, 1) : 0.0;
-                if ($progress < 0) {
-                    $progress = 0.0;
-                }
-                if ($progress > 100) {
-                    $progress = 100.0;
-                }
+        if ($tab === 'attempted') {
+            $query = CustomTest::with('examUser')
+                ->where('user_id', Auth::id())
+                ->whereIn('status', ['ready', 'attempted']);
 
-                $item->is_finished = $finished;
-                $item->progress_pct = $progress;
-                $item->list_href = $finished
-                    ? route('custom_test.analysis', $item->id)
-                    : route('custom_test.resume', $item->id);
+            if ($search !== '') {
+                $query->where('name', 'like', '%'.addcslashes($search, '%_\\').'%');
+            }
 
-                return $item;
+            $attempted = $query->orderByDesc('id')->paginate(10)->withQueryString();
+            if ($attempted->currentPage() > max(1, $attempted->lastPage())) {
+                return redirect()->to($attempted->url(max(1, $attempted->lastPage())));
+            }
+
+            $attempted->getCollection()->transform(function (CustomTest $item) {
+                return $this->decorateAttempted($item);
             });
+        } else {
+            $subjects = $this->activeSubjects();
+            $builder = $this->builder();
+
+            foreach ($subjects as $subject) {
+                $key = strtolower($subject->name);
+                $state = $builder['subjects'][$subject->id] ?? [];
+                $available = $this->countAvailableQuestions(
+                    (int) $subject->id,
+                    $state['selection'] ?? null
+                );
+                $subjectCards[] = [
+                    'subject' => $subject,
+                    'meta' => $this->subjectIcons[$key] ?? ['color' => '#5b4bb7', 'icon' => 'fas fa-book'],
+                    'presets' => $key === 'biology' ? [10, 15, 20, 90] : [10, 15, 20, 45],
+                    'question_count' => (int) ($state['question_count'] ?? 0),
+                    'available' => $available,
+                    'has_selection' => !empty($state['selection']),
+                    'selection_label' => $this->selectionLabel($state['selection'] ?? null),
+                ];
+            }
+        }
 
         return view('site.custom_test.index', [
             'tab' => $tab,
+            'search' => $search,
             'subjectCards' => $subjectCards,
             'attempted' => $attempted,
         ]);
@@ -306,6 +302,81 @@ class CustomTestController extends Controller
             'subjectNames' => $names,
             'defaultDuration' => max(30, (int) ceil($totalQuestions * 1.5)),
         ]);
+    }
+
+    public function fromSubtopic(Request $request)
+    {
+        $data = $request->validate([
+            'sub_topic_id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $subTopicId = (int) $data['sub_topic_id'];
+        $sub = Sub_topic::query()->where('id', $subTopicId)->first();
+
+        $subjectId = (int) ($sub->subject_id ?? 0);
+        $chapterId = (int) ($sub->chapter_id ?? 0);
+        $topicId = (int) ($sub->topic_id ?? 0);
+        $subName = trim((string) ($sub->name ?? ''));
+
+        if ($subjectId < 1 || $chapterId < 1) {
+            $sample = Question::query()
+                ->where('sub_topic_id', $subTopicId)
+                ->where('is_deleted', 0)
+                ->where('status', 1)
+                ->first(['subject_id', 'chapter_id', 'topic_id']);
+            if ($sample) {
+                $subjectId = $subjectId ?: (int) $sample->subject_id;
+                $chapterId = $chapterId ?: (int) $sample->chapter_id;
+                $topicId = $topicId ?: (int) $sample->topic_id;
+            }
+        }
+
+        if ($subjectId < 1 || $chapterId < 1) {
+            return redirect()->route('custom_test')
+                ->with('error', 'Could not map this subtopic to a custom test. Pick chapters on Custom Test instead.');
+        }
+
+        if ($subName === '') {
+            $subName = 'Targeted subtopic';
+        }
+
+        $selection = [[
+            'chapter_id' => $chapterId,
+            'topic_ids' => $topicId > 0 ? [$topicId] : [],
+            'sub_topic_ids' => [$subTopicId],
+        ]];
+
+        $available = $this->countAvailableQuestions($subjectId, $selection);
+        $count = min(10, $available);
+        if ($count < 1) {
+            return redirect()->route('custom_test')
+                ->with('error', 'No bank questions are available for this subtopic yet.');
+        }
+
+        $subject = Subject::where('id', $subjectId)->first();
+        $subjectName = $subject->name ?? 'Subject';
+
+        session(['custom_test_builder' => [
+            'subjects' => [
+                $subjectId => [
+                    'question_count' => $count,
+                    'selection' => $selection,
+                    'available' => $available,
+                    'name' => $subjectName,
+                ],
+            ],
+            'ready' => true,
+        ]]);
+
+        $testName = \Illuminate\Support\Str::limit('Targeted · '.$subName, 80, '');
+        $request->merge([
+            'name' => $testName,
+            'duration_minutes' => max(15, (int) ceil($count * 1.5)),
+            'negative_marking' => 1,
+        ]);
+        $request->request->remove('difficulty');
+
+        return $this->generate($request);
     }
 
     public function generate(Request $request)
@@ -741,6 +812,29 @@ class CustomTestController extends Controller
             'subjectStats' => $subjectStats,
             'reviewUrl' => route('exam_result_detail', ['id' => $examUser->id]),
         ]);
+    }
+
+    private function decorateAttempted(CustomTest $item): CustomTest
+    {
+        $examUser = $item->examUser;
+        $finished = $examUser
+            && $examUser->percentage !== null
+            && $examUser->percentage !== '';
+        $progress = $finished ? round((float) $examUser->percentage, 1) : 0.0;
+        if ($progress < 0) {
+            $progress = 0.0;
+        }
+        if ($progress > 100) {
+            $progress = 100.0;
+        }
+
+        $item->is_finished = $finished;
+        $item->progress_pct = $progress;
+        $item->list_href = $finished
+            ? route('custom_test.analysis', $item->id)
+            : route('custom_test.resume', $item->id);
+
+        return $item;
     }
 
     private function activeSubjects()

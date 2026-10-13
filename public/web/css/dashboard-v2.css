@@ -580,6 +580,23 @@ body.rp-dash-body #dashboard .dashboardMenuMain > li.active > .menuItemRow > .me
   color: var(--rp-blue);
 }
 
+body.rp-dash-body #dashboard .dashboardMenuMain > li > a .rp-menu-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+body.rp-dash-body #dashboard .dashboardMenuMain > li.active > a .rp-menu-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 body.rp-dash-body #dashboard .dashboardMenu_ic {
   width: 16px !important;
   height: 16px !important;

@@ -139,6 +139,9 @@
     Route::get('/exam-answers-analytics', [Exam_givenController::class, 'answers_analytics'])->name('exam_answers_analytics')->middleware(['verifyMembership']);
 
     Route::get('/exam-strength', [Exam_givenController::class, 'strength'])->name('exam_strength')->middleware(['verifyMembership']);
+    Route::get('/exam-strength/drilldown', [Exam_givenController::class, 'strength_drilldown'])->name('exam_strength.drilldown')->middleware(['verifyMembership']);
+    Route::get('/exam-strength/list', [Exam_givenController::class, 'strength_list'])->name('exam_strength.list')->middleware(['verifyMembership']);
+    Route::post('/exam-strength/review-mistake', [Exam_givenController::class, 'strength_review_mistake'])->name('exam_strength.review_mistake')->middleware(['verifyMembership']);
     Route::get('/exam-strength/topics', [Exam_givenController::class, 'strength_topics'])->name('exam_strength.topics')->middleware(['verifyMembership']);
     Route::get('/exam-strength/subtopics', [Exam_givenController::class, 'strength_subtopics'])->name('exam_strength.subtopics')->middleware(['verifyMembership']);
     Route::get('/exam-strength/question', [Exam_givenController::class, 'strength_question'])->name('exam_strength.question')->middleware(['verifyMembership']);
@@ -154,6 +157,9 @@
     Route::get('/answers-analytics', [Exam_homeController::class, 'answers_analytics'])->name('answers_analytics')->middleware(['verifyMembership']);
 
     Route::get('/strength', [Exam_homeController::class, 'strength'])->name('strength')->middleware(['verifyMembership']);
+    Route::get('/strength/drilldown', [Exam_homeController::class, 'strength_drilldown'])->name('strength.drilldown')->middleware(['verifyMembership']);
+    Route::get('/strength/list', [Exam_homeController::class, 'strength_list'])->name('strength.list')->middleware(['verifyMembership']);
+    Route::post('/strength/review-mistake', [Exam_homeController::class, 'strength_review_mistake'])->name('strength.review_mistake')->middleware(['verifyMembership']);
     Route::get('/strength/topics', [Exam_homeController::class, 'strength_topics'])->name('strength.topics')->middleware(['verifyMembership']);
     Route::get('/strength/subtopics', [Exam_homeController::class, 'strength_subtopics'])->name('strength.subtopics')->middleware(['verifyMembership']);
     Route::get('/strength/question', [Exam_homeController::class, 'strength_question'])->name('strength.question')->middleware(['verifyMembership']);
@@ -192,6 +198,7 @@
     Route::post('/custom-test/subject/save', [CustomTestController::class, 'saveChapters'])->name('custom_test.save_chapters')->middleware(['verifyMembership']);
     Route::post('/custom-test/configure', [CustomTestController::class, 'configure'])->name('custom_test.configure')->middleware(['verifyMembership']);
     Route::post('/custom-test/generate', [CustomTestController::class, 'generate'])->name('custom_test.generate')->middleware(['verifyMembership']);
+    Route::post('/custom-test/from-subtopic', [CustomTestController::class, 'fromSubtopic'])->name('custom_test.from_subtopic')->middleware(['verifyMembership']);
     Route::get('/custom-test/{id}/ready', [CustomTestController::class, 'ready'])->name('custom_test.ready')->middleware(['verifyMembership']);
     Route::post('/custom-test/{id}/start', [CustomTestController::class, 'start'])->name('custom_test.start')->middleware(['verifyMembership']);
     Route::get('/custom-test/{id}/download', [CustomTestController::class, 'download'])->name('custom_test.download')->middleware(['verifyMembership']);
