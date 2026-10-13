@@ -77,28 +77,6 @@
               <div class="dashboardRight">
                   <div class="dashboardRightBody">
                       <div class="row">
-                          <div class="col-12">
-                              <div class="dashboardBlock dashboardBlockShadow">
-                                 <ul class="nav nav-tabs examTab" role="tablist">
-                                    <li class="nav-item">
-                                      <a class="nav-link @if($exam_type==1) active @endif" href="{{ route('common_confusion') }}?subject_id={{$subject_id}}&exam_type=1&reason_id={{$reason_id}}">Online Examination</a>
-                                    </li>
-                                    <li class="nav-item">
-                                      <a class="nav-link @if($exam_type==2) active @endif" href="{{ route('common_confusion') }}?subject_id={{$subject_id}}&exam_type=2&reason_id={{$reason_id}}">Offline Examination</a>
-                                    </li>
-                                    <li class="nav-item">
-                                      <a class="nav-link @if($exam_type==3 || $exam_type == '') active @endif" href="{{ route('common_confusion') }}?subject_id={{$subject_id}}&exam_type=&reason_id={{$reason_id}}">Overall</a>
-                                    </li>
-                                  </ul>
-                                  <ul class="nav nav-tabs examTab examTabSub">
-                                    @foreach($subject_list as $value)
-                                        <li class="nav-item mt-2" >
-                                          <a class="nav-link  @if($subject_id==$value->id) active @endif" href="{{ route('common_confusion') }}?subject_id={{$value->id}}&exam_type={{$exam_type}}&reason_id={{$reason_id}}">{{$value->name}}</a>
-                                        </li>
-                                    @endforeach
-                                  </ul>
-                              </div>
-                          </div>
                           <div class="col-12 mb-0">
                               <div class="tab-content dashboardBlock">
                                 <div class="tab-pane fade show active">

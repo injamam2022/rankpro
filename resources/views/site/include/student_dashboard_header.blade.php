@@ -126,8 +126,8 @@
     </div>
 </header>
 @php
-    $hideScopeFilter = request()->is('online-exam*', 'start-online-exam*', 'start-offline-exam*', 'start-exam*')
-        || request()->routeIs('start_online_exam', 'start_exam', 'online_exam');
+    $hideScopeFilter = request()->is('online-exam*', 'start-online-exam*', 'start-offline-exam*', 'start-exam*', 'profile*', 'report-problem*')
+        || request()->routeIs('start_online_exam', 'start_exam', 'online_exam', 'profile', 'report_problem');
     $hideScopeMode = request()->is('custom-test*') || request()->routeIs('custom_test*');
 @endphp
 @unless($hideScopeFilter)

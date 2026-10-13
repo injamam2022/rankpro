@@ -701,6 +701,11 @@ body.rp-dash-body #dashboard .rp-side-quote strong {
   justify-content: flex-end;
 }
 
+/* Legacy Online/Offline/Subject pills — replaced by the global Mode/Subject bar */
+body.rp-dash-body .dashboardRightBody > .row > .col-12:has(> .dashboardBlock.dashboardBlockShadow > ul.examTab) {
+  display: none !important;
+}
+
 .rp-filter__group {
   display: flex;
   flex-wrap: wrap;
