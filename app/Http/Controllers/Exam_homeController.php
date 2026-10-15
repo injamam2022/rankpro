@@ -25,6 +25,7 @@ use App\Models\Mistake_input;
 use App\Models\Question_type;
 use App\Support\AnswersAnalyticsStats;
 use App\Support\StrengthWeaknessStats;
+use App\Support\ProgressReportStats;
 
 use DB;
 
@@ -584,54 +585,10 @@ class Exam_homeController extends Controller
         $data['subject_id'] = $request->subject_id;
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
-
-        $data['topper_data'] = $this->getToperResultList(null,$data['exam_type'],$data['subject_id']);
-        $data['average_data'] = $this->getAvgResultList(null,$data['exam_type'],$data['subject_id']);
-        $data['you_data'] = $this->getYourResultList(null,$data['exam_type'],$data['subject_id']);
-
-        $total_count = Exam_result::where('exam_results.user_id', Auth::id())->count();
-        if($total_count){
-            $data['silly_percentage'] = $this->progressReportAnswerType('',3,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['wrong_percentage'] = $this->progressReportAnswerType('',2,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['irrelevant_percentage'] = $this->progressReportAnswerType('',4,$data['exam_type'],$data['subject_id'],$total_count);
-        }else{
-            $data['silly_percentage'] = 0;
-            $data['wrong_percentage'] = 0;
-            $data['irrelevant_percentage'] = 0;
-        }
-            
-        
-        $data['easy_details'] = $this->progressReportQuestionLevel('',1,$data['exam_type'],$data['subject_id']);
-        $data['medium_details'] = $this->progressReportQuestionLevel('',2,$data['exam_type'],$data['subject_id']);
-        $data['hard_details'] = $this->progressReportQuestionLevel('',3,$data['exam_type'],$data['subject_id']);
-
-        foreach($data['subject_list'] as $key => $value){
-            $exam_result = Exam_result::select([
-                                DB::raw('count(*) as total'),
-                                DB::raw('COUNT(CASE WHEN (exam_results.result > 0) THEN 1 END) as result'),
-                                DB::raw('SUM(result) as total_mark')
-                            ])
-                            ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                            ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                            ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                            ->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$value->id])
-                            ->first();
-            $value->percentage = "";
-            if($exam_result){
-                if($exam_result->total){
-                    $value->percentage = $exam_result->result/$exam_result->total*100;
-                }else{
-                    $value->percentage = 0;
-                }
-                    
-            }
-        }
-
-        // dd($data['subject_list']);
-
-
         $data['analytics_exam_list'] = $this->getAnalyticsExamList();
         $data['exam_id'] = null;
+        $data['pr'] = ProgressReportStats::dashboard($data['exam_type'], $data['subject_id'], null);
+
         return view('site.progress_report',$data);
     }
 

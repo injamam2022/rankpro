@@ -181,7 +181,7 @@
             </ul>
         </li>
 
-        <li class="{{ request()->is('common_confusion') || request()->is('common_confusion/*') ? 'active' : '' }}">
+        <li class="{{ request()->is('common_confusion') || request()->is('common_confusion/*') || request()->is('mistake-monitor-input*') ? 'active' : '' }}">
             <a href="{{ route('common_confusion', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_conf_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Mistake Monitor</span></a>
         </li>
 

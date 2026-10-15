@@ -56,7 +56,7 @@ class StudentScope
     public static function filterUrl($examType, $subjectId, bool $includeExamType = true): string
     {
         $keep = request()->query();
-        foreach (['page', 'exam_type', 'subject_id', 'mcq_page', 'strength_page', 'weakness_page', 'mistake_page'] as $drop) {
+        foreach (['page', 'exam_type', 'subject_id', 'mcq_page', 'strength_page', 'weakness_page', 'mistake_page', 'mm_page'] as $drop) {
             unset($keep[$drop]);
         }
 

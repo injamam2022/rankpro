@@ -20,6 +20,7 @@ use App\Models\Mistake_input;
 use App\Models\Chapter;
 use App\Models\Topic;
 use App\Models\Sub_topic;
+use App\Support\MistakeMonitorStats;
 
 use DB;
 
@@ -30,76 +31,44 @@ class Common_confusionController extends Controller
     }
 
     public function common_confusion(Request $request){
-        $language_id = $this->getLanguageId();
         $data = [];
         $data['user'] = Auth::user();
-        $data['reason_id'] = $request->reason_id;
         $data['exam_type'] = $request->exam_type;
         $data['subject_id'] = $request->subject_id;
-        $data['year'] = $request->year;
-        $data['subject_list'] = Subject::where('status',1)->get();   
-        $data['mistake_input_list'] = Mistake_input::where('status',1)->get();  
-        $subject_id = $request->subject_id;
-        $exam_type = $request->exam_type;   
-        $reason_id = $request->reason_id;   
+        $data['subject_list'] = Subject::where('status',1)->get();
+        $data['mm'] = MistakeMonitorStats::dashboard($data['exam_type'], $data['subject_id'], [
+            'status' => $request->input('mm_status', 'All'),
+            'reason' => $request->input('mm_reason', 'All'),
+            'page' => $request->input('mm_page', 1),
+        ]);
 
-        $data['question_list'] = Exam_mistake_input::select([
-                                        'exam_mistake_inputs.*',
-                                        DB::raw('COALESCE(questions.solution_video_link, offline_exam_questions.video_link) as video_link'),
-                                        DB::raw('COALESCE(question_details.question_text, offline_exam_questions.question_text) as question_text'),
-                                        DB::raw('COALESCE(questions.difficulty_level, offline_exam_questions.difficulty_level) as difficulty_level'),
-                                        'mistake_inputs.name as mistake_input_name'
-                                    ])
-                                    ->leftJoin('mistake_inputs', 'mistake_inputs.id', '=', 'exam_mistake_inputs.mistake_input_id')
-                                    ->leftJoin('exam_results', 'exam_results.id', '=', 'exam_mistake_inputs.question_id')
-                                    ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('question_details', 'questions.id', '=', 'question_details.question_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->where('exam_mistake_inputs.user_id',Auth::user()->id)
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->when($reason_id !== null, function ($query) use ($reason_id) {
-                                        $query->where('exam_mistake_inputs.mistake_input_id',$reason_id); 
-                                    })->get();   
+        return view('site.common_confusion',$data);
+    }
 
-        $data['chapter_list'] = Exam_mistake_input::select([
-                                        DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) as chapter_id'),
-                                        DB::raw('SUM(exam_results.result) as total_result')
-                                    ])
-                                    ->leftJoin('exam_results', 'exam_results.id', '=', 'exam_mistake_inputs.question_id')
-                                    ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->where('exam_results.user_id', Auth::id())
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->where('exam_mistake_inputs.user_id',Auth::user()->id)
-                                    ->when($reason_id !== null, function ($query) use ($reason_id) {
-                                        $query->where('exam_mistake_inputs.mistake_input_id',$reason_id); 
-                                    })
-                                    ->whereRaw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) IS NOT NULL')
-                                    ->groupBy(DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id)'))
-                                    ->orderByDesc('total_result')
-                                    ->get();
-
-        foreach($data['chapter_list'] as $key => $value){
-            $chapter_detail = Chapter::where('id',$value->chapter_id)->first();
-            $data['chapter_list'][$key]->chapter_name = ($chapter_detail)?$chapter_detail->name:'';
+    public function master(Request $request)
+    {
+        $id = (int) $request->input('id');
+        if ($id > 0) {
+            MistakeMonitorStats::toggleMastered($id, Auth::id());
         }
 
-        // dd($data['chapter_list']);
-        return view('site.common_confusion',$data);
+        $return = (string) $request->input('return', '');
+        if ($return !== '') {
+            $host = parse_url($return, PHP_URL_HOST);
+            if (!$host || $host === $request->getHost()) {
+                return redirect()->to($return);
+            }
+        }
+
+        return redirect()->route('common_confusion', array_filter([
+            'exam_type' => $request->exam_type,
+            'subject_id' => $request->subject_id,
+            'mm_subject' => $request->mm_subject,
+            'mm_status' => $request->mm_status,
+            'mm_reason' => $request->mm_reason,
+        ], function ($v) {
+            return $v !== null && $v !== '';
+        }));
     }
 
     public function common_confusion_topics(Request $request){

@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'twofactor' => [
+        'api_key' => env('TWOFACTOR_API_KEY', '604aef81-03bd-11f0-8b17-0200cd936042'),
+        'otp_template' => env('TWOFACTOR_OTP_TEMPLATE', 'OTPtemplate'),
+    ],
+
 ];

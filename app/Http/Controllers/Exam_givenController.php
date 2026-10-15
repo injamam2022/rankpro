@@ -28,6 +28,7 @@ use App\Models\Question_type;
 use App\Models\Batch;
 use App\Support\AnswersAnalyticsStats;
 use App\Support\StrengthWeaknessStats;
+use App\Support\ProgressReportStats;
 
 use DB;
 
@@ -501,89 +502,243 @@ class Exam_givenController extends Controller
     }
 
     public function mistake_monitor_input(Request $request){
-        $language_id = $this->getLanguageId();
         $exam_result_id = $request->id;
         $user_exam_id = $request->user_exam_id;
-        $user_id = Auth::user()->id;
         $data = [];
         $data['exam_result_id'] = $exam_result_id;
         $data['user_exam_id'] = $user_exam_id;
         $data['user'] = Auth::user();
         $data['exam_type'] = $request->exam_type;
         $data['subject_id'] = $request->subject_id;
-        $data['exam_types'] = $request->exam_types;
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
-        $data['mistake_input_list'] = Mistake_input::where('status',1)->get();
+        $data['mistake_input_list'] = Mistake_input::where('status',1)->orderBy('name')->get();
 
         $subject_id = $request->subject_id;
 
-        $data['exam_user'] = Exam_user::select(['exams.*','exam_users.id as user_exam_id','exam_users.total_answer','exam_users.total_right_answer','exam_users.total_number'])
-                                ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
-                                ->where('exam_users.id',$user_exam_id)->first();
-        // dd($data['exam_user']);
-        if($data['exam_user']->question_paper_id){
-            $data['question_list'] = Exam_result::select(['exam_results.*','question_details.question_id','question_details.question_text','question_details.option1','question_details.option2','question_details.option3','question_details.option4','question_details.is_option1_image','question_details.is_option2_image','question_details.is_option3_image','question_details.is_option4_image','questions.solution_video_link as video_link','questions.difficulty_level','question_paper_questions.question_number','exam_mistake_inputs.mistake_input_id'])
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('question_details', 'questions.id', '=', 'question_details.question_id')
-                                    ->leftJoin('exam_mistake_inputs', function ($join) {
-                                        $join->on('exam_mistake_inputs.exam_user_id', '=', 'exam_results.exam_user_id')
-                                            ->on('exam_mistake_inputs.question_id', '=', 'exam_results.id')
-                                            ->on('exam_mistake_inputs.exam_id', '=', 'exam_results.exam_id')
-                                            ->on('exam_mistake_inputs.user_id', '=', 'exam_results.user_id');
-                                    })
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->where('questions.subject_id', $subject_id);
-                                    })
-                                    ->where('exam_results.exam_user_id',$user_exam_id)->orderBy('question_paper_questions.id','ASC')
-                                    ->where('exam_results.result','<',1)
-                                    ->where('exam_results.answer','>',0)
-                                    ->orderBy('question_paper_questions.question_number','ASC')->get();
-        }else{
-            $data['question_list'] = Exam_result::select(['exam_results.*','offline_exam_questions.question_text','offline_exam_questions.video_link','offline_exam_questions.difficulty_level','offline_exam_questions.question_number','exam_mistake_inputs.mistake_input_id'])
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('exam_mistake_inputs', function ($join) {
-                                        $join->on('exam_mistake_inputs.exam_user_id', '=', 'exam_results.exam_user_id')
-                                            ->on('exam_mistake_inputs.question_id', '=', 'exam_results.id')
-                                            ->on('exam_mistake_inputs.exam_id', '=', 'exam_results.exam_id')
-                                            ->on('exam_mistake_inputs.user_id', '=', 'exam_results.user_id');
-                                    })
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->where('offline_exam_questions.subject_id', $subject_id);
-                                    })
-                                    ->where('exam_results.exam_user_id',$user_exam_id)
-                                    ->where('exam_results.result','<',1)
-                                    ->where('exam_results.answer','>',0)
-                                    ->orderBy('offline_exam_questions.question_number','ASC')->get();
+        $data['exam_user'] = Exam_user::select([
+                                'exams.*',
+                                'exam_users.id as user_exam_id',
+                                'exam_users.exam_id as user_exam_exam_id',
+                                'exam_users.total_answer',
+                                'exam_users.total_right_answer',
+                                'exam_users.total_number',
+                            ])
+                            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
+                            ->where('exam_users.id', $user_exam_id)
+                            ->where('exam_users.user_id', Auth::id())
+                            ->first();
+
+        if (!$data['exam_user']) {
+            return redirect()->route('common_confusion')->with('error', 'That mock was not found.');
         }
 
-        foreach ($data['question_list'] as $key => $value) {
-            $value->student_attempted = Exam_result::where('exam_question_id',$value->exam_question_id)->where('exam_results.exam_id',$value->exam_id)->count();
-            $value->attempted_correct = Exam_result::where('exam_question_id',$value->exam_question_id)->where('exam_results.exam_id',$value->exam_id)->where('result','>=',1)->count();
-            $value->time_spent_by_you = "";
-            $value->average_time_spent = "";
-            $value->time_spent_by_topper = "";
+        $mistakeJoin = function ($join) {
+            $join->on('exam_mistake_inputs.exam_user_id', '=', 'exam_results.exam_user_id')
+                ->on('exam_mistake_inputs.question_id', '=', 'exam_results.id')
+                ->on('exam_mistake_inputs.user_id', '=', 'exam_results.user_id');
+        };
+
+        if ($data['exam_user']->question_paper_id) {
+            $rows = Exam_result::select([
+                    'exam_results.id',
+                    'exam_results.exam_id',
+                    'exam_results.exam_user_id',
+                    'exam_results.exam_question_id',
+                    'exam_results.answer',
+                    'exam_results.result',
+                    'exam_results.time',
+                    'question_details.question_text',
+                    'question_details.option1',
+                    'question_details.option2',
+                    'question_details.option3',
+                    'question_details.option4',
+                    'question_details.is_option1_image',
+                    'question_details.is_option2_image',
+                    'question_details.is_option3_image',
+                    'question_details.is_option4_image',
+                    'question_details.solution',
+                    'questions.solution_video_link as video_link',
+                    'questions.difficulty_level',
+                    'questions.answer as correct_answer',
+                    'question_paper_questions.question_number',
+                    'exam_mistake_inputs.mistake_input_id',
+                    'subjects.name as subject_name',
+                    'chapters.name as chapter_name',
+                ])
+                ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
+                ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                ->leftJoin('question_details', function ($join) {
+                    $join->on('question_details.question_id', '=', 'questions.id')
+                        ->where('question_details.language_id', 1);
+                })
+                ->leftJoin('subjects', 'subjects.id', '=', 'questions.subject_id')
+                ->leftJoin('chapters', 'chapters.id', '=', 'questions.chapter_id')
+                ->leftJoin('exam_mistake_inputs', $mistakeJoin)
+                ->when($subject_id !== null && $subject_id !== '', function ($query) use ($subject_id) {
+                    $query->where('questions.subject_id', $subject_id);
+                })
+                ->where('exam_results.exam_user_id', $user_exam_id)
+                ->where('exam_results.user_id', Auth::id())
+                ->where('exam_results.result', '<', 1)
+                ->where('exam_results.answer', '>', 0)
+                ->orderBy('question_paper_questions.question_number', 'ASC')
+                ->get();
+        } else {
+            $rows = Exam_result::select([
+                    'exam_results.id',
+                    'exam_results.exam_id',
+                    'exam_results.exam_user_id',
+                    'exam_results.exam_question_id',
+                    'exam_results.answer',
+                    'exam_results.result',
+                    'exam_results.time',
+                    'offline_exam_questions.question_text',
+                    'offline_exam_questions.video_link',
+                    'offline_exam_questions.difficulty_level',
+                    'offline_exam_questions.question_number',
+                    'offline_exam_questions.answer as correct_answer',
+                    'exam_mistake_inputs.mistake_input_id',
+                    'subjects.name as subject_name',
+                    'chapters.name as chapter_name',
+                ])
+                ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
+                ->leftJoin('subjects', 'subjects.id', '=', 'offline_exam_questions.subject_id')
+                ->leftJoin('chapters', 'chapters.id', '=', 'offline_exam_questions.chapter_id')
+                ->leftJoin('exam_mistake_inputs', $mistakeJoin)
+                ->when($subject_id !== null && $subject_id !== '', function ($query) use ($subject_id) {
+                    $query->where('offline_exam_questions.subject_id', $subject_id);
+                })
+                ->where('exam_results.exam_user_id', $user_exam_id)
+                ->where('exam_results.user_id', Auth::id())
+                ->where('exam_results.result', '<', 1)
+                ->where('exam_results.answer', '>', 0)
+                ->orderBy('offline_exam_questions.question_number', 'ASC')
+                ->get();
         }
-        // dd($data['question_list'][0]);
-        return view('site.mistake_monitor_input',$data);
+
+        $qids = $rows->pluck('exam_question_id')->filter()->unique()->all();
+        $examId = $data['exam_user']->user_exam_exam_id ?: $data['exam_user']->id;
+        $peer = collect();
+        if ($qids) {
+            $peer = Exam_result::select([
+                    'exam_question_id',
+                    DB::raw('COUNT(*) as attempted'),
+                    DB::raw('SUM(CASE WHEN result > 0 THEN 1 ELSE 0 END) as correct'),
+                    DB::raw('AVG(CASE WHEN time > 0 THEN time END) as avg_time'),
+                    DB::raw('MIN(CASE WHEN result > 0 AND time > 0 THEN time END) as topper_time'),
+                ])
+                ->where('exam_id', $rows->first()->exam_id ?? $examId)
+                ->whereIn('exam_question_id', $qids)
+                ->groupBy('exam_question_id')
+                ->get()
+                ->keyBy('exam_question_id');
+        }
+
+        $payload = [];
+        foreach ($rows as $row) {
+            $stat = $peer->get($row->exam_question_id);
+            $diff = (int) ($row->difficulty_level ?? 0);
+            $payload[] = [
+                'id' => (int) $row->id,
+                'exam_id' => (int) $row->exam_id,
+                'exam_user_id' => (int) $row->exam_user_id,
+                'question_number' => $row->question_number,
+                'question_text' => $row->question_text,
+                'option1' => $row->option1 ?? '',
+                'option2' => $row->option2 ?? '',
+                'option3' => $row->option3 ?? '',
+                'option4' => $row->option4 ?? '',
+                'is_option1_image' => (int) ($row->is_option1_image ?? 0),
+                'is_option2_image' => (int) ($row->is_option2_image ?? 0),
+                'is_option3_image' => (int) ($row->is_option3_image ?? 0),
+                'is_option4_image' => (int) ($row->is_option4_image ?? 0),
+                'answer' => (int) $row->answer,
+                'correct' => (int) ($row->correct_answer ?? 0),
+                'solution' => $row->solution ?? '',
+                'video_link' => $row->video_link ?? '',
+                'difficulty' => $diff,
+                'difficulty_label' => $diff === 1 ? 'Easy' : ($diff === 2 ? 'Medium' : ($diff === 3 ? 'Hard' : '')),
+                'subject' => $row->subject_name ?: '',
+                'chapter' => $row->chapter_name ?: '',
+                'mistake_input_id' => $row->mistake_input_id ? (int) $row->mistake_input_id : null,
+                'student_attempted' => (int) ($stat->attempted ?? 0),
+                'attempted_correct' => (int) ($stat->correct ?? 0),
+                'your_time' => $this->formatMistakeTime($row->time),
+                'avg_time' => $this->formatMistakeTime($stat->avg_time ?? null),
+                'topper_time' => $this->formatMistakeTime($stat->topper_time ?? null),
+            ];
+        }
+
+        $data['questions'] = $payload;
+        $data['exam_mode_label'] = ((int) $data['exam_user']->type === 2) ? 'Offline OMR' : 'Online CBT';
+        $data['back_url'] = route('common_confusion', array_filter([
+            'exam_type' => $data['exam_type'],
+            'subject_id' => $data['subject_id'],
+        ], function ($v) { return $v !== null && $v !== ''; }));
+
+        return view('site.mistake_monitor_input', $data);
     }
 
     public function mistake_monitor_input_reason(Request $request){
-        $data = [];
-        $data['question_id'] = $request->question_id;
-        $data['mistake_input_id'] = $request->mistake_input_id;
-        $data['exam_user_id'] = $request->user_exam_id;
-        $data['exam_id'] = $request->exam_id;
-        $data['user_id'] = Auth::user()->id;
+        $questionId = (int) $request->question_id;
+        $reasonId = (int) $request->mistake_input_id;
+        $examUserId = (int) $request->user_exam_id;
+        $examId = (int) $request->exam_id;
+        $userId = Auth::id();
 
-        $exam_mistake_input = Exam_mistake_input::where('question_id',$data['question_id'])->where('exam_user_id',$data['exam_user_id'])->where('user_id',$data['user_id'])->first();
-        if($exam_mistake_input){
-            // Exam_mistake_input
-            $exam_mistake_input->update($data);
-        }else{
-            Exam_mistake_input::create($data);
+        if ($questionId < 1 || $reasonId < 1 || $examUserId < 1) {
+            return response()->json(['ok' => false, 'message' => 'Missing question or reason.'], 422);
         }
+
+        $owns = Exam_result::where('id', $questionId)
+            ->where('exam_user_id', $examUserId)
+            ->where('user_id', $userId)
+            ->first();
+        if (!$owns) {
+            return response()->json(['ok' => false, 'message' => 'Question not found.'], 404);
+        }
+
+        $row = Exam_mistake_input::where('question_id', $questionId)
+            ->where('exam_user_id', $examUserId)
+            ->where('user_id', $userId)
+            ->first();
+
+        $payload = [
+            'question_id' => $questionId,
+            'mistake_input_id' => $reasonId,
+            'exam_user_id' => $examUserId,
+            'exam_id' => $examId ?: (int) $owns->exam_id,
+            'user_id' => $userId,
+        ];
+
+        if ($row) {
+            $row->update($payload);
+        } else {
+            $payload['status'] = 1;
+            Exam_mistake_input::create($payload);
+        }
+
+        $reason = Mistake_input::find($reasonId);
+
+        return response()->json([
+            'ok' => true,
+            'reason_id' => $reasonId,
+            'reason_name' => $reason ? $reason->name : '',
+        ]);
+    }
+
+    protected function formatMistakeTime($raw): string
+    {
+        $sec = (int) round((float) $raw);
+        if ($sec <= 0) {
+            return '—';
+        }
+        if ($sec < 60) {
+            return $sec.'s';
+        }
+
+        return intdiv($sec, 60).'m '.str_pad((string) ($sec % 60), 2, '0', STR_PAD_LEFT).'s';
     }
 
     public function mistake_monitor_output(Request $request){
@@ -1168,21 +1323,9 @@ class Exam_givenController extends Controller
         $data['subject_id'] = $request->subject_id;
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
-
-        $exam_id = $data['exam_id'];
-        $data['exam_detail'] = Exam_user::where('id',$exam_id)->first();
-        $total_count = Exam_result::where('exam_results.user_id', Auth::id())->where('exam_results.exam_user_id', $data['exam_id'])->count();
-
-        $data['silly_percentage'] = $this->progressReportAnswerType('',3,$exam_id,$data['subject_id'],$total_count);
-        $data['wrong_percentage'] = $this->progressReportAnswerType('',2,$exam_id,$data['subject_id'],$total_count);
-        $data['irrelevant_percentage'] = $this->progressReportAnswerType('',4,$exam_id,$data['subject_id'],$total_count);
-
-        $data['easy_details'] = $this->progressReportQuestionLevel('',1,$exam_id,$data['subject_id']);
-        $data['medium_details'] = $this->progressReportQuestionLevel('',2,$exam_id,$data['subject_id']);
-        $data['hard_details'] = $this->progressReportQuestionLevel('',3,$exam_id,$data['subject_id']);
-        // dd($data['exam_detail']);
-
         $data['analytics_exam_list'] = $this->getAnalyticsExamList();
+        $data['pr'] = ProgressReportStats::dashboard($data['exam_type'], $data['subject_id'], $data['exam_id']);
+
         return view('site.exam_progress_report',$data);
     }
 

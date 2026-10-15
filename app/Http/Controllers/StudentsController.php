@@ -37,6 +37,7 @@ use App\Models\Topic;
 use App\Models\Setting;
 use App\Models\Batch;
 use App\Models\Notice_user;
+use App\Support\ReportProblemCatalog;
 
 use DB;
 
@@ -874,21 +875,147 @@ class StudentsController extends Controller
         return view('site.terms_and_condition',$data);
     }
 
-    public function report_problem(){
-        $language_id = $this->getLanguageId();
+    public function report_problem(Request $request){
         $data = [];
         $data['type_list'] = Problem_type::where('status',1)->get();
+        $data['faqs'] = ReportProblemCatalog::faqs();
+        $data['faqTopics'] = ReportProblemCatalog::faqTopics();
+        $data['categories'] = ReportProblemCatalog::categories();
+        $data['tab'] = in_array($request->input('tab'), ['all', 'report', 'faqs', 'track'], true)
+            ? $request->input('tab')
+            : 'all';
+
+        $data['examOptions'] = Exam_user::select(['exam_users.id', 'exams.name', 'exams.exam_code', 'exams.type'])
+            ->leftJoin('exams', 'exams.id', '=', 'exam_users.exam_id')
+            ->where('exam_users.user_id', Auth::id())
+            ->where('exams.is_deleted', 0)
+            ->orderByDesc('exam_users.created_at')
+            ->limit(40)
+            ->get()
+            ->map(function ($row) {
+                $mode = ((int) $row->type === 2) ? 'OMR' : 'CBT';
+                $label = trim(($row->name ?: 'Mock').($row->exam_code ? ' · '.$row->exam_code : '').' ('.$mode.')');
+                return ['id' => $row->id, 'label' => $label];
+            })
+            ->all();
+
+        $problems = Problem::select(['problems.*', 'problem_types.name as type_name'])
+            ->leftJoin('problem_types', 'problem_types.id', '=', 'problems.type')
+            ->where('problems.user_id', Auth::id())
+            ->orderByDesc('problems.id')
+            ->get();
+
+        $user = Auth::user();
+        $userName = trim(($user->first_name ?? '').' '.($user->last_name ?? '')) ?: 'You';
+        $tickets = [];
+        foreach ($problems as $problem) {
+            [$meta, $body] = ReportProblemCatalog::decodeMessage($problem->message);
+            $status = ReportProblemCatalog::statusLabel($problem->status);
+            $title = $meta['title'] ?? \Illuminate\Support\Str::limit(trim($body) !== '' ? $body : 'Support query', 90);
+            $created = $problem->created_at ? $problem->created_at->format('M d, Y, h:i A') : '';
+            $attachmentName = $meta['attachment_name'] ?? '';
+            $attachmentUrl = !empty($meta['attachment']) ? asset($meta['attachment']) : '';
+            $resolution = $status === 'Resolved'
+                ? ($meta['resolution'] ?? 'Reviewed by RankPro Academic Desk. This ticket has been marked resolved.')
+                : ($meta['resolution'] ?? '');
+            $messages = [
+                [
+                    'from' => 'user',
+                    'name' => $userName,
+                    'at' => $created,
+                    'text' => 'Submitted query'.(!empty($meta['mock']) ? ' for '.$meta['mock'] : '').'.',
+                ],
+            ];
+            if ($status === 'Resolved') {
+                $messages[] = [
+                    'from' => 'staff',
+                    'name' => 'Academic Faculty',
+                    'at' => $problem->updated_at ? $problem->updated_at->format('M d, Y, h:i A') : $created,
+                    'text' => $resolution,
+                ];
+            } elseif ($status === 'In Review') {
+                $messages[] = [
+                    'from' => 'staff',
+                    'name' => 'Academic Faculty',
+                    'at' => $problem->updated_at ? $problem->updated_at->format('M d, Y, h:i A') : $created,
+                    'text' => 'Your query is being reviewed by the academic team.',
+                ];
+            }
+            $tickets[] = [
+                'id' => $problem->id,
+                'number' => ReportProblemCatalog::ticketNumber($problem->id),
+                'category' => $meta['category'] ?? ($problem->type_name ?: 'General'),
+                'subcategory' => $meta['subcategory'] ?? '',
+                'priority' => $meta['priority'] ?? 'Medium',
+                'title' => $title,
+                'description' => $body,
+                'subject' => $meta['subject'] ?? '',
+                'mock' => $meta['mock'] ?? '',
+                'question' => $meta['question'] ?? '',
+                'status' => $status,
+                'created' => $created,
+                'attachment' => $attachmentUrl,
+                'attachment_name' => $attachmentName,
+                'resolution' => $resolution,
+                'messages' => $messages,
+            ];
+        }
+        $data['tickets'] = $tickets;
+
         return view('site.report_problem',$data);
     }
 
     public function report_problem_save(Request $request){
-        $insertData = [];
-        $insertData["user_id"] = Auth::user()->id;
-        $insertData['message'] = $request->message;
-        $insertData['type'] = $request->type;
-        
-        Problem::create($insertData);
-        return redirect()->route('report_problem')->with('success', 'Thanks for contact us');
+        $title = trim((string) $request->input('title', ''));
+        $message = trim((string) $request->input('message', ''));
+        $category = trim((string) $request->input('category', ''));
+        $subcategory = trim((string) $request->input('subcategory', ''));
+
+        if ($message === '') {
+            return redirect()->route('report_problem', ['tab' => 'report'])->withErrors(['message' => 'Please enter a description.']);
+        }
+
+        $typeId = $request->input('type');
+        if (!$typeId && $category !== '') {
+            $matched = Problem_type::where('status', 1)->where('name', 'like', '%'.$category.'%')->first();
+            $typeId = $matched ? $matched->id : optional(Problem_type::where('status', 1)->first())->id;
+        }
+
+        $meta = [
+            'title' => $title !== '' ? $title : \Illuminate\Support\Str::limit($message, 80),
+            'category' => $category,
+            'subcategory' => $subcategory,
+            'subject' => (string) $request->input('subject_label', ''),
+            'mock' => (string) $request->input('mock_exam', ''),
+            'question' => (string) $request->input('question_number', ''),
+            'priority' => (string) $request->input('priority', 'Medium'),
+        ];
+
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $ext = strtolower($file->getClientOriginalExtension());
+            $originalName = $file->getClientOriginalName();
+            if (in_array($ext, ['png', 'jpg', 'jpeg', 'pdf'], true) && $file->getSize() <= 4 * 1024 * 1024) {
+                $dir = public_path('uploads/problem_reports');
+                if (!is_dir($dir)) {
+                    @mkdir($dir, 0777, true);
+                }
+                $name = 'rp_'.Auth::id().'_'.time().'.'.$ext;
+                $file->move($dir, $name);
+                $meta['attachment'] = 'uploads/problem_reports/'.$name;
+                $meta['attachment_name'] = $originalName ?: $name;
+            }
+        }
+
+        $problem = Problem::create([
+            'user_id' => Auth::id(),
+            'type' => $typeId ?: 0,
+            'message' => ReportProblemCatalog::encodeMessage($meta, $message),
+            'status' => 0,
+        ]);
+
+        return redirect()->route('report_problem', ['tab' => 'track'])
+            ->with('success', 'Ticket #'.ReportProblemCatalog::ticketNumber($problem->id).' submitted successfully! Our NEET Academic and Technical teams are reviewing it.');
     }
 
     public function logout(){

@@ -133,7 +133,7 @@
     Route::get('/exam-result-detail', [Exam_givenController::class, 'exam_result_detail'])->name('exam_result_detail')->middleware(['verifyMembership']);
 
     Route::get('/mistake-monitor-input', [Exam_givenController::class, 'mistake_monitor_input'])->name('mistake_monitor_input')->middleware(['verifyMembership']);
-    Route::get('/mistake-monitor-input-reason', [Exam_givenController::class, 'mistake_monitor_input_reason'])->name('mistake_monitor_input_reason')->middleware(['verifyMembership']);
+    Route::match(['get', 'post'], '/mistake-monitor-input-reason', [Exam_givenController::class, 'mistake_monitor_input_reason'])->name('mistake_monitor_input_reason')->middleware(['verifyMembership']);
     Route::get('/mistake-monitor-output', [Exam_givenController::class, 'mistake_monitor_output'])->name('mistake_monitor_output')->middleware(['verifyMembership']);
 
     Route::get('/exam-answers-analytics', [Exam_givenController::class, 'answers_analytics'])->name('exam_answers_analytics')->middleware(['verifyMembership']);
@@ -175,6 +175,7 @@
     Route::get('/trending-exam', [ResultController::class, 'trending_exam'])->name('trending_exam')->middleware(['verifyMembership']);
 
     Route::get('/common_confusion', [Common_confusionController::class, 'common_confusion'])->name('common_confusion')->middleware(['verifyMembership']);
+    Route::post('/common_confusion/master', [Common_confusionController::class, 'master'])->name('common_confusion.master')->middleware(['verifyMembership']);
     Route::get('/common_confusion/topics', [Common_confusionController::class, 'common_confusion_topics'])->name('common_confusion.topics')->middleware(['verifyMembership']);
     Route::get('/common_confusion/subtopics', [Common_confusionController::class, 'common_confusion_subtopics'])->name('common_confusion.subtopics')->middleware(['verifyMembership']);
     Route::get('/common_confusion/question', [Common_confusionController::class, 'common_confusion_question'])->name('common_confusion.question')->middleware(['verifyMembership']);

@@ -3,12 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Support\PasswordResetNotifier;
 
 class PasswordController extends Controller
 {
@@ -38,19 +35,19 @@ class PasswordController extends Controller
         $user->verification_code_expiry = now()->addMinutes(10);
         $user->save();
 
-        try {
-            Mail::send('emails.verification_code', ['verificationCode' => $verificationCode], function ($message) use ($user) {
-                $message->to($user->email_id)
-                        ->subject('RankPro password reset code');
-            });
-        } catch (\Exception $e) {
-            Log::error('Password reset email failed: ' . $e->getMessage());
+        $sent = PasswordResetNotifier::send($user, (string) $verificationCode);
+
+        if (empty($sent['ok'])) {
             return back()->withInput()->withErrors(['email' => 'We could not send the email right now. Please try again in a moment.']);
         }
 
         session(['password_reset_email' => $user->email_id]);
 
-        return redirect()->route('password.verify')->with('success', 'Verification code sent to your email.');
+        $message = !empty($sent['email'])
+            ? 'Verification code sent to your email.'
+            : 'We could not email the code, so we sent it to your registered mobile number.';
+
+        return redirect()->route('password.verify')->with('success', $message);
     }
 
     public function showVerificationForm()

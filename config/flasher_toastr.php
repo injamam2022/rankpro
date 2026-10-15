@@ -16,4 +16,7 @@ return array(
             '/vendor/flasher/flasher-toastr.min.js',
         ),
     ),
+    'options' => array(
+        'positionClass' => 'toast-top-center',
+    ),
 );
