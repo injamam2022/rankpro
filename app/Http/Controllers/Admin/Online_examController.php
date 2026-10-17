@@ -21,6 +21,7 @@ use App\Models\Question;
 use App\Models\Question_detail;
 use App\Models\Question_paper;
 use App\Models\Exam_user;
+use App\Models\Exam_status;
 use App\Models\Exam_proctoring_event;
 use App\Models\CustomTest;
 use DB;
@@ -238,6 +239,27 @@ class Online_examController extends Controller
 
         toastr()->success('Online Exam status change successfully.');
         return redirect()->route('admin.online_exam');
+    }
+
+    public function view(Request $request)
+    {
+        $exam = Exam::where('id', $request->id)->where('is_deleted', 0)->firstOrFail();
+        $list = Exam_status::select([
+                'exam_statuses.type',
+                'exam_statuses.created_at',
+                'users.first_name',
+                'users.last_name',
+                'users.email_id',
+            ])
+            ->leftJoin('users', 'exam_statuses.user_id', '=', 'users.id')
+            ->where('exam_statuses.exam_id', $exam->id)
+            ->orderByDesc('exam_statuses.id')
+            ->get();
+
+        return view('admin.online_exam.view', [
+            'details' => $exam,
+            'list' => $list,
+        ]);
     }
 
     public function end(Request $request){

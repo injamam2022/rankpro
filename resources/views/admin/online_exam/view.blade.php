@@ -9,10 +9,10 @@
     <div class="container-xl px-5">
         <div class="d-flex mt-10 mb-4" style="display:flex;">
             <div class="" style="width: calc(100% - 50px);">
-                <h1 class="page-header mb-0">Online Exam View</h1>
+                <h1 class="page-header mb-0">Accept / Reject log{{ !empty($details->name) ? ' — '.$details->name : '' }}</h1>
             </div>
             <div>
-                
+                <a href="{{ route('admin.online_exam') }}" class="btn btn-secondary btn-sm">Back to online exams</a>
             </div>
         </div>
         <!-- Simple DataTables example-->

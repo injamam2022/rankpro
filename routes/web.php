@@ -421,6 +421,8 @@
         Route::post('/student/update', [StudentController::class, 'update'])->name('student.update');
         Route::get('/student/delete', [StudentController::class, 'delete'])->name('student.delete');
         Route::get('/student/change', [StudentController::class, 'change'])->name('student.change');
+        Route::get('/student/exam-list', [StudentController::class, 'exam_list'])->name('student.exam_list');
+        Route::get('/student/exam-details', [StudentController::class, 'exam_details'])->name('student.exam_details');
 
         Route::get('/question', [QuestionController::class, 'list'])->name('question');
         Route::get('/question/add', [QuestionController::class, 'add'])->name('question.add');
@@ -540,6 +542,7 @@
         Route::get('/online_exam/proctoring', [Online_examController::class, 'proctoring'])->name('online_exam.proctoring');
         Route::get('/online_exam/proctoring_detail', [Online_examController::class, 'proctoring_detail'])->name('online_exam.proctoring_detail');
         Route::get('/online_exam/proctoring_snapshot', [Online_examController::class, 'proctoring_snapshot'])->name('online_exam.proctoring_snapshot');
+        Route::get('/online_exam/view', [Online_examController::class, 'view'])->name('online_exam.view');
 
         Route::get('/custom-test-bank', [CustomTestBankController::class, 'list'])->name('custom_test_bank');
         Route::get('/custom-test-bank/answers', [CustomTestBankController::class, 'answers'])->name('custom_test_bank.answers');
