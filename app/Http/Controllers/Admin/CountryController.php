@@ -17,7 +17,7 @@ class CountryController extends Controller
 
     public function list(){
         $data = [];
-        $data['list'] = Country::get();
+        $data['list'] = Country::where('is_deleted', 0)->get();
         return view('admin.country.list',$data);
     }
 
@@ -33,10 +33,7 @@ class CountryController extends Controller
 
         $input = $request->all();
         //dd($input);
-        $loginCheck = Country::where(
-            [
-                'name'=> $input['name']
-            ])->first();
+        $loginCheck = Country::where('name', $input['name'])->where('is_deleted', 0)->first();
 
         if (!$loginCheck){
             $saveData = [];
@@ -90,6 +87,17 @@ class CountryController extends Controller
             toastr()->warning('Country already exist');
             return back()->withInput();
         }
+    }
+
+    public function delete(Request $request){
+        $country = Country::where('id', $request->id)->where('is_deleted', 0)->first();
+        if ($country) {
+            $country->update(['is_deleted' => 1]);
+            toastr()->success('Country deleted successfully.');
+        } else {
+            toastr()->warning('Country not found.');
+        }
+        return redirect()->route('admin.country');
     }
     
 }

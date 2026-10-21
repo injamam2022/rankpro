@@ -21,6 +21,7 @@
             </div>
         </div>
         <form method="get" class="admin-list-bar">
+            @include('admin.include.taxonomy_filters', ['show_subject' => true, 'show_chapter' => true])
             @include('admin.include.list_toolbar')
         </form>
         <table class="table table-striped">

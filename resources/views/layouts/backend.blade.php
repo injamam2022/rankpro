@@ -31,10 +31,44 @@
           }
           .admin-list-bar {
             display: flex;
-            gap: 8px;
-            align-items: center;
+            gap: 12px;
+            align-items: flex-end;
             flex-wrap: wrap;
             margin-bottom: 16px;
+          }
+          .admin-list-field {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 4px;
+            min-width: 0;
+          }
+          .admin-list-field > label {
+            display: block;
+            font-size: 13px;
+            line-height: 1.2;
+            color: #64748b;
+            margin: 0;
+            font-weight: 400;
+          }
+          .admin-list-bar .form-control {
+            height: 38px;
+            min-width: 180px;
+          }
+          .admin-list-bar input.form-control[type="search"] {
+            width: 260px;
+            max-width: 100%;
+            min-width: 220px;
+          }
+          .admin-list-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 38px;
+          }
+          .admin-list-bar .rp-act-add,
+          .admin-list-bar .rp-act-ghost {
+            height: 38px;
           }
           .admin-list-pager {
             display: flex;
@@ -412,13 +446,14 @@
                                 </a>
                                 <div class="collapse" id="collapsePayment" aria-labelledby="headingOne" data-bs-parent="#drawerAccordion">
                                     <nav class="drawer-menu-nested nav">
-                                        @if(isUserPermitted('payment-test-series-list', 'list'))
+                                        {{-- Hidden from sidebar; keep links for later use --}}
+                                        @if(false && isUserPermitted('payment-test-series-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/payment/test_series') ? ' active' : '' }} {{ request()->is('admin/payment/test_series_detail') ? ' active' : '' }} " href="{{route('admin.payment.test_series')}}">Test Series</a>
                                         @endif
                                         @if(isUserPermitted('payment-ranker-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/payment/ranker') ? ' active' : '' }} {{ request()->is('admin/payment/ranker_detail') ? ' active' : '' }}" href="{{route('admin.payment.ranker')}}">Ranker</a>
                                         @endif
-                                        @if(isUserPermitted('payment-new-light-list', 'list'))
+                                        @if(false && isUserPermitted('payment-new-light-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/payment/new_light') ? ' active' : '' }} {{ request()->is('admin/payment/new_light_detail') ? ' active' : '' }}" href="{{route('admin.payment.new_light')}}">New Light</a>
                                         @endif
                                     </nav>
@@ -732,6 +767,14 @@
             document.body.appendChild(form);
             form.submit();
             return false;
+        };
+
+        window.rpTaxonomySubmit = function (form, resetIds) {
+            (resetIds || []).forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            if (form) form.submit();
         };
 
         (function () {

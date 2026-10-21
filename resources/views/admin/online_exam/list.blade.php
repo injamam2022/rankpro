@@ -38,7 +38,13 @@
                 @if(count($list)>0)
                     @foreach ($list as $key=>$row)
                         <tr>
-                            <td><img src="{{asset('')}}uploads/exam/thumbnail/{{$row->exam_logo}}" style="width: 50px;"></td>
+                            <td>
+                                @if($row->exam_logo)
+                                    <img src="{{asset('')}}uploads/exam/thumbnail/{{$row->exam_logo}}" style="width: 50px;">
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td>{{$row->exam_code}}</td>
                             <td>{{$row->name}}</td>
                             <!-- <td>{{$row->no_of_question}}</td> -->

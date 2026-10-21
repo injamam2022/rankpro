@@ -23,7 +23,7 @@ class Offline_exam_resultController extends Controller
     public function upload(){
         $data = [];
         $data['exam_list'] = [];//Exam::where('type',2)->where('status',1)->get();
-        $data['location_list'] = Location::where('status',1)->get();
+        $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         return view('admin.offline_exam_result.upload',$data);
     }
 
@@ -180,7 +180,7 @@ class Offline_exam_resultController extends Controller
     public function question(){
         $data = [];
         $data['exam_list'] = [];//Exam::where('type',2)->where('status',1)->get();
-        $data['location_list'] = Location::where('status',1)->get();
+        $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         return view('admin.offline_exam_result.question',$data);
     }
 

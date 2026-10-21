@@ -24,6 +24,14 @@ class TopicController extends Controller
         $query = Topic::select(['topics.*','chapters.name as chapter_name','subjects.name as subject_name'])
                             ->leftJoin('chapters', 'topics.chapter_id', '=', 'chapters.id')
                             ->leftJoin('subjects', 'topics.subject_id', '=', 'subjects.id');
+        $tax = AdminListQuery::taxonomyOptions($request, ['subject', 'chapter']);
+        $data = array_merge($data, $tax);
+        if ($tax['subject_id']) {
+            $query->where('topics.subject_id', $tax['subject_id']);
+        }
+        if ($tax['chapter_id']) {
+            $query->where('topics.chapter_id', $tax['chapter_id']);
+        }
         AdminListQuery::applySearch($query, $data['q'], ['topics.name', 'chapters.name', 'subjects.name']);
         $data['list'] = $query->orderByDesc('topics.id')->paginate($data['per_page'])->withQueryString();
         return view('admin.topic.list',$data);

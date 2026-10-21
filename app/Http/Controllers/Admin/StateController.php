@@ -18,13 +18,16 @@ class StateController extends Controller
 
     public function list(){
         $data = [];
-        $data['list'] = State::select(["states.*","countries.name as country_name"])->leftJoin('countries', 'states.country_id', '=', 'countries.id')->get();
+        $data['list'] = State::select(["states.*","countries.name as country_name"])
+            ->leftJoin('countries', 'states.country_id', '=', 'countries.id')
+            ->where('states.is_deleted', 0)
+            ->get();
         return view('admin.state.list',$data);
     }
 
     public function add(){
         $data = [];
-        $data['country_list'] = Country::where('status',1)->get();
+        $data['country_list'] = Country::where('status',1)->where('is_deleted', 0)->get();
         return view('admin.state.add',$data);
     }
 
@@ -35,10 +38,7 @@ class StateController extends Controller
 
         $input = $request->all();
         //dd($input);
-        $loginCheck = State::where(
-            [
-                'name'=> $input['name']
-            ])->first();
+        $loginCheck = State::where('name', $input['name'])->where('is_deleted', 0)->first();
 
         if (!$loginCheck){
             $saveData = [];
@@ -63,7 +63,7 @@ class StateController extends Controller
             [
                 'id'=> $input['id']
             ])->first();
-        $data['country_list'] = Country::where('status',1)->get();
+        $data['country_list'] = Country::where('status',1)->where('is_deleted', 0)->get();
         return view('admin.state.edit',$data);
     }
 
@@ -91,6 +91,17 @@ class StateController extends Controller
             toastr()->warning('State already exist');
             return back()->withInput();
         }
+    }
+
+    public function delete(Request $request){
+        $state = State::where('id', $request->id)->where('is_deleted', 0)->first();
+        if ($state) {
+            $state->update(['is_deleted' => 1]);
+            toastr()->success('State deleted successfully.');
+        } else {
+            toastr()->warning('State not found.');
+        }
+        return redirect()->route('admin.state');
     }
     
 }

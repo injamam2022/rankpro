@@ -50,7 +50,7 @@ class Offline_examController extends Controller
         $data = [];
         $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
-        $data['location_list'] = Location::where('status',1)->get();
+        $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
             ->where('is_deleted',0)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())
@@ -181,7 +181,7 @@ class Offline_examController extends Controller
         $data['exam_date_list'] = ExamDate::where('exam_id',$request->id)->get();
         $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
-        $data['location_list'] = Location::where('status',1)->get();
+        $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
             ->where('is_deleted',0)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())

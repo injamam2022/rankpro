@@ -101,58 +101,44 @@
             </div>
         </div>
         <form action="" method="get">
-            <div class="row mb-4">
-                <div class="col-sm-3">
-                    <label class="form-label" for="subject_id">Subject</label>
-                    <select class="form-control" id="subject_id" name="subject_id" onchange="changeSubject();">
-                        <option value="">Select Subject</option>
-                        @foreach($subject_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $subject_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-3">
-                    <label class="form-label" for="chapter_id">Chapter</label>
-                    <select class="form-control" id="chapter_id" name="chapter_id" onchange="changeChapter();">
-                        <option value="">Select Chapter</option>
-                        @foreach($chapter_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $chapter_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-3">
-                    <label class="form-label" for="topic_id">Topic  <span class="text-danger">*</span></label>
-                    <select class="form-control" id="topic_id" name="topic_id" onchange="changeTopic();">
-                        <option value="">Select Topic</option>
-                        @foreach($topic_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $topic_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-2">
-                    <label class="form-label" for="sub_topic_id">Sub Topic  <span class="text-danger">*</span></label>
-                    <select class="form-control" id="sub_topic_id" name="sub_topic_id">
-                        <option value="">Select Sub Topic</option>
-                        @foreach($sub_topic_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $sub_topic_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-1">
-                    <button class="rp-act rp-act-add" type="submit" style="margin-top: 25px;">
-                        <i class="material-icons">search</i>
-                        Search
-                    </button>
-                </div>
-            </div>
-            <div class="admin-list-bar">
-                <input class="form-control" type="search" name="q" value="{{ $q ?? '' }}" placeholder="Search question, subject, chapter..." style="max-width:320px;">
-                <label class="mb-0" style="font-size:13px;color:#64748b;">Per page</label>
-                <select class="form-control" name="per_page" style="width:90px;" onchange="this.form.submit()">
-                    @foreach([10, 25, 50] as $n)
-                        <option value="{{ $n }}" @if((int)($per_page ?? 10) === $n) selected @endif>{{ $n }}</option>
+            <div class="admin-list-bar" style="margin-bottom: 10px;">
+            <div class="admin-list-field">
+                <label for="subject_id">Subject</label>
+                <select class="form-control" id="subject_id" name="subject_id" onchange="changeSubject();">
+                    <option value="">Select Subject</option>
+                    @foreach($subject_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $subject_id) selected @endif>{{$value->name}}</option>
                     @endforeach
                 </select>
+            </div>
+            <div class="admin-list-field">
+                <label for="chapter_id">Chapter</label>
+                <select class="form-control" id="chapter_id" name="chapter_id" onchange="changeChapter();">
+                    <option value="">Select Chapter</option>
+                    @foreach($chapter_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $chapter_id) selected @endif>{{$value->name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="admin-list-field">
+                <label for="topic_id">Topic</label>
+                <select class="form-control" id="topic_id" name="topic_id" onchange="changeTopic();">
+                    <option value="">Select Topic</option>
+                    @foreach($topic_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $topic_id) selected @endif>{{$value->name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="admin-list-field">
+                <label for="sub_topic_id">Sub Topic</label>
+                <select class="form-control" id="sub_topic_id" name="sub_topic_id">
+                    <option value="">Select Sub Topic</option>
+                    @foreach($sub_topic_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $sub_topic_id) selected @endif>{{$value->name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            @include('admin.include.list_toolbar', ['search_placeholder' => 'Search question, subject, chapter...'])
             </div>
             <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap" style="gap:10px;">
                 <label class="mb-0" style="font-weight: 600;">
@@ -186,7 +172,6 @@
                 <input type="hidden" name="topic_id" value="{{ $topic_id }}">
                 <input type="hidden" name="sub_topic_id" value="{{ $sub_topic_id }}">
                 <input type="hidden" name="q" value="{{ $q ?? '' }}">
-                <input type="hidden" name="per_page" value="{{ $per_page ?? 10 }}">
             </form>
         @endif
         <table class="table table-striped">

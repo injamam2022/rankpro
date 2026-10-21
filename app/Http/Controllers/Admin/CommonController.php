@@ -20,14 +20,14 @@ class CommonController extends Controller
     public function state(Request $request){
         $country_id = $request->country_id;
         $data = [];
-        $data['result'] = State::where('country_id',$country_id)->where('status',1)->get();
+        $data['result'] = State::where('country_id',$country_id)->where('status',1)->where('is_deleted', 0)->get();
         echo json_encode($data);
     }
     
     public function city(Request $request){
         $state_id = $request->state_id;
         $data = [];
-        $data['result'] = City::where('state_id',$state_id)->where('status',1)->get();
+        $data['result'] = City::where('state_id',$state_id)->where('status',1)->where('is_deleted', 0)->get();
         echo json_encode($data);
     }
     

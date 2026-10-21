@@ -23,55 +23,52 @@
                     <div class="row mt-2">
                         <div class="col-sm-6">
                             <label class="form-label" for="exam_code">Exam Code <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_code" type="number" name="exam_code" placeholder=""  value="" />
+                            <input class="form-control" id="exam_code" type="number" name="exam_code" placeholder=""  value="{{ old('exam_code') }}" />
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="name">Exam Name <span class="text-danger">*</span></label>
-                            <input class="form-control" id="name" type="text" name="name" placeholder=""  value="" />
+                            <input class="form-control" id="name" type="text" name="name" placeholder=""  value="{{ old('name') }}" />
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="exam_logo">Exam Icon (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                            <label class="form-label" for="exam_logo">Exam Icon (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG)</label>
                             <input class="form-control" id="exam_logo" type="file" name="exam_logo" placeholder=""  value="" />
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="landing_icon">Landing Exam Icon (Image Size: W- 258 px, H- 340 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                            <label class="form-label" for="landing_icon">Landing Exam Icon (Image Size: W- 258 px, H- 340 px) (Type: PNG,JPG,JPEG)</label>
                             <input class="form-control" id="landing_icon" type="file" name="landing_icon" placeholder=""  value="" />
                         </div>
                     </div>
-                    <div class="row mt-2">
-                        <div class="col-sm-6">
-                            <label class="form-label" for="exam_date">Exam Date <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_date" type="date" name="exam_date" placeholder=""  value="" />
-                        </div>
-                        <div class="col-sm-6">
-                            <label class="form-label" for="exam_time">Exam Time <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_time" type="time" name="exam_time" placeholder=""  value="" />
-                        </div>
-                    </div>
+                    @include('admin.online_exam._schedule_batch_fields')
                     <div class="row mt-2">
 
                         <div class="col-sm-6">
                             <label class="form-label" for="price">Annual Fee <span class="text-danger">*</span></label>
-                            <input class="form-control" id="price" type="text" name="price" placeholder="" value="" />
+                            <input class="form-control" id="price" type="text" name="price" placeholder="" value="{{ old('price') }}" />
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="dis_price">Annual Fee Discount</label>
-                            <input class="form-control" id="dis_price" type="text" name="dis_price" placeholder="" value="" />
+                            <input class="form-control" id="dis_price" type="text" name="dis_price" placeholder="" value="{{ old('dis_price') }}" />
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
                             <label class="form-label" for="tax">Tax</label>
-                            <input class="form-control" id="tax" type="text" name="tax" placeholder="" value="" />
+                            <input class="form-control" id="tax" type="text" name="tax" placeholder="" value="{{ old('tax') }}" />
                         </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="batch_id">Batch <span class="text-danger">*</span></label>
+                            @include('admin.online_exam._batch_select')
+                        </div>
+                    </div>
+                    <div class="row mt-2">
                         <div class="col-sm-6">
                             <label class="form-label" for="question_paper_id">Question Paper <span class="text-danger">*</span></label>
                             <select class="form-control" id="question_paper_id" name="question_paper_id">
                                 <option value="">Select</option>
                                 @foreach($question_paper_list as $value)
-                                    <option value="{{$value->id}}">{{$value->name}}</option>
+                                    <option value="{{$value->id}}" @selected((string) old('question_paper_id') === (string) $value->id)>{{$value->name}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -79,30 +76,28 @@
                     <div class="row mt-2">
                         <div class="col-sm-6">
                             <label class="form-label" for="exam_instructions">Instructions</label>
-                            <textarea class="form-control" id="exam_instructions" name="exam_instructions"></textarea>
+                            <textarea class="form-control" id="exam_instructions" name="exam_instructions">{{ old('exam_instructions') }}</textarea>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="description">Description</label>
-                            <textarea class="form-control" id="description" name="description"></textarea>
+                            <textarea class="form-control" id="description" name="description">{{ old('description') }}</textarea>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_title">OMR Title <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="result_title" name="result_title"></textarea>
+                            <label class="form-label" for="result_title">OMR Title</label>
+                            <textarea class="form-control" id="result_title" name="result_title">{{ old('result_title') }}</textarea>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_description">OMR Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="result_description" name="result_description"></textarea>
+                            <label class="form-label" for="result_description">OMR Description</label>
+                            <textarea class="form-control" id="result_description" name="result_description">{{ old('result_description') }}</textarea>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_declaration">OMR Declaration <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="result_declaration" name="result_declaration"></textarea>
+                            <label class="form-label" for="result_declaration">OMR Declaration</label>
+                            <textarea class="form-control" id="result_declaration" name="result_declaration">{{ old('result_declaration') }}</textarea>
                         </div>
-
-                                                    
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
@@ -172,137 +167,5 @@
 
 
 @section('js_after')
-    <script type="text/javascript">
-        var subject_count = 0;
-        var globalData = {
-            subject_list : <?php echo json_encode($subject_list);?>,
-        }
-        
-        const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
-        const maxSize1 = 1024 * 1024;
-
-        function formValidation(){
-            var data = {};
-            var successFlag = true;
-
-            data.exam_code = document.getElementById('exam_code').value;
-            if(data.exam_code){
-                document.getElementById('exam_code').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('exam_code').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.name = document.getElementById('name').value;
-            if(data.exam_code){
-                document.getElementById('name').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('name').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            var exam_logo = document.getElementById("exam_logo");
-            var file = exam_logo.files[0];
-            if(file){
-                if (!allowedTypes.includes(file.type) || file.size > maxSize1) {
-                  document.getElementById('exam_logo').classList.add('dangerBoader');
-                  successFlag = false;
-                }else{
-                  document.getElementById('exam_logo').classList.remove('dangerBoader');
-                }
-            }else{
-                document.getElementById('exam_logo').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            var landing_icon = document.getElementById("landing_icon");
-            var file = landing_icon.files[0];
-            if(file){
-                if (!allowedTypes.includes(file.type) || file.size > maxSize1) {
-                  document.getElementById('landing_icon').classList.add('dangerBoader');
-                  successFlag = false;
-                }else{
-                  document.getElementById('landing_icon').classList.remove('dangerBoader');
-                }
-            }else{
-                document.getElementById('landing_icon').classList.add('dangerBoader');
-                successFlag = false;
-            }  
-
-            data.exam_date = document.getElementById('exam_date').value;
-            if(data.exam_code){
-                document.getElementById('exam_date').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('exam_date').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.exam_time = document.getElementById('exam_time').value;
-            if(data.exam_code){
-                document.getElementById('exam_time').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('exam_time').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.price = document.getElementById('price').value;
-            if(data.exam_code){
-                document.getElementById('price').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('price').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-            data.question_paper_id = document.getElementById('question_paper_id').value;
-            if(data.question_paper_id){
-                document.getElementById('question_paper_id').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('question_paper_id').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-           
-            data.exam_instructions = document.getElementById('exam_instructions').value;
-            if(data.exam_instructions){
-                document.getElementById('exam_instructions').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('exam_instructions').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.description = document.getElementById('description').value;
-            if(data.description){
-                document.getElementById('description').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('description').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-            data.result_title = document.getElementById('result_title').value;
-            if(data.result_title){
-                document.getElementById('result_title').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_title').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-            data.result_description = document.getElementById('result_description').value;
-            if(data.result_description){
-                document.getElementById('result_description').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_description').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-            data.result_declaration = document.getElementById('result_declaration').value;
-            if(data.result_declaration){
-                document.getElementById('result_declaration').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_declaration').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-            return successFlag;
-        }
-    </script>
+    @include('admin.online_exam._form_validation')
 @endsection

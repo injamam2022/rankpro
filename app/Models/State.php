@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class State extends Model
 {
     protected $fillable = [
-        'name','country_id','status','created_at','updated_at'
+        'name','country_id','status','is_deleted','created_at','updated_at'
     ];
 }

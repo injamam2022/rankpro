@@ -246,7 +246,7 @@ class QuestionController extends Controller
 
         toastr()->success(count($deleteIds).' duplicate question(s) deleted. One original kept for each set.');
         return redirect()->route('admin.question', array_merge(
-            $request->only(['subject_id', 'chapter_id', 'topic_id', 'sub_topic_id', 'q', 'per_page']),
+            $request->only(['subject_id', 'chapter_id', 'topic_id', 'sub_topic_id', 'q']),
             ['duplicates' => 1]
         ));
     }
