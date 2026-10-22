@@ -6,6 +6,17 @@
         .ck-editor__editable_inline {
             min-height: 200px;
         }
+        #question_source_id + .select2-container {
+            width: 100% !important;
+        }
+        #question_source_id + .select2-container .select2-selection--multiple {
+            min-height: 38px;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+        }
+        #question_source_id + .select2-container .select2-selection--multiple.dangerBoader {
+            border: 1px solid red !important;
+        }
     </style>
 
 @endsection
@@ -104,7 +115,7 @@
                                     </div>
                                     @if($language->question_image)
                                         <div class="col-sm-6">
-                                            <img src="{{asset('')}}uploads/question/{{$language->question_image}}" style="width:100px;">
+                                            <img src="{{ question_media_url($language->question_image) }}" style="width:100px;">
                                         </div>
                                     @endif
                                 </div>
@@ -130,7 +141,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option1_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option1}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option1) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -179,7 +190,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option2_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option2}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option2) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -228,7 +239,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option3_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option3}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option3) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -277,7 +288,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option4_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option4}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option4) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -315,11 +326,13 @@
                         @endforeach
                                 
                         <div class="col-sm-6">
-                            <label class="form-label" for="question_source_id">Question source</label>
-                            <select class="form-control" id="question_source_id" name="question_source_id">
-                                <option>Select Question source</option>
+                            <label class="form-label" for="question_source_id">Question source <span class="text-danger">*</span></label>
+                            @php
+                                $selectedSourceIds = array_map('strval', (array) old('question_source_id', $selected_question_source_ids ?? []));
+                            @endphp
+                            <select class="form-control" id="question_source_id" name="question_source_id[]" multiple>
                                 @foreach($question_source_list as $key => $value)
-                                    <option value="{{$value->id}}" @if($details->question_source_id == $value->id) selected  @endif>{{$value->name}}</option>
+                                    <option value="{{$value->id}}" @if(in_array((string)$value->id, $selectedSourceIds, true)) selected @endif>{{$value->name}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -732,11 +745,15 @@
                 }
             })
 
-            data.question_source_id = document.getElementById('question_source_id').value;
-            if(data.question_source_id){
+            var sourceVal = $('#question_source_id').val();
+            data.question_source_id = sourceVal;
+            var sourceBox = document.querySelector('#question_source_id + .select2-container .select2-selection');
+            if(sourceVal && sourceVal.length){
                 document.getElementById('question_source_id').classList.remove('dangerBoader');
+                if (sourceBox) sourceBox.classList.remove('dangerBoader');
             }else{
                 document.getElementById('question_source_id').classList.add('dangerBoader');
+                if (sourceBox) sourceBox.classList.add('dangerBoader');
                 successFlag = false;
             }
 
@@ -752,5 +769,14 @@
 
             return successFlag;
         }
+
+        $(function () {
+            $('#question_source_id').select2({
+                placeholder: 'Select Question source',
+                width: '100%',
+                allowClear: true,
+                closeOnSelect: false
+            });
+        });
     </script>
 @endsection

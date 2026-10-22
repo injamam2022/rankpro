@@ -18,7 +18,7 @@
         Search
     </button>
     @if($hasFilters)
-        <a class="rp-act rp-act-ghost" href="{{ url()->current() }}">
+        <a class="rp-act rp-act-ghost" href="{{ $clear_url ?? url()->current() }}">
             <i class="material-icons">close</i>
             Clear
         </a>

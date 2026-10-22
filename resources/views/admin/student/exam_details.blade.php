@@ -35,7 +35,7 @@
                 @endphp
                 <tr>
                     <td>{{ $row->question_number ?? ($index + 1) }}</td>
-                    <td>{!! $row->question_text !!}</td>
+                    <td>{!! question_html_media($row->question_text) !!}</td>
                     <td>
                         @if(!empty($row->video_link))
                             <a href="{{ $row->video_link }}" target="_blank" rel="noopener">Open</a>

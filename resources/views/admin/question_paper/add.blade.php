@@ -92,6 +92,8 @@
                             <input class="form-control" id="negative_marking_per_question" type="text" name="negative_marking_per_question" placeholder=""  value="" />
                         </div>
                     </div>
+                    @include('admin.question_paper._type_fields')
+                    <div id="question_select_div" style="{{ old('type') == '2' ? 'display:none;' : '' }}">
                     <div class="row mt-3">
                         <div class="col-sm-12">
                             <div class="qb-mix">
@@ -119,7 +121,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-2">
+                    </div>
+                    <div class="row mt-2" id="subject_list_div" style="{{ old('type') == '2' ? 'display:none;' : '' }}">
 
                         <div class="col-sm-12 alert alert-success" style="padding:30px;margin-top:20px;">
                             <div class="row">
@@ -236,6 +239,27 @@
             return parseInt(document.getElementById('no_of_question').value || 0, 10) || 0;
         }
 
+        function qbPaperType() {
+            var el = document.querySelector('input[name="type"]:checked');
+            return el ? el.value : '1';
+        }
+
+        function changeQuestionFrom(type) {
+            var selectDiv = document.getElementById('question_select_div');
+            var sourceDiv = document.getElementById('question_source_div');
+            var subjectDiv = document.getElementById('subject_list_div');
+            var isNormal = type == 1;
+            if (selectDiv) selectDiv.style.display = isNormal ? 'block' : 'none';
+            if (sourceDiv) sourceDiv.style.display = isNormal ? 'none' : 'block';
+            if (subjectDiv) {
+                subjectDiv.style.display = isNormal ? '' : 'none';
+                subjectDiv.querySelectorAll('input, select, textarea').forEach(function (el) {
+                    el.disabled = !isNormal;
+                });
+            }
+            qbSchedulePreview();
+        }
+
         function qbSplitCounts(total, weights) {
             var keys = Object.keys(weights);
             var out = {};
@@ -348,13 +372,20 @@
 
         function qbCollectSections() {
             var subject_id = {};
-            document.querySelectorAll('select.subject_id').forEach(function (el) {
-                var m = el.id.match(/subject_id_(\d+)/);
-                if (m) subject_id[m[1]] = el.value;
-            });
+            if (qbPaperType() != '2') {
+                document.querySelectorAll('select.subject_id').forEach(function (el) {
+                    var m = el.id.match(/subject_id_(\d+)/);
+                    if (m) subject_id[m[1]] = el.value;
+                });
+            }
+            var diff = document.querySelector('input[name="difficulty"]:checked');
+            var sourceEl = document.getElementById('question_source_id');
             var payload = {
                 _token: document.querySelector('input[name="_token"]').value,
                 no_of_question: qbTotalQuestions(),
+                type: qbPaperType(),
+                question_source_id: sourceEl ? sourceEl.value : '',
+                difficulty: diff ? diff.value : '',
                 hard_level: qbNum('hard_level'),
                 medium_level: qbNum('medium_level'),
                 easy_level: qbNum('easy_level'),
@@ -381,7 +412,11 @@
 
         function qbFetchPreview() {
             qbUpdateMixUi();
-            if (!qbTotalQuestions() || Math.round(qbNum('hard_level') + qbNum('medium_level') + qbNum('easy_level')) !== 100) {
+            if (qbPaperType() == '2') {
+                if (!qbTotalQuestions() || !document.getElementById('question_source_id').value) {
+                    return;
+                }
+            } else if (!qbTotalQuestions() || !document.querySelector('input[name="difficulty"]:checked')) {
                 return;
             }
             $.ajax({
@@ -433,6 +468,7 @@
                 qbSchedulePreview();
             });
         }
+        changeQuestionFrom(qbPaperType());
         document.querySelectorAll('input.question_type_list').forEach(function (input) {
             input.addEventListener('input', function () {
                 qbTypesLocked = true;
@@ -630,48 +666,65 @@
                 successFlag = false;
             }
 
-            var difficultyChecked = document.querySelector('input[name="difficulty"]:checked');
+            var paperType = qbPaperType();
             var levelMsg = document.getElementById('level_message');
             if (levelMsg) levelMsg.textContent = '';
-            if (!difficultyChecked) {
-                if (levelMsg) {
-                    levelMsg.textContent = 'Select Hard, Medium or Easy.';
-                    levelMsg.className = 'qb-mix__sum is-bad';
+
+            if (paperType == '2') {
+                var src = document.getElementById('question_source_id');
+                if (!src || !src.value) {
+                    if (src) src.classList.add('dangerBoader');
+                    successFlag = false;
+                } else {
+                    src.classList.remove('dangerBoader');
                 }
-                successFlag = false;
+            } else {
+                var difficultyChecked = document.querySelector('input[name="difficulty"]:checked');
+                if (!difficultyChecked) {
+                    if (levelMsg) {
+                        levelMsg.textContent = 'Select Hard, Medium or Easy.';
+                        levelMsg.className = 'qb-mix__sum is-bad';
+                    }
+                    successFlag = false;
+                }
             }
-            
+
             var inputs = document.querySelectorAll('input.total_no_of_question');
-            var sectionSum = 0;
-            if (inputs.length === 1 && !inputs[0].value && wanted) {
-                inputs[0].value = wanted;
-            }
-            inputs.forEach(input => {
-                if(input.value){
-                    input.classList.remove('dangerBoader');
-                    sectionSum += parseInt(input.value, 10) || 0;
-                }else{
-                    input.classList.add('dangerBoader');
-                    successFlag = false;
-                }
-            });
-            if (wanted && sectionSum && sectionSum !== wanted) {
-                document.getElementById('level_message').innerHTML = "Subject question counts (" + sectionSum + ") must equal total (" + wanted + ").";
-                document.getElementById('level_message').className = 'qb-mix__sum is-bad';
-                successFlag = false;
-            }
-            
             var subject_id = document.querySelectorAll('select.subject_id');
-            console.log(subject_id);
-            subject_id.forEach(input => {
-                console.log(input.value);
-                if(input.value){
-                    input.classList.remove('dangerBoader');
-                }else{
-                    input.classList.add('dangerBoader');
+
+            if (paperType == '2') {
+                inputs.forEach(function (input) { input.classList.remove('dangerBoader'); });
+                subject_id.forEach(function (input) { input.classList.remove('dangerBoader'); });
+            } else {
+                var sectionSum = 0;
+                if (inputs.length === 1 && !inputs[0].value && wanted) {
+                    inputs[0].value = wanted;
+                }
+                inputs.forEach(input => {
+                    if(input.value){
+                        input.classList.remove('dangerBoader');
+                        sectionSum += parseInt(input.value, 10) || 0;
+                    }else{
+                        input.classList.add('dangerBoader');
+                        successFlag = false;
+                    }
+                });
+                if (wanted && sectionSum && sectionSum !== wanted) {
+                    if (levelMsg) {
+                        levelMsg.innerHTML = "Subject question counts (" + sectionSum + ") must equal total (" + wanted + ").";
+                        levelMsg.className = 'qb-mix__sum is-bad';
+                    }
                     successFlag = false;
                 }
-            });
+                subject_id.forEach(input => {
+                    if(input.value){
+                        input.classList.remove('dangerBoader');
+                    }else{
+                        input.classList.add('dangerBoader');
+                        successFlag = false;
+                    }
+                });
+            }
             
             return successFlag;
         }

@@ -68,10 +68,10 @@
                     <tr>
                         <td>{{ $row->question_number ?: $loop->iteration }}</td>
                         <td class="ctb-qtext">
-                            {!! $row->question_text !!}
+                            {!! question_html_media($row->question_text) !!}
                             @if($row->question_image)
                                 <div class="mt-2">
-                                    <img src="{{ asset('uploads/question/'.$row->question_image) }}" alt="">
+                                    <img src="{{ question_media_url($row->question_image) }}" alt="">
                                 </div>
                             @endif
                             <div class="mt-2">
@@ -84,9 +84,9 @@
                                     <div class="{{ $classes }}">
                                         <strong>{{ $n }}.</strong>
                                         @if($opt['img'])
-                                            <img src="{{ asset('uploads/question/'.$opt['text']) }}" alt="Option {{ $n }}">
+                                            <img src="{{ question_media_url($opt['text']) }}" alt="Option {{ $n }}">
                                         @else
-                                            {!! $opt['text'] !!}
+                                            {!! question_html_media($opt['text']) !!}
                                         @endif
                                     </div>
                                 @endforeach

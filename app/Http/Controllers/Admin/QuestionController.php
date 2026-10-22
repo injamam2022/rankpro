@@ -361,7 +361,8 @@ class QuestionController extends Controller
             $insertData['sub_topic_id'] = $request->sub_topic_id;
             $insertData['question_type_id'] = $request->input('question_type_id') ?: 0;
             $insertData['difficulty_level'] = $request->difficulty_level;
-            $insertData['question_source_id'] = $request->question_source_id;
+            $sourceIds = $this->selectedQuestionSourceIds($request);
+            $insertData['question_source_id'] = $sourceIds[0] ?? 0;
             $insertData['solution_video_link'] = $request->solution_video_link;
             $insertData['answer'] = $request->answer;
             $insertData['status'] = $request->status;
@@ -369,6 +370,7 @@ class QuestionController extends Controller
             $insertData['is_deleted'] = 0;
             
             $question = Question::create($insertData);
+            $question->syncQuestionSources($sourceIds);
             
             $language_list = Language::where('status',1)->get();
 
@@ -458,6 +460,9 @@ class QuestionController extends Controller
         $data = [];
         $data['details'] = Question::where('id',$request->id)->first();
         $data['question_source_list'] = Question_source::where('status',1)->get();
+        $data['selected_question_source_ids'] = $data['details']
+            ? $data['details']->selectedQuestionSourceIds()
+            : [];
         $data['question_exam_list'] = Question_exam::where('status',1)->get();
         if(session()->get('admmin_is_super') == 'T'){
             $data['subject_list'] = Subject::where('status',1)->where('id',session()->get('admmin_subject_id'))->get();
@@ -538,12 +543,14 @@ class QuestionController extends Controller
             $insertData['topic_id'] = $request->topic_id;
             $insertData['sub_topic_id'] = $request->sub_topic_id;
             $insertData['difficulty_level'] = $request->difficulty_level;
-            $insertData['question_source_id'] = $request->question_source_id;
+            $sourceIds = $this->selectedQuestionSourceIds($request);
+            $insertData['question_source_id'] = $sourceIds[0] ?? 0;
             $insertData['solution_video_link'] = $request->solution_video_link;
             $insertData['answer'] = $request->answer;
             $insertData['status'] = $request->status;
             
             $loginCheck->update($insertData);
+            $loginCheck->syncQuestionSources($sourceIds);
 
             $language_list = Language::where('status',1)->get();
 
@@ -1193,6 +1200,19 @@ class QuestionController extends Controller
             return '';
         }
         return basename(str_replace('\\', '/', $value));
+    }
+
+    /**
+     * @return array<int,int>
+     */
+    private function selectedQuestionSourceIds(Request $request): array
+    {
+        $raw = $request->input('question_source_id', []);
+        if (! is_array($raw)) {
+            $raw = ($raw === null || $raw === '') ? [] : [$raw];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $raw))));
     }
     
 }

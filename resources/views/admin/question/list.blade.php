@@ -84,6 +84,11 @@
             color: #8a5a00;
             font-weight: 700;
         }
+        .question-body img {
+            max-width: 220px;
+            height: auto;
+            vertical-align: middle;
+        }
     </style>
 @endsection
 
@@ -209,12 +214,13 @@
                                         @endif
                                     </div>
                                 @endif
-                                {!!$row->question_text!!}
+                                <div class="question-body">
+                                {!! question_html_media($row->question_text) !!}
 
 
                                 @if($row->question_image)
                                     <div>
-                                        <img src="{{ asset('') }}uploads/question/{{$row->question_image}}" style="width:50px;">
+                                        <img src="{{ question_media_url($row->question_image) }}" style="width:50px;">
                                     </div>
                                 @endif
                                 
@@ -222,35 +228,36 @@
                                     <div style="display:flex;">
                                         (1) 
                                         @if($row->is_option1_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option1}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option1) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option1!!}
+                                            {!! question_html_media($row->option1) !!}
                                         @endif
                                     </div>
                                     <div style="display:flex;">
                                         (2) 
                                         @if($row->is_option2_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option2}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option2) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option2!!}
+                                            {!! question_html_media($row->option2) !!}
                                         @endif
                                     </div>
                                     <div style="display:flex;">
                                         (3) 
                                         @if($row->is_option3_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option3}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option3) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option3!!}
+                                            {!! question_html_media($row->option3) !!}
                                         @endif
                                     </div>
                                     <div style="display:flex;">
                                         (4) 
                                         @if($row->is_option4_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option4}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option4) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option4!!}
+                                            {!! question_html_media($row->option4) !!}
                                         @endif
                                     </div>
+                                </div>
                                 </div>
                             </td>
                             <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>

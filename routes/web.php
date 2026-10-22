@@ -482,6 +482,7 @@
         Route::post('/question-source/save', [Question_sourceController::class, 'save'])->name('question_source.save');
         Route::get('/question-source/edit', [Question_sourceController::class, 'edit'])->name('question_source.edit');
         Route::post('/question-source/update', [Question_sourceController::class, 'update'])->name('question_source.update');
+        Route::get('/question-source/view', [Question_sourceController::class, 'view'])->name('question_source.view');
         Route::get('/question-source/delete', [Question_sourceController::class, 'delete'])->name('question_source.delete');
         Route::get('/question-source/change', [Question_sourceController::class, 'change'])->name('question_source.change');
 

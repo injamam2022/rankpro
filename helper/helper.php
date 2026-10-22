@@ -140,3 +140,73 @@ if (!function_exists('website_setting')) {
         return \App\Support\WebsiteSettings::get($key, $default);
     }
 }
+
+if (!function_exists('question_media_url')) {
+    function question_media_url($file): string
+    {
+        $file = trim((string) $file);
+        if ($file === '') {
+            return '';
+        }
+        if (preg_match('#^data:#i', $file)) {
+            return $file;
+        }
+        if (strlen($file) > 2000) {
+            return '';
+        }
+
+        $appUrl = rtrim((string) config('app.url'), '/');
+        $assetUrl = rtrim((string) (config('app.asset_url') ?: $appUrl), '/');
+        foreach ([$appUrl, $assetUrl] as $root) {
+            if ($root !== '' && str_starts_with($file, $root)) {
+                $file = substr($file, strlen($root));
+                break;
+            }
+        }
+
+        if (preg_match('#^https?://#i', $file)) {
+            return $file;
+        }
+
+        $file = str_replace('\\', '/', $file);
+        $file = preg_replace('#^(\.\./)+#', '', $file);
+        $file = ltrim($file, '/');
+        $file = preg_replace('#^public/#', '', $file);
+        if (str_starts_with($file, 'uploads/option/')) {
+            $file = 'uploads/question/'.substr($file, strlen('uploads/option/'));
+        }
+        if (! str_starts_with($file, 'uploads/')) {
+            $file = 'uploads/question/'.basename($file);
+        }
+
+        if (is_file(public_path($file))) {
+            return asset($file);
+        }
+        $optionPath = str_replace('uploads/question/', 'uploads/option/', $file);
+        if ($optionPath !== $file && is_file(public_path($optionPath))) {
+            return asset($optionPath);
+        }
+
+        $fallback = rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/');
+
+        return $fallback.'/'.$file;
+    }
+}
+
+if (!function_exists('question_html_media')) {
+    function question_html_media($html): string
+    {
+        $html = (string) $html;
+        if ($html === '' || stripos($html, '<img') === false) {
+            return $html;
+        }
+
+        return preg_replace_callback(
+            '/(<img\b[^>]*\bsrc=["\'])([^"\']+)(["\'])/i',
+            function ($m) {
+                return $m[1].question_media_url(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8')).$m[3];
+            },
+            $html
+        );
+    }
+}
