@@ -576,11 +576,11 @@ class Question_paperController extends Controller
         $pick = ['picked' => [], 'shortfall' => 0, 'notes' => [], 'auto_sections' => []];
 
         if ($mustPick) {
-            if ($type === 1 && $sections === []) {
+            if ($sections === []) {
                 toastr()->error('Add at least one subject with a question count.');
                 return back()->withInput();
             }
-            if ($sections !== [] && ! $this->sectionSumMatches($sections, $totalWanted)) {
+            if (! $this->sectionSumMatches($sections, $totalWanted)) {
                 $sectionSum = 0;
                 foreach ($sections as $row) {
                     $sectionSum += (int) $row['total_no_of_question'];
@@ -591,9 +591,6 @@ class Question_paperController extends Controller
 
             if ($type === 2) {
                 $pick = $mix->pickFromSource($sections, (int) $sourceId, $totalWanted, $this->lockedSubjectId());
-                if ($sections === [] && ! empty($pick['auto_sections'])) {
-                    $sections = $pick['auto_sections'];
-                }
             } else {
                 $pick = $mix->pick($sections, ['hard' => $hard, 'medium' => $medium, 'easy' => $easy], [], $this->lockedSubjectId());
             }

@@ -122,7 +122,7 @@
                         </div>
                     </div>
                     </div>
-                    <div class="row mt-2" id="subject_list_div" style="{{ old('type') == '2' ? 'display:none;' : '' }}">
+                    <div class="row mt-2" id="subject_list_div">
 
                         <div class="col-sm-12 alert alert-success" style="padding:30px;margin-top:20px;">
                             <div class="row">
@@ -138,6 +138,7 @@
                                 </div>
                             </div>
                             <p class="qb-mix__hint">If you do not choose Chapter, Topic, or Sub Topic, all will be selected by default.</p>
+                            <div class="qb-mix__sum" id="subject_list_message"></div>
                             <div id="subject_list_view">
                                 <div class="row mt-2" id="subject_view_0">
                                     <div class="col-sm-2">
@@ -247,16 +248,9 @@
         function changeQuestionFrom(type) {
             var selectDiv = document.getElementById('question_select_div');
             var sourceDiv = document.getElementById('question_source_div');
-            var subjectDiv = document.getElementById('subject_list_div');
             var isNormal = type == 1;
             if (selectDiv) selectDiv.style.display = isNormal ? 'block' : 'none';
             if (sourceDiv) sourceDiv.style.display = isNormal ? 'none' : 'block';
-            if (subjectDiv) {
-                subjectDiv.style.display = isNormal ? '' : 'none';
-                subjectDiv.querySelectorAll('input, select, textarea').forEach(function (el) {
-                    el.disabled = !isNormal;
-                });
-            }
             qbSchedulePreview();
         }
 
@@ -372,12 +366,10 @@
 
         function qbCollectSections() {
             var subject_id = {};
-            if (qbPaperType() != '2') {
-                document.querySelectorAll('select.subject_id').forEach(function (el) {
-                    var m = el.id.match(/subject_id_(\d+)/);
-                    if (m) subject_id[m[1]] = el.value;
-                });
-            }
+            document.querySelectorAll('select.subject_id').forEach(function (el) {
+                var m = el.id.match(/subject_id_(\d+)/);
+                if (m) subject_id[m[1]] = el.value;
+            });
             var diff = document.querySelector('input[name="difficulty"]:checked');
             var sourceEl = document.getElementById('question_source_id');
             var payload = {
@@ -668,7 +660,12 @@
 
             var paperType = qbPaperType();
             var levelMsg = document.getElementById('level_message');
+            var subjectMsg = document.getElementById('subject_list_message');
             if (levelMsg) levelMsg.textContent = '';
+            if (subjectMsg) {
+                subjectMsg.textContent = '';
+                subjectMsg.className = 'qb-mix__sum';
+            }
 
             if (paperType == '2') {
                 var src = document.getElementById('question_source_id');
@@ -691,40 +688,38 @@
 
             var inputs = document.querySelectorAll('input.total_no_of_question');
             var subject_id = document.querySelectorAll('select.subject_id');
-
-            if (paperType == '2') {
-                inputs.forEach(function (input) { input.classList.remove('dangerBoader'); });
-                subject_id.forEach(function (input) { input.classList.remove('dangerBoader'); });
-            } else {
-                var sectionSum = 0;
-                if (inputs.length === 1 && !inputs[0].value && wanted) {
-                    inputs[0].value = wanted;
-                }
-                inputs.forEach(input => {
-                    if(input.value){
-                        input.classList.remove('dangerBoader');
-                        sectionSum += parseInt(input.value, 10) || 0;
-                    }else{
-                        input.classList.add('dangerBoader');
-                        successFlag = false;
-                    }
-                });
-                if (wanted && sectionSum && sectionSum !== wanted) {
-                    if (levelMsg) {
-                        levelMsg.innerHTML = "Subject question counts (" + sectionSum + ") must equal total (" + wanted + ").";
-                        levelMsg.className = 'qb-mix__sum is-bad';
-                    }
+            var sectionSum = 0;
+            if (inputs.length === 1 && !inputs[0].value && wanted) {
+                inputs[0].value = wanted;
+            }
+            inputs.forEach(input => {
+                if(input.value){
+                    input.classList.remove('dangerBoader');
+                    sectionSum += parseInt(input.value, 10) || 0;
+                }else{
+                    input.classList.add('dangerBoader');
                     successFlag = false;
                 }
-                subject_id.forEach(input => {
-                    if(input.value){
-                        input.classList.remove('dangerBoader');
-                    }else{
-                        input.classList.add('dangerBoader');
-                        successFlag = false;
-                    }
-                });
+            });
+            if (wanted && sectionSum && sectionSum !== wanted) {
+                var countMsg = "Subject question counts (" + sectionSum + ") must equal total (" + wanted + ").";
+                if (subjectMsg) {
+                    subjectMsg.textContent = countMsg;
+                    subjectMsg.className = 'qb-mix__sum is-bad';
+                } else if (levelMsg) {
+                    levelMsg.innerHTML = countMsg;
+                    levelMsg.className = 'qb-mix__sum is-bad';
+                }
+                successFlag = false;
             }
+            subject_id.forEach(input => {
+                if(input.value){
+                    input.classList.remove('dangerBoader');
+                }else{
+                    input.classList.add('dangerBoader');
+                    successFlag = false;
+                }
+            });
             
             return successFlag;
         }

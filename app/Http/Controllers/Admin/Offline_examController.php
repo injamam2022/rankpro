@@ -41,7 +41,9 @@ class Offline_examController extends Controller
         $data = [];
         $data['list'] = Exam::select(['exams.*','locations.location_name'])
                         ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
-                        ->where('type',2)->where('is_deleted',0)->get();
+                        ->where('exams.type', 2)
+                        ->where('exams.is_deleted', 0)
+                        ->get();
         return view('admin.offline_exam.list',$data);
     }
 
