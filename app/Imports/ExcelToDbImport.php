@@ -145,6 +145,7 @@ class ExcelToDbImport implements ToCollection, WithHeadingRow
                         'topic_id' => $topicId,
                         'sub_topic_id' => $subTopicId,
                         'difficulty_level' => $difficulty,
+                        'is_premium' => 0,
                         'question_type_id' => (int) ($val['question_type'] ?? 0),
                         'question_source_id' => $sourceIds[0] ?? 0,
                         'solution_video_link' => trim((string) ($val['solution_video_link'] ?? '')),

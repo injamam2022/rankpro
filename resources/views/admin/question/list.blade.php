@@ -143,6 +143,14 @@
                     @endforeach
                 </select>
             </div>
+            <div class="admin-list-field">
+                <label for="is_premium">Premium</label>
+                <select class="form-control" id="is_premium" name="is_premium">
+                    <option value="">All</option>
+                    <option value="0" @if((string)($is_premium ?? '') === '0') selected @endif>Non-premium</option>
+                    <option value="1" @if((string)($is_premium ?? '') === '1') selected @endif>Premium</option>
+                </select>
+            </div>
             @include('admin.include.list_toolbar', ['search_placeholder' => 'Search question, subject, chapter...'])
             </div>
             <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap" style="gap:10px;">
@@ -176,6 +184,7 @@
                 <input type="hidden" name="chapter_id" value="{{ $chapter_id }}">
                 <input type="hidden" name="topic_id" value="{{ $topic_id }}">
                 <input type="hidden" name="sub_topic_id" value="{{ $sub_topic_id }}">
+                <input type="hidden" name="is_premium" value="{{ $is_premium ?? '' }}">
                 <input type="hidden" name="q" value="{{ $q ?? '' }}">
             </form>
         @endif
@@ -200,6 +209,11 @@
                             <td>{{$row->chapter_name}}</td>
                             <td>{{$row->source_name}}</td>
                             <td>
+                                @if(!empty($row->is_premium))
+                                    <div>
+                                        <span class="duplicate-flag" style="background:#7c3aed;color:#fff;">Premium</span>
+                                    </div>
+                                @endif
                                 @if(!empty($row->is_duplicate))
                                     <div>
                                         <span class="duplicate-flag">Duplicate</span>

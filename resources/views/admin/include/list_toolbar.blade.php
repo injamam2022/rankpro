@@ -6,7 +6,8 @@
         || request()->filled('chapter_id')
         || request()->filled('topic_id')
         || request()->filled('sub_topic_id')
-        || request()->filled('class_level');
+        || request()->filled('class_level')
+        || request()->filled('is_premium');
 @endphp
 <div class="admin-list-field">
     <label for="list_q">Search</label>

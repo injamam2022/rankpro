@@ -144,6 +144,7 @@ class CustomTestController extends Controller
             ->where('subject_id', $subject->id)
             ->where('is_deleted', 0)
             ->where('status', 1)
+            ->nonPremium()
             ->whereNotNull('chapter_id')
             ->groupBy('chapter_id')
             ->pluck('total', 'chapter_id');
@@ -153,6 +154,7 @@ class CustomTestController extends Controller
             ->where('subject_id', $subject->id)
             ->where('is_deleted', 0)
             ->where('status', 1)
+            ->nonPremium()
             ->whereNotNull('topic_id')
             ->groupBy('topic_id')
             ->pluck('total', 'topic_id');
@@ -162,6 +164,7 @@ class CustomTestController extends Controller
             ->where('subject_id', $subject->id)
             ->where('is_deleted', 0)
             ->where('status', 1)
+            ->nonPremium()
             ->whereNotNull('sub_topic_id')
             ->groupBy('sub_topic_id')
             ->pluck('total', 'sub_topic_id');
@@ -338,6 +341,7 @@ class CustomTestController extends Controller
                 ->where('sub_topic_id', $subTopicId)
                 ->where('is_deleted', 0)
                 ->where('status', 1)
+                ->nonPremium()
                 ->first(['subject_id', 'chapter_id', 'topic_id']);
             if ($sample) {
                 $subjectId = $subjectId ?: (int) $sample->subject_id;
@@ -901,7 +905,8 @@ class CustomTestController extends Controller
         $query = Question::query()
             ->where('subject_id', $subjectId)
             ->where('is_deleted', 0)
-            ->where('status', 1);
+            ->where('status', 1)
+            ->nonPremium();
 
         if ($difficulty) {
             $query->where('difficulty_level', (int) $difficulty);

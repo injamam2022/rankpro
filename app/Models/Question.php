@@ -17,6 +17,7 @@ class Question extends Model
         'sub_topic_id',
         'question_type_id',
         'difficulty_level',
+        'is_premium',
         'question_source_id',
         'solution_video_link',
         'answer',
@@ -26,6 +27,22 @@ class Question extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function scopeNonPremium(Builder $query): Builder
+    {
+        return self::applyNonPremium($query);
+    }
+
+    public static function applyNonPremium(Builder $query, string $column = 'is_premium'): Builder
+    {
+        if (! Schema::hasColumn('questions', 'is_premium')) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $q) use ($column) {
+            $q->where($column, 0)->orWhereNull($column);
+        });
+    }
 
     public function questionSources()
     {

@@ -39,6 +39,7 @@ class QuestionController extends Controller
         $data['chapter_id'] = $request->chapter_id;
         $data['topic_id'] = $request->topic_id;
         $data['sub_topic_id'] = $request->sub_topic_id;
+        $data['is_premium'] = $request->input('is_premium', '');
 
         $language_id = getDefaultLanguage();
         $data['duplicates'] = $request->boolean('duplicates');
@@ -82,6 +83,16 @@ class QuestionController extends Controller
             $data['list'] = $data['list']->where('questions.sub_topic_id',$request->sub_topic_id);
         }
 
+        if ($request->filled('is_premium') && Schema::hasColumn('questions', 'is_premium')) {
+            if ((string) $request->input('is_premium') === '1') {
+                $data['list'] = $data['list']->where('questions.is_premium', 1);
+            } else {
+                $data['list'] = $data['list']->where(function ($q) {
+                    $q->where('questions.is_premium', 0)->orWhereNull('questions.is_premium');
+                });
+            }
+        }
+
         AdminListQuery::applySearch($data['list'], $data['q'], [
             'question_details.question_text',
             'subjects.name',
@@ -98,7 +109,7 @@ class QuestionController extends Controller
 
         $duplicateIndex = $this->duplicateIndex($language_id);
         $duplicateHashes = $duplicateIndex['hashes'];
-        $hasFilters = $request->filled('subject_id') || $request->filled('chapter_id') || $request->filled('topic_id') || $request->filled('sub_topic_id') || $data['q'] !== '' || session()->get('admmin_is_super') == 'T';
+        $hasFilters = $request->filled('subject_id') || $request->filled('chapter_id') || $request->filled('topic_id') || $request->filled('sub_topic_id') || $request->filled('is_premium') || $data['q'] !== '' || session()->get('admmin_is_super') == 'T';
         $data['duplicate_count'] = 0;
         if ($duplicateHashes->isNotEmpty()) {
             if ($hasFilters) {
@@ -189,6 +200,15 @@ class QuestionController extends Controller
         if ($request->filled('sub_topic_id')) {
             $query->where('questions.sub_topic_id', $request->sub_topic_id);
         }
+        if ($request->filled('is_premium') && Schema::hasColumn('questions', 'is_premium')) {
+            if ((string) $request->input('is_premium') === '1') {
+                $query->where('questions.is_premium', 1);
+            } else {
+                $query->where(function ($q) {
+                    $q->where('questions.is_premium', 0)->orWhereNull('questions.is_premium');
+                });
+            }
+        }
         if (session()->get('admmin_is_super') == 'T') {
             $query->where('questions.subject_id', session()->get('admmin_subject_id'));
         }
@@ -246,7 +266,7 @@ class QuestionController extends Controller
 
         toastr()->success(count($deleteIds).' duplicate question(s) deleted. One original kept for each set.');
         return redirect()->route('admin.question', array_merge(
-            $request->only(['subject_id', 'chapter_id', 'topic_id', 'sub_topic_id', 'q']),
+            $request->only(['subject_id', 'chapter_id', 'topic_id', 'sub_topic_id', 'is_premium', 'q']),
             ['duplicates' => 1]
         ));
     }
@@ -361,6 +381,7 @@ class QuestionController extends Controller
             $insertData['sub_topic_id'] = $request->sub_topic_id;
             $insertData['question_type_id'] = $request->input('question_type_id') ?: 0;
             $insertData['difficulty_level'] = $request->difficulty_level;
+            $insertData['is_premium'] = (int) $request->input('is_premium') === 1 ? 1 : 0;
             $sourceIds = $this->selectedQuestionSourceIds($request);
             $insertData['question_source_id'] = $sourceIds[0] ?? 0;
             $insertData['solution_video_link'] = $request->solution_video_link;
@@ -543,6 +564,7 @@ class QuestionController extends Controller
             $insertData['topic_id'] = $request->topic_id;
             $insertData['sub_topic_id'] = $request->sub_topic_id;
             $insertData['difficulty_level'] = $request->difficulty_level;
+            $insertData['is_premium'] = (int) $request->input('is_premium') === 1 ? 1 : 0;
             $sourceIds = $this->selectedQuestionSourceIds($request);
             $insertData['question_source_id'] = $sourceIds[0] ?? 0;
             $insertData['solution_video_link'] = $request->solution_video_link;
