@@ -34,7 +34,9 @@ use App\Models\Offline_exam_question;
 use App\Models\Exam_status;
 use App\Models\Exam_mistake_input;
 use App\Models\CustomTest;
+use App\Models\Batch;
 use App\Services\QuestionPaperPdfService;
+use Illuminate\Support\Facades\Schema;
 
 class Offline_examController extends Controller
 {
@@ -58,6 +60,8 @@ class Offline_examController extends Controller
             ->where('is_deleted',0)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())
             ->get();
+        $data['batch_list'] = $this->activeBatches();
+        $data['selected_batch_ids'] = [];
         return view('admin.offline_exam.add',$data);
     }
 
@@ -101,8 +105,13 @@ class Offline_examController extends Controller
                 $image->move($destinationPath, $insertData['landing_icon']);
             }
             $schedule = $this->schedulePayload($request);
+            $batchIds = $this->selectedBatchIds($request);
             if ($redirect = $this->invalidScheduleRedirect($schedule)) {
                 return $redirect;
+            }
+            if (empty($batchIds)) {
+                toastr()->warning('Please select a batch.');
+                return back()->withInput();
             }
 
             $insertData['type'] = 2;
@@ -140,17 +149,7 @@ class Offline_examController extends Controller
             $insertData['status'] = ($request->status)?$request->status:0;
 
             $exam = Exam::create($insertData);
-
-            if ($request->location_name && is_array($request->location_name)) {
-                foreach ($request->location_name as $locationName) {
-                    if (!empty($locationName)) {
-                        ExamLocation::create([
-                            'exam_id' => $exam->id,
-                            'location_id' => $locationName
-                        ]);
-                    }
-                }
-            }
+            $this->syncExamBatches($exam, $batchIds);
 
             toastr()->success('Offline Exam added successfully.');
             return redirect()->route('admin.offline_exam');
@@ -164,13 +163,16 @@ class Offline_examController extends Controller
         $input = $request->all();
         $data = [];
         $data['details'] = Exam::where('id',$request->id)->first();
-        $data['exam_location_list'] = ExamLocation::where('exam_id',$request->id)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
             ->where('is_deleted',0)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())
             ->get();
+        $data['batch_list'] = $this->activeBatches();
+        $data['selected_batch_ids'] = $data['details']
+            ? $data['details']->batches()->pluck('batches.id')->map(fn ($id) => (int) $id)->values()->all()
+            : [];
         return view('admin.offline_exam.edit',$data);
     }
 
@@ -231,8 +233,13 @@ class Offline_examController extends Controller
             }
             
             $schedule = $this->schedulePayload($request);
+            $batchIds = $this->selectedBatchIds($request);
             if ($redirect = $this->invalidScheduleRedirect($schedule)) {
                 return $redirect;
+            }
+            if (empty($batchIds)) {
+                toastr()->warning('Please select a batch.');
+                return back()->withInput();
             }
 
             $insertData['exam_code'] = $request->exam_code;
@@ -269,6 +276,7 @@ class Offline_examController extends Controller
             $insertData['is_trending'] = ($request->is_trending)?$request->is_trending:0;
 
             $loginCheck->update($insertData);
+            $this->syncExamBatches($loginCheck, $batchIds);
             toastr()->success('Offline Exam updated successfully.');
             return redirect()->route('admin.offline_exam');
         }else{
@@ -606,5 +614,27 @@ class Offline_examController extends Controller
 
         return null;
     }
-    
+
+    private function activeBatches()
+    {
+        return Batch::where('status', 1)->orderBy('name')->get(['id', 'name']);
+    }
+
+    private function selectedBatchIds(Request $request): array
+    {
+        $ids = $request->input('batches', $request->input('batch_id'));
+        if (! is_array($ids)) {
+            $ids = ($ids !== null && $ids !== '') ? [$ids] : [];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $ids))));
+    }
+
+    private function syncExamBatches(Exam $exam, array $batchIds): void
+    {
+        $exam->batches()->sync($batchIds);
+        if (Schema::hasColumn('exams', 'batch_id')) {
+            $exam->forceFill(['batch_id' => $batchIds[0] ?? null])->save();
+        }
+    }
 }

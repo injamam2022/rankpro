@@ -65,6 +65,10 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="batch_id">Batch <span class="text-danger">*</span></label>
+                            @include('admin.online_exam._batch_select')
+                        </div>
                     </div>
                     <div class="row mt-2">
 
@@ -174,46 +178,6 @@
                         </div>                            
                     </div>
                     <div class="row">
-
-                        
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="location_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Location</h4>
-                                <a href="javascript:void(0);" onclick="addNewLocation()"><img src="{{ asset('image/add-box.png') }}" alt="Add Location"></a>
-                            </div>
-                            @if(count($exam_location_list))
-                                @foreach($exam_location_list as $key =>$val)
-                                    <div class="row mb-3" id="location_view_{{$key}}">
-                                        <div class="col-11">
-                                            <select class="form-control" name="location_name[]" id="location_name_{{$key}}">
-                                                <option value="">Select</option>
-                                                @foreach($location_list as $value)
-                                                    <option value="{{$value->id}}" @if($value->id == $val->location_id) selected @endif>{{$value->location_name}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-1 d-flex align-items-center">
-                                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation({{$key}})">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="row mb-3" id="location_view_0">
-                                    <div class="col-11">
-                                        <select class="form-control" name="location_name[]" id="location_name_0">
-                                            <option value="">Select</option>
-                                            @foreach($location_list as $value)
-                                                <option value="{{$value->id}}">{{$value->location_name}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-1 d-flex align-items-center">
-                                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation(0)">
-                                    </div>
-                                </div>
-                            @endif
-                           
-                        </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="exampleFormControlInput">Is In Footer</label>
                             <div class="form-control" style="display:flex;">
@@ -344,33 +308,6 @@
             document.getElementById("subject_view_"+index).remove();
           }
 
-            let location_count = <?php echo count($exam_location_list);?>;
-
-            function addNewLocation() {
-                const html = `
-                    <div class="row mb-3" id="location_view_${location_count}">
-                        <div class="col-11">
-                            <select class="form-control" name="location_name[]" id="location_name_${location_count}">
-                                <option value="">Select</option>
-                                @foreach($location_list as $value)
-                                    <option value="{{$value->id}}">{{$value->location_name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-1 d-flex align-items-center">
-                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation(${location_count})">
-                        </div>
-                    </div>
-                `;
-                document.getElementById('location_list_view').insertAdjacentHTML('beforeend', html);
-                location_count++;
-            }
-
-            function removeLocation(index) {
-                const elem = document.getElementById(`location_view_${index}`);
-                if (elem) elem.remove();
-            }
-
     </script>
     <script type="text/javascript">
         
@@ -444,6 +381,22 @@
                 document.getElementById('location_id').classList.remove('dangerBoader');
             }else{
                 document.getElementById('location_id').classList.add('dangerBoader');
+                successFlag = false;
+            }
+
+            var batch = document.getElementById('batch_id');
+            var batchValue = '';
+            if (batch) {
+                if (batch.multiple) {
+                    batchValue = Array.prototype.filter.call(batch.options, function (opt) { return opt.selected && opt.value; }).length ? '1' : '';
+                } else {
+                    batchValue = batch.value;
+                }
+            }
+            if (batchValue) {
+                batch.classList.remove('dangerBoader');
+            } else if (batch) {
+                batch.classList.add('dangerBoader');
                 successFlag = false;
             }
 

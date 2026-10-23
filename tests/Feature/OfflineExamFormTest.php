@@ -28,6 +28,7 @@ class OfflineExamFormTest extends TestCase
             $table->date('exam_end_date')->nullable();
             $table->time('exam_end_time')->nullable();
             $table->unsignedBigInteger('location_id')->nullable();
+            $table->unsignedBigInteger('batch_id')->nullable();
             $table->integer('question_type')->nullable();
             $table->unsignedBigInteger('question_paper_id')->nullable();
             $table->integer('no_of_question')->nullable();
@@ -45,6 +46,9 @@ class OfflineExamFormTest extends TestCase
             $table->integer('is_trending')->default(0);
             $table->timestamps();
         });
+        (require database_path('migrations/2026_09_27_000001_create_exam_assignments.php'))->up();
+        (require database_path('migrations/2026_09_28_000002_add_status_to_batches_table.php'))->up();
+        DB::table('batches')->insert(['id' => 1, 'name' => 'Morning', 'status' => 1]);
         Schema::create('exam_languages', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('exam_id');
@@ -75,6 +79,7 @@ class OfflineExamFormTest extends TestCase
             'exam_end_date' => now()->addDay()->toDateString(),
             'exam_end_time' => '13:00',
             'price' => '500',
+            'batch_id' => 1,
             'question_type' => 1,
             'question_paper_id' => 5,
             'status' => 1,
@@ -96,6 +101,7 @@ class OfflineExamFormTest extends TestCase
         $this->assertNull($exam->result_title);
         $this->assertSame(now()->addDay()->toDateString(), $exam->exam_end_date);
         $this->assertSame('13:00:00', $exam->exam_end_time);
+        $this->assertEquals([1], $exam->batches()->pluck('batches.id')->map(fn ($id) => (int) $id)->all());
     }
 
     public function test_save_rejects_end_before_start()
@@ -105,6 +111,18 @@ class OfflineExamFormTest extends TestCase
             ->post(route('admin.offline_exam.save'), $this->examPayload([
                 'exam_end_date' => now()->toDateString(),
                 'exam_end_time' => '08:00',
+            ]))
+            ->assertRedirect(route('admin.offline_exam.add'));
+
+        $this->assertSame(0, Exam::count());
+    }
+
+    public function test_save_rejects_missing_batch()
+    {
+        $this->withSession(['adminAuth' => true])
+            ->from(route('admin.offline_exam.add'))
+            ->post(route('admin.offline_exam.save'), $this->examPayload([
+                'batch_id' => '',
             ]))
             ->assertRedirect(route('admin.offline_exam.add'));
 
