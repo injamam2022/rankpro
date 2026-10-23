@@ -38,6 +38,7 @@ class Online_examController extends Controller
                 $q->whereNull('exam_code')->orWhere('exam_code', 'not like', 'CT-%');
             })
             ->whereNotIn('id', CustomTest::examIdQuery())
+            ->orderByDesc('id')
             ->get();
         return view('admin.online_exam.list',$data);
     }

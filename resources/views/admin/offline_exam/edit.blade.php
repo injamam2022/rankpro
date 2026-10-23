@@ -30,7 +30,7 @@
                         <div class="col-sm-6">
                             <div class="row">
                                 <div class="col-sm-10">
-                                    <label class="form-label" for="exam_logo">Exam Logo (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                                    <label class="form-label" for="exam_logo">Exam Logo (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG)</label>
                                     <input class="form-control" id="exam_logo" type="file" name="exam_logo" placeholder=""  value="" />
                                 </div>
                                 <div class="col-sm-2">
@@ -43,7 +43,7 @@
                         <div class="col-sm-6">
                             <div class="row">
                                 <div class="col-sm-10">
-                                    <label class="form-label" for="landing_icon">Landing Exam Logo (Image Size: W- 367 px, H- 206 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                                    <label class="form-label" for="landing_icon">Landing Exam Logo (Image Size: W- 367 px, H- 206 px) (Type: PNG,JPG,JPEG)</label>
                                     <input class="form-control" id="landing_icon" type="file" name="landing_icon" placeholder=""  value="" />
                                 </div>
                                 <div class="col-sm-2">
@@ -176,45 +176,6 @@
                     <div class="row">
 
                         
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="language_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Language</h4>
-                                <a href="javascript:void(0);" onclick="addNewLanguage()"><img src="{{ asset('image/add-box.png') }}" alt="Add Language"></a>
-                            </div>
-
-                            @if(count($exam_language_list))
-                                @foreach($exam_language_list as $key =>$val)
-                                    <div class="row mb-3" id="language_view_{{$key}}">
-                                        <div class="col-11">
-                                            <select class="form-control" name="language_name[]" id="language_name_{{$key}}">
-                                                <option value="">Select</option>
-                                                @foreach($language_list as $value)
-                                                    <option value="{{$value->id}}" @if($value->id == $val->language_id) selected @endif>{{$value->name}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-1 d-flex align-items-center">
-                                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage({{$key}})">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="row mb-3" id="language_view_0">
-                                    <div class="col-11">
-                                        <select class="form-control" name="language_name[]" id="language_name_0">
-                                            <option value="">Select</option>
-                                            @foreach($language_list as $value)
-                                                <option value="{{$value->id}}">{{$value->name}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-1 d-flex align-items-center">
-                                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage(0)">
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-
                         <div class="col-sm-12 alert alert-success p-4 mt-4" id="location_list_view">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h4 class="fw-bold">Location</h4>
@@ -252,35 +213,6 @@
                                 </div>
                             @endif
                            
-                        </div>
-
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="date_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Starting Date</h4>
-                                <a href="javascript:void(0);" onclick="addNewDate()"><img src="{{ asset('image/add-box.png') }}" alt="Add Location"></a>
-                            </div>
-                            @if(count($exam_date_list))
-                                @foreach($exam_date_list as $key =>$val)
-                                    <div class="row mb-3" id="date_view_{{$key}}">
-                                        <div class="col-11">
-                                            <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" value="{{$val->date_name}}" id="date_name_{{$key}}">
-                                        </div>
-                                        <div class="col-1 d-flex align-items-center">
-                                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate({{$key}})">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="row mb-3" id="date_view_0">
-                                    <div class="col-11">
-                                        <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" value="" id="date_name_0">
-                                    </div>
-                                    <div class="col-1 d-flex align-items-center">
-                                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate(0)">
-                                    </div>
-                                </div>
-                            @endif
-                            
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="exampleFormControlInput">Is In Footer</label>
@@ -412,33 +344,6 @@
             document.getElementById("subject_view_"+index).remove();
           }
 
-            let language_count = <?php echo count($exam_language_list);?>;
-
-            function addNewLanguage() {
-                const html = `
-                    <div class="row mb-3" id="language_view_${language_count}">
-                        <div class="col-11">
-                            <select class="form-control" name="language_name[]" id="language_name_${language_count}">
-                                <option value="">Select</option>
-                                @foreach($language_list as $value)
-                                    <option value="{{$value->id}}">{{$value->name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-1 d-flex align-items-center">
-                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage(${language_count})">
-                        </div>
-                    </div>
-                `;
-                document.getElementById('language_list_view').insertAdjacentHTML('beforeend', html);
-                language_count++;
-            }
-
-            function removeLanguage(index) {
-                const elem = document.getElementById(`language_view_${index}`);
-                if (elem) elem.remove();
-            }
-
             let location_count = <?php echo count($exam_location_list);?>;
 
             function addNewLocation() {
@@ -466,27 +371,6 @@
                 if (elem) elem.remove();
             }
 
-            let date_count = <?php echo count($exam_date_list);?>;
-
-            function addNewDate() {
-                const html = `
-                    <div class="row mb-3" id="date_view_${date_count}">
-                        <div class="col-11">
-                            <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" id="date_name_${date_count}">
-                        </div>
-                        <div class="col-1 d-flex align-items-center">
-                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate(${date_count})">
-                        </div>
-                    </div>
-                `;
-                document.getElementById('date_list_view').insertAdjacentHTML('beforeend', html);
-                date_count++;
-            }
-
-            function removeDate(index) {
-                const elem = document.getElementById(`date_view_${index}`);
-                if (elem) elem.remove();
-            }
     </script>
     <script type="text/javascript">
         

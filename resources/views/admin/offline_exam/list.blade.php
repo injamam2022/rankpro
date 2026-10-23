@@ -22,7 +22,8 @@
         <table id="datatablesSimple">
             <thead>
                 <tr>
-                    <th>Logo</th>
+                    <th data-hidden="true" data-type="number" data-sort="desc" data-searchable="false">ID</th>
+                    <th data-sortable="false" data-searchable="false">Logo</th>
                     <th>Exam Code</th>
                     <th>Name</th>
                     <th>Location</th>
@@ -30,16 +31,23 @@
                     <!-- <th>No of question</th> -->
                     <!-- <th>Totals marks for exam</th> -->
                     <th>Status</th>
-                    <th>Question</th>
-                    <th>Result</th>
-                    <th>Action</th>
+                    <th data-sortable="false" data-searchable="false">Question</th>
+                    <th data-sortable="false" data-searchable="false">Result</th>
+                    <th data-sortable="false" data-searchable="false">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @if(count($list)>0)
                     @foreach ($list as $key=>$row)
                         <tr>
-                            <td><img src="{{asset('')}}uploads/exam/thumbnail/{{$row->exam_logo}}" style="width: 50px;"></td>
+                            <td class="d-none">{{ $row->id }}</td>
+                            <td>
+                                @if($row->exam_logo)
+                                    <img src="{{asset('')}}uploads/exam/thumbnail/{{$row->exam_logo}}" style="width: 50px;" alt="">
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td>{{$row->exam_code}}</td>
                             <td>{{$row->name}}</td>
                             <td>{{$row->location_name}}</td>

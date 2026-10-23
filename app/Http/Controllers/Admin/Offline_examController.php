@@ -34,6 +34,7 @@ use App\Models\Offline_exam_question;
 use App\Models\Exam_status;
 use App\Models\Exam_mistake_input;
 use App\Models\CustomTest;
+use App\Services\QuestionPaperPdfService;
 
 class Offline_examController extends Controller
 {
@@ -43,6 +44,7 @@ class Offline_examController extends Controller
                         ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
                         ->where('exams.type', 2)
                         ->where('exams.is_deleted', 0)
+                        ->orderByDesc('exams.id')
                         ->get();
         return view('admin.offline_exam.list',$data);
     }
@@ -50,7 +52,6 @@ class Offline_examController extends Controller
 
     public function add(){
         $data = [];
-        $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
@@ -140,17 +141,6 @@ class Offline_examController extends Controller
 
             $exam = Exam::create($insertData);
 
-            if ($request->language_name && is_array($request->language_name)) {
-                foreach ($request->language_name as $languageName) {
-                    if (!empty($languageName)) {
-                        ExamLanguage::create([
-                            'exam_id' => $exam->id,
-                            'language_id' => $languageName
-                        ]);
-                    }
-                }
-            }
-
             if ($request->location_name && is_array($request->location_name)) {
                 foreach ($request->location_name as $locationName) {
                     if (!empty($locationName)) {
@@ -162,17 +152,6 @@ class Offline_examController extends Controller
                 }
             }
 
-            if ($request->date_name && is_array($request->date_name)) {
-                foreach ($request->date_name as $dateName) {
-                    if (!empty($dateName)) {
-                        ExamDate::create([
-                            'exam_id' => $exam->id,
-                            'date_name' => $dateName
-                        ]);
-                    }
-                }
-            }
-        
             toastr()->success('Offline Exam added successfully.');
             return redirect()->route('admin.offline_exam');
         }else{
@@ -185,10 +164,7 @@ class Offline_examController extends Controller
         $input = $request->all();
         $data = [];
         $data['details'] = Exam::where('id',$request->id)->first();
-        $data['exam_language_list'] = ExamLanguage::where('exam_id',$request->id)->get();
         $data['exam_location_list'] = ExamLocation::where('exam_id',$request->id)->get();
-        $data['exam_date_list'] = ExamDate::where('exam_id',$request->id)->get();
-        $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
@@ -440,7 +416,7 @@ class Offline_examController extends Controller
             
     }
 
-    public function download_question(Request $request){
+    public function download_question(Request $request, QuestionPaperPdfService $pdfService){
         $data = [];
         $data['details'] = Exam::where('id',$request->id)->first();
         $data['subject_list'] = Exam_subject::select(['exam_subjects.*','subjects.name as subject_name'])
@@ -456,6 +432,9 @@ class Offline_examController extends Controller
 
             foreach ($data['subject_list'][$key]->question_list as $k1 => $v1) {
                 $question = Question_detail::where("question_id",$v1->id)->where("language_id",1)->first();
+                if (!$question) {
+                    continue;
+                }
                 $data['subject_list'][$key]->question_list[$k1]->question_text = $question->question_text;
                 $data['subject_list'][$key]->question_list[$k1]->question_image = $question->question_image;
                 $data['subject_list'][$key]->question_list[$k1]->option1 = $question->option1;
@@ -466,10 +445,22 @@ class Offline_examController extends Controller
                 $data['subject_list'][$key]->question_list[$k1]->is_option2_image = $question->is_option2_image;
                 $data['subject_list'][$key]->question_list[$k1]->is_option3_image = $question->is_option3_image;
                 $data['subject_list'][$key]->question_list[$k1]->is_option4_image = $question->is_option4_image;
+                $pdfService->prepareLoadedQuestion($data['subject_list'][$key]->question_list[$k1]);
             }
         }
 
-        $pdf = PDF::loadView('template.exam_question_pdf', $data);
+        $logoPath = public_path('web/images/logo.png');
+        $data['pdf_logo'] = is_file($logoPath) ? str_replace('\\', '/', $logoPath) : '';
+
+        $pdf = PDF::setOptions([
+            'isRemoteEnabled' => false,
+            'isHtml5ParserEnabled' => true,
+            'isPhpEnabled' => false,
+            'dpi' => 96,
+            'chroot' => public_path(),
+            'defaultFont' => 'DejaVu Sans',
+        ])->loadView('template.exam_question_pdf', $data);
+        $pdf->setPaper('a4', 'portrait');
 
         return $pdf->stream('exam_que.pdf');
     }

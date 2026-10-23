@@ -91,6 +91,8 @@ class OfflineExamFormTest extends TestCase
         $exam = Exam::where('exam_code', 201)->first();
         $this->assertNotNull($exam);
         $this->assertSame(2, (int) $exam->type);
+        $this->assertNull($exam->exam_logo);
+        $this->assertNull($exam->landing_icon);
         $this->assertNull($exam->result_title);
         $this->assertSame(now()->addDay()->toDateString(), $exam->exam_end_date);
         $this->assertSame('13:00:00', $exam->exam_end_time);
