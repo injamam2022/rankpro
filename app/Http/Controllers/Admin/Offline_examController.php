@@ -99,10 +99,17 @@ class Offline_examController extends Controller
                 $destinationPath = public_path('/uploads/exam');
                 $image->move($destinationPath, $insertData['landing_icon']);
             }
+            $schedule = $this->schedulePayload($request);
+            if ($redirect = $this->invalidScheduleRedirect($schedule)) {
+                return $redirect;
+            }
+
             $insertData['type'] = 2;
             $insertData['exam_code'] = $request->exam_code;
-            $insertData['exam_date'] = $request->exam_date;
-            $insertData['exam_time'] = $request->exam_time;
+            $insertData['exam_date'] = $schedule['exam_date'];
+            $insertData['exam_time'] = $schedule['exam_time'];
+            $insertData['exam_end_date'] = $schedule['exam_end_date'];
+            $insertData['exam_end_time'] = $schedule['exam_end_time'];
             $insertData['location_id'] = $request->location_id;
             $insertData['name'] = $request->name;
             $insertData['question_type'] = $request->question_type;
@@ -247,9 +254,16 @@ class Offline_examController extends Controller
                 }
             }
             
+            $schedule = $this->schedulePayload($request);
+            if ($redirect = $this->invalidScheduleRedirect($schedule)) {
+                return $redirect;
+            }
+
             $insertData['exam_code'] = $request->exam_code;
-            $insertData['exam_date'] = $request->exam_date;
-            $insertData['exam_time'] = $request->exam_time;
+            $insertData['exam_date'] = $schedule['exam_date'];
+            $insertData['exam_time'] = $schedule['exam_time'];
+            $insertData['exam_end_date'] = $schedule['exam_end_date'];
+            $insertData['exam_end_time'] = $schedule['exam_end_time'];
             $insertData['location_id'] = $request->location_id;
             $insertData['name'] = $request->name;
             $insertData['question_type'] = $request->question_type;
@@ -548,6 +562,58 @@ class Offline_examController extends Controller
 
         toastr()->success('Question change successfully.');
         return redirect()->route('admin.offline_exam.question',['id'=>$exam_id]);
+    }
+
+    private function normalizeClock($value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        if (preg_match('/^\d{2}:\d{2}$/', $value)) {
+            return $value.':00';
+        }
+        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    private function schedulePayload(Request $request): array
+    {
+        $examDate = $request->filled('exam_date') ? $request->exam_date : null;
+        $examTime = $this->normalizeClock($request->exam_time);
+        $endDate = $request->filled('exam_end_date') ? $request->exam_end_date : null;
+        $endTime = $this->normalizeClock($request->exam_end_time);
+
+        if ($endDate && !$endTime) {
+            $endTime = '23:59:59';
+        }
+        if ($endTime && !$endDate) {
+            $endDate = $examDate;
+        }
+
+        return [
+            'exam_date' => $examDate,
+            'exam_time' => $examTime,
+            'exam_end_date' => $endDate,
+            'exam_end_time' => $endTime,
+        ];
+    }
+
+    private function invalidScheduleRedirect(array $schedule)
+    {
+        if ($schedule['exam_end_date'] && $schedule['exam_end_time'] && $schedule['exam_date'] && $schedule['exam_time']) {
+            $start = Carbon::parse($schedule['exam_date'].' '.$schedule['exam_time']);
+            $end = Carbon::parse($schedule['exam_end_date'].' '.$schedule['exam_end_time']);
+            if ($end->lte($start)) {
+                toastr()->warning('Exam end date and time must be after the exam date and time.');
+                return back()->withInput();
+            }
+        }
+
+        return null;
     }
     
 }

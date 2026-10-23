@@ -54,16 +54,8 @@
                             </div>
                         </div>
                     </div>
+                    @include('admin.online_exam._schedule_batch_fields')
                     <div class="row mt-2">
-                        <div class="col-sm-3">
-                            <label class="form-label" for="exam_date">Exam Date <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_date" type="date" name="exam_date" placeholder=""  value="{{$details->exam_date}}" />
-                        </div>
-                        <div class="col-sm-3">
-                            <label class="form-label" for="exam_time">Exam Time <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_time" type="time" name="exam_time" placeholder=""  value="{{$details->exam_time}}" />
-                        </div>
-                        
                         <div class="col-sm-6" >
                             <label class="form-label" for="location_id">Location <span class="text-danger">*</span></label>
                             <select class="form-control" id="location_id" name="location_id">
@@ -163,17 +155,17 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_title">OMR Title <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_title">OMR Title</label>
                             <textarea class="form-control" id="result_title" name="result_title">{{$details->result_title}}</textarea>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_description">OMR Description <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_description">OMR Description</label>
                             <textarea class="form-control" id="result_description" name="result_description">{{$details->result_description}}</textarea>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_declaration">OMR Declaration <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_declaration">OMR Declaration</label>
                             <textarea class="form-control" id="result_declaration" name="result_declaration">{{$details->result_declaration}}</textarea>
                         </div>
 
@@ -534,6 +526,35 @@
                 successFlag = false;
             }
 
+            data.exam_end_date = (document.getElementById('exam_end_date') || {}).value || '';
+            data.exam_end_time = (document.getElementById('exam_end_time') || {}).value || '';
+            if (data.exam_end_date || data.exam_end_time) {
+                if (data.exam_end_date) {
+                    document.getElementById('exam_end_date').classList.remove('dangerBoader');
+                } else {
+                    document.getElementById('exam_end_date').classList.add('dangerBoader');
+                    successFlag = false;
+                }
+                if (data.exam_end_time) {
+                    document.getElementById('exam_end_time').classList.remove('dangerBoader');
+                } else {
+                    document.getElementById('exam_end_time').classList.add('dangerBoader');
+                    successFlag = false;
+                }
+                if (data.exam_end_date && data.exam_end_time && data.exam_date && data.exam_time) {
+                    var startAt = new Date(data.exam_date + 'T' + data.exam_time);
+                    var endAt = new Date(data.exam_end_date + 'T' + data.exam_end_time);
+                    if (!(endAt > startAt)) {
+                        document.getElementById('exam_end_date').classList.add('dangerBoader');
+                        document.getElementById('exam_end_time').classList.add('dangerBoader');
+                        successFlag = false;
+                    }
+                }
+            } else {
+                if (document.getElementById('exam_end_date')) document.getElementById('exam_end_date').classList.remove('dangerBoader');
+                if (document.getElementById('exam_end_time')) document.getElementById('exam_end_time').classList.remove('dangerBoader');
+            }
+
             data.location_id = document.getElementById('location_id').value;
             if(data.location_id){
                 document.getElementById('location_id').classList.remove('dangerBoader');
@@ -581,30 +602,6 @@
             //     document.getElementById('description').classList.add('dangerBoader');
             //     successFlag = false;
             // }
-
-            data.result_title = document.getElementById('result_title').value;
-            if(data.result_title){
-                document.getElementById('result_title').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_title').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.result_description = document.getElementById('result_description').value;
-            if(data.result_description){
-                document.getElementById('result_description').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_description').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.result_declaration = document.getElementById('result_declaration').value;
-            if(data.result_declaration){
-                document.getElementById('result_declaration').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_declaration').classList.add('dangerBoader');
-                successFlag = false;
-            }
 
             data.price = document.getElementById('price').value;
             if(data.price){

@@ -43,7 +43,12 @@
                             <td>{{$row->exam_code}}</td>
                             <td>{{$row->name}}</td>
                             <td>{{$row->location_name}}</td>
-                            <td>{{$row->exam_date}} - {{$row->exam_time}}</td>
+                            <td>
+                                {{$row->exam_date}} - {{$row->exam_time}}
+                                @if($row->exam_end_date)
+                                    <br>Ends {{$row->exam_end_date}}{{ $row->exam_end_time ? ' - '.$row->exam_end_time : '' }}
+                                @endif
+                            </td>
                             <!-- <td>{{$row->no_of_question}}</td> -->
                             <!-- <td>{{$row->totals_marks_for_exam}}</td> -->
                             <td>
