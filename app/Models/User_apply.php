@@ -14,6 +14,7 @@ class User_apply extends Model
         'is_whatsapp',
         'email_id',
         'address',
+        'class_name',
         'profile_img',
         'password',
         'father_full_name',

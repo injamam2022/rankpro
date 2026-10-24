@@ -47,6 +47,7 @@
         .ct-summary-icon.q { background: #2f6fed; }
         .ct-summary-icon.s { background: #3b82f6; }
         .ct-summary-icon.t { background: #7c3aed; }
+        .ct-summary-icon.m { background: #12b76a; }
         .ct-summary-text { font-size: .95rem; font-weight: 600; color: #101828; line-height: 1.35; }
         .ct-download {
             display: flex; align-items: center; justify-content: center; gap: .55rem;
@@ -103,9 +104,17 @@
                         <div class="ct-ready-title">Your {{ $custom->name }} is ready</div>
 
                         <div class="ct-summary">
+                            @php
+                                $readyMarksEach = (int) ($custom->marks_per_question ?: custom_test_marks_per_question());
+                                $readyTotalMarks = (int) round($custom->question_count * $readyMarksEach);
+                            @endphp
                             <div class="ct-summary-row">
                                 <span class="ct-summary-icon q"><i class="fas fa-question"></i></span>
                                 <span class="ct-summary-text">{{ $custom->question_count }} Questions</span>
+                            </div>
+                            <div class="ct-summary-row">
+                                <span class="ct-summary-icon m"><i class="fas fa-star"></i></span>
+                                <span class="ct-summary-text">{{ $readyTotalMarks }} marks · {{ $readyMarksEach }} per question</span>
                             </div>
                             <div class="ct-summary-row">
                                 <span class="ct-summary-icon s"><i class="fas fa-book-open"></i></span>

@@ -314,9 +314,13 @@ class CustomTestController extends Controller
         $totalQuestions = collect($plan)->sum('question_count');
         $names = collect($plan)->pluck('name')->implode(' + ');
 
+        $marksPerQuestion = custom_test_marks_per_question();
+
         return view('site.custom_test.configure', [
             'plan' => $plan,
             'totalQuestions' => $totalQuestions,
+            'marksPerQuestion' => $marksPerQuestion,
+            'totalMarks' => $totalQuestions * $marksPerQuestion,
             'subjectNames' => $names,
             'defaultDuration' => max(30, (int) ceil($totalQuestions * 1.5)),
         ]);
@@ -436,7 +440,7 @@ class CustomTestController extends Controller
         }
 
         $duration = (int) $data['duration_minutes'];
-        $marksPerQ = 4;
+        $marksPerQ = custom_test_marks_per_question();
         $negative = (bool) ($data['negative_marking'] ?? false);
         $negMarks = $negative ? 1 : 0;
         $subjectNames = collect($plan)->pluck('name')->values()->all();
@@ -675,7 +679,7 @@ class CustomTestController extends Controller
             'grouped' => $grouped,
             'subjectNames' => array_keys($grouped),
             'difficulty' => $difficulty,
-            'totalMarks' => (int) round($custom->question_count * (float) $custom->marks_per_question),
+            'totalMarks' => (int) round($custom->question_count * (float) ($custom->marks_per_question ?: custom_test_marks_per_question())),
             'studentMeta' => $studentMeta,
             'generatedAt' => now()->format('d/m/Y, h:i:s A'),
         ]);
@@ -730,7 +734,7 @@ class CustomTestController extends Controller
         }
 
         $totalQuestions = max(1, (int) $custom->question_count);
-        $marksPerQ = (float) ($custom->marks_per_question ?: 4);
+        $marksPerQ = (float) ($custom->marks_per_question ?: custom_test_marks_per_question());
         $totalMarks = (int) ($examUser->total_mark ?: round($totalQuestions * $marksPerQ));
         $score = (float) ($examUser->total_number ?? 0);
         $correct = (int) ($examUser->total_right_answer ?? 0);

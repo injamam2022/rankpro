@@ -128,7 +128,13 @@
                               </div>
                             </div>
                           </div>
-                          <div class="col-md-12">
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="class_name">Class <span class="req" aria-hidden="true">*</span></label>
+                              @include('include._student_class_select', ['required' => true])
+                            </div>
+                          </div>
+                          <div class="col-md-6">
                             <div class="form-group">
                               <label for="address">Location</label>
                               <input type="text" class="form-control" id="address" placeholder="City / location" name="address" autocomplete="address-level2">
@@ -338,6 +344,9 @@
                     }
                     if (!$("#password_confirmation").val()) {
                         showFieldError("#password_confirmation", "Confirm your password.");
+                    }
+                    if (!$("#class_name").val()) {
+                        showFieldError("#class_name", "Please select your class.");
                     }
                     var firstInvalid = $(".registrationForm .is-invalid").first();
                     if (firstInvalid.length) {

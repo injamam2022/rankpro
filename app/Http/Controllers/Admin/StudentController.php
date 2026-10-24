@@ -11,11 +11,14 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Arr;
 
 use App\Models\User;
+use App\Models\Exam;
 use App\Models\Exam_user;
 use App\Models\Exam_result;
 use App\Models\Question_detail;
 use App\Models\Question_paper_question;
 use App\Models\Offline_exam_question;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 use DB;
 
@@ -66,6 +69,7 @@ class StudentController extends Controller
             $insertData['first_name'] = $request->first_name;
             $insertData['last_name'] = $request->last_name;
             $insertData['address'] = $request->address;
+            $insertData['class_name'] = $request->class_name;
             $insertData['mobile_number'] = $request->mobile_number;
             $insertData['is_whatsapp'] = $request->is_whatsapp;
             $insertData['email_id'] = $request->email_id;
@@ -169,6 +173,7 @@ class StudentController extends Controller
             $insertData['first_name'] = $request->first_name;
             $insertData['last_name'] = $request->last_name;
             $insertData['address'] = $request->address;
+            $insertData['class_name'] = $request->class_name;
             $insertData['mobile_number'] = $request->mobile_number;
             $insertData['is_whatsapp'] = ($request->is_whatsapp)?1:0;
             $insertData['email_id'] = $request->email_id;
@@ -232,6 +237,8 @@ class StudentController extends Controller
                 'exams.name',
                 'exams.exam_code',
                 'exams.type',
+                'exams.exam_date',
+                'exams.total_time_for_exam',
             ])
             ->leftJoin('exams', 'exam_users.exam_id', '=', 'exams.id')
             ->where('exam_users.user_id', $userId)
@@ -260,10 +267,151 @@ class StudentController extends Controller
         $youOverall = $this->studentResultStats($userId, null);
         $topperOverall = $this->topperResultStats(null);
         $averageOverall = $this->averageResultStats(null);
+        $rank = (int) ($rankRow[0]->rank ?? 1);
+        $cohort = (int) (DB::selectOne('
+            SELECT COUNT(DISTINCT exam_users.user_id) AS c
+            FROM exam_users
+            LEFT JOIN exams ON exams.id = exam_users.exam_id
+            WHERE exams.is_deleted = 0
+        ')->c ?? 1);
+        if ($cohort < 1) {
+            $cohort = 1;
+        }
+
+        $assignedCount = (int) Exam::assignedTo($userId)->where('exams.is_deleted', 0)->count();
+        $attemptCount = $list->count();
+        if ($assignedCount < $attemptCount) {
+            $assignedCount = $attemptCount;
+        }
+
+        $obtained = (float) ($youOverall->total_mark ?? 0);
+        $maxMarks = (float) ($youOverall->totals_marks_for_exam ?? 0);
+        $overallPct = $maxMarks > 0 ? round(($obtained / $maxMarks) * 100) : (int) round((float) $list->avg('percentage'));
+        $grade = $this->letterGrade($overallPct);
+
+        $right = (int) ($youOverall->right_answer ?? 0);
+        $wrong = (int) ($youOverall->wrong_answer ?? 0);
+        $skip = (int) ($youOverall->skip_answer ?? 0);
+        $attemptedQ = $right + $wrong + $skip;
+        $answeredQ = $right + $wrong;
+        $accuracy = $answeredQ > 0 ? (int) round(($right / $answeredQ) * 100) : 0;
+
+        $subjects = $this->subjectPerformance($userId);
+        $topicRows = $this->topicPerformance($userId);
+        $strongest = $subjects->sortByDesc('percentage')->first();
+        $weakest = $subjects->sortBy('percentage')->first();
+
+        $chrono = $list->sortBy(function ($row) {
+            return $row->exam_date ?: $row->created_at;
+        })->values();
+        $trendLabels = [];
+        $trendNames = [];
+        $trendScores = [];
+        foreach ($chrono as $i => $row) {
+            $name = $row->name ?: ('Test '.$row->id);
+            $trendLabels[] = $this->shortTrendLabel($name, $i);
+            $trendNames[] = $name;
+            $trendScores[] = round((float) ($row->percentage ?? 0), 1);
+        }
+        $improvement = 0;
+        if (count($trendScores) >= 2) {
+            $improvement = round(end($trendScores) - $trendScores[0], 1);
+        }
+
+        $tests = $this->paginateCollection(
+            $chrono->reverse()->values()->map(function ($row) {
+                $pct = (float) ($row->percentage ?? 0);
+                $grade = $this->letterGrade($pct);
+                return [
+                    'id' => $row->id,
+                    'user_id' => $row->user_id,
+                    'name' => $row->name ?: 'Exam',
+                    'date' => $row->exam_date ?: $row->created_at,
+                    'marks' => (float) ($row->total_number ?? 0),
+                    'max' => (float) ($row->total_mark ?? 0),
+                    'percentage' => $pct,
+                    'time' => $this->formatAttemptTime($row->total_time),
+                    'result' => $grade['status'],
+                    'result_class' => $grade['tone'],
+                ];
+            }),
+            8,
+            'tests_page',
+            $request,
+            'spr-tests'
+        );
+
+        $topics = $this->paginateCollection($topicRows, 10, 'topics_page', $request, 'spr-topics');
+
+        $actions = $this->paginateCollection(
+            $topicRows->sortBy('accuracy')->values()->map(function ($topic) {
+                $target = min(95, max(70, (int) ceil($topic['accuracy'] / 5) * 5 + 15));
+                if ($topic['accuracy'] >= 85) {
+                    $action = 'Keep revising with mixed questions to hold this edge.';
+                    $priority = 'Low';
+                } elseif ($topic['accuracy'] >= 70) {
+                    $action = 'Practise 15–20 mixed questions from this chapter this week.';
+                    $priority = 'Medium';
+                } else {
+                    $action = 'Revise NCERT lines and typical traps, then re-attempt this chapter.';
+                    $priority = 'High';
+                }
+
+                return [
+                    'area' => trim($topic['subject'].' · '.$topic['topic']),
+                    'current' => $topic['accuracy'],
+                    'target' => $target,
+                    'action' => $action,
+                    'priority' => $priority,
+                ];
+            }),
+            4,
+            'actions_page',
+            $request,
+            'spr-actions'
+        );
+
+        $year = (int) date('Y');
+        $month = (int) date('n');
+        $academic = $month >= 4 ? $year.' – '.($year + 1) : ($year - 1).' – '.$year;
 
         return view('admin.student.exam_list', [
             'user' => $user,
             'list' => $list,
+            'report' => [
+                'academic_year' => $academic,
+                'obtained' => $obtained,
+                'max_marks' => $maxMarks,
+                'overall_pct' => $overallPct,
+                'grade' => $grade['letter'],
+                'grade_status' => $grade['status'],
+                'rank' => $rank,
+                'cohort' => $cohort,
+                'attempts' => $attemptCount,
+                'assigned' => $assignedCount,
+                'accuracy' => $accuracy,
+                'right' => $right,
+                'answered' => $answeredQ,
+                'attempted_questions' => $attemptedQ,
+                'improvement' => $improvement,
+                'strongest' => $strongest,
+                'weakest' => $weakest,
+                'subjects' => $subjects,
+                'topics' => $topics,
+                'tests' => $tests,
+                'trend_labels' => $trendLabels,
+                'trend_names' => $trendNames,
+                'trend_scores' => $trendScores,
+                'test_chart' => collect($tests->items())->map(function ($t, $i) {
+                    return [
+                        'label' => $this->shortTrendLabel($t['name'], $i),
+                        'name' => $t['name'],
+                        'score' => (int) round((float) $t['percentage']),
+                    ];
+                })->values(),
+                'actions' => $actions,
+                'avg_time' => $this->formatAttemptTime($list->avg('total_time')),
+            ],
             'easy_toper_list' => $this->topperResultStats(1),
             'avg_easy_toper_list' => $this->averageResultStats(1),
             'my_easy_toper_list' => $this->studentResultStats($userId, 1),
@@ -276,15 +424,15 @@ class StudentController extends Controller
             'topper_data' => $topperOverall,
             'average_data' => $averageOverall,
             'you_data' => $youOverall,
-            'total_exam_attemped' => $list->count(),
+            'total_exam_attemped' => $attemptCount,
             'total_question_attemped' => Exam_result::where('user_id', $userId)->where('answer', '!=', '')->count(),
-            'your_score' => $rankRow[0]->rank ?? 1,
+            'your_score' => $rank,
             'chart' => [
                 'topper' => $this->scorePercent($topperOverall),
                 'average' => $this->scorePercent($averageOverall),
                 'you' => $this->scorePercent($youOverall),
-                'your_mark' => (float) ($youOverall->total_mark ?? 0),
-                'total_mark' => (float) ($youOverall->totals_marks_for_exam ?? 0),
+                'your_mark' => $obtained,
+                'total_mark' => $maxMarks,
             ],
         ]);
     }
@@ -462,6 +610,176 @@ class StudentController extends Controller
         }
 
         return (int) round(($mark / $total) * 100);
+    }
+
+    /**
+     * @return array{letter:string,status:string,tone:string}
+     */
+    private function letterGrade(float $pct): array
+    {
+        if ($pct >= 90) {
+            return ['letter' => 'A+', 'status' => 'Excellent', 'tone' => 'excellent'];
+        }
+        if ($pct >= 80) {
+            return ['letter' => 'A', 'status' => 'Very Good', 'tone' => 'very-good'];
+        }
+        if ($pct >= 70) {
+            return ['letter' => 'B', 'status' => 'Good', 'tone' => 'good'];
+        }
+        if ($pct >= 60) {
+            return ['letter' => 'C', 'status' => 'Need Improvement', 'tone' => 'improve'];
+        }
+
+        return ['letter' => 'D', 'status' => 'Need Improvement', 'tone' => 'improve'];
+    }
+
+    private function formatAttemptTime($raw): string
+    {
+        $raw = (float) $raw;
+        if ($raw <= 0) {
+            return '—';
+        }
+        $minutes = $raw > 400 ? (int) round($raw / 60) : (int) round($raw);
+        if ($minutes >= 60) {
+            $hours = intdiv($minutes, 60);
+            $mins = $minutes % 60;
+
+            return $hours.'h '.($mins ? $mins.'m' : '');
+        }
+
+        return $minutes.' min';
+    }
+
+    private function subjectPerformance(int $userId)
+    {
+        return $this->resultBaseQuery(null)
+            ->select([
+                DB::raw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) as subject_id'),
+                DB::raw('MAX(subjects.name) as subject_name'),
+                DB::raw('SUM(exam_results.result) as obtained'),
+                DB::raw('COUNT(*) as attempted'),
+                DB::raw('COUNT(CASE WHEN exam_results.result > 0 THEN 1 END) as correct'),
+            ])
+            ->leftJoin('subjects', function ($join) {
+                $join->whereRaw('subjects.id = COALESCE(questions.subject_id, offline_exam_questions.subject_id)');
+            })
+            ->where('exam_results.user_id', $userId)
+            ->groupBy(DB::raw('COALESCE(questions.subject_id, offline_exam_questions.subject_id)'))
+            ->get()
+            ->filter(fn ($row) => $row->subject_name)
+            ->map(function ($row) {
+                $attempted = (int) $row->attempted;
+                $obtained = (float) $row->obtained;
+                $max = $attempted * 4;
+                $pct = $max > 0 ? (int) round(($obtained / $max) * 100) : 0;
+                $grade = $this->letterGrade($pct);
+
+                return [
+                    'name' => $row->subject_name,
+                    'obtained' => (int) round($obtained),
+                    'max' => $max,
+                    'percentage' => $pct,
+                    'grade' => $grade['letter'],
+                    'status' => $grade['status'],
+                    'tone' => $grade['tone'],
+                ];
+            })
+            ->sortByDesc('percentage')
+            ->values();
+    }
+
+    private function topicPerformance(int $userId)
+    {
+        return $this->resultBaseQuery(null)
+            ->select([
+                DB::raw('MAX(subjects.name) as subject_name'),
+                DB::raw('MAX(chapters.name) as chapter_name'),
+                DB::raw('MAX(topics.name) as topic_name'),
+                DB::raw('COUNT(*) as attempted'),
+                DB::raw('COUNT(CASE WHEN exam_results.result > 0 THEN 1 END) as correct'),
+            ])
+            ->leftJoin('subjects', function ($join) {
+                $join->whereRaw('subjects.id = COALESCE(questions.subject_id, offline_exam_questions.subject_id)');
+            })
+            ->leftJoin('chapters', function ($join) {
+                $join->whereRaw('chapters.id = COALESCE(questions.chapter_id, offline_exam_questions.chapter_id)');
+            })
+            ->leftJoin('topics', function ($join) {
+                $join->whereRaw('topics.id = COALESCE(questions.topic_id, offline_exam_questions.topic_id)');
+            })
+            ->where('exam_results.user_id', $userId)
+            ->groupBy(DB::raw('COALESCE(questions.subject_id, offline_exam_questions.subject_id)'))
+            ->groupBy(DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id)'))
+            ->groupBy(DB::raw('COALESCE(questions.topic_id, offline_exam_questions.topic_id)'))
+            ->get()
+            ->map(function ($row) {
+                $attempted = (int) $row->attempted;
+                $correct = (int) $row->correct;
+                $acc = $attempted > 0 ? (int) round(($correct / $attempted) * 100) : 0;
+                if ($acc >= 85) {
+                    $status = 'Strong';
+                    $tone = 'strong';
+                } elseif ($acc >= 70) {
+                    $status = 'Good';
+                    $tone = 'good';
+                } elseif ($acc >= 55) {
+                    $status = 'Needs Practice';
+                    $tone = 'practice';
+                } else {
+                    $status = 'Weak';
+                    $tone = 'weak';
+                }
+                $topic = trim((string) ($row->topic_name ?: $row->chapter_name ?: 'General'));
+
+                return [
+                    'subject' => $row->subject_name ?: 'Subject',
+                    'topic' => $topic,
+                    'accuracy' => $acc,
+                    'attempted' => $attempted,
+                    'correct' => $correct,
+                    'status' => $status,
+                    'tone' => $tone,
+                ];
+            })
+            ->filter(fn ($row) => $row['attempted'] > 0)
+            ->sortByDesc('attempted')
+            ->values();
+    }
+
+    private function shortTrendLabel(?string $name, int $index): string
+    {
+        $name = trim((string) $name);
+        if ($name !== '' && preg_match('/(?:test|week|#)\s*0*(\d+)/i', $name, $m)) {
+            return 'T'.$m[1];
+        }
+
+        return 'T'.($index + 1);
+    }
+
+    private function paginateCollection(Collection $items, int $perPage, string $pageName, Request $request, string $fragment = ''): LengthAwarePaginator
+    {
+        $total = $items->count();
+        $lastPage = max(1, (int) ceil(($total ?: 1) / $perPage));
+        $page = max(1, (int) $request->input($pageName, 1));
+        if ($page > $lastPage) {
+            $page = $lastPage;
+        }
+
+        $query = $request->query();
+        unset($query[$pageName]);
+
+        return new LengthAwarePaginator(
+            $items->slice(($page - 1) * $perPage, $perPage)->values(),
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $query,
+                'pageName' => $pageName,
+                'fragment' => $fragment,
+            ]
+        );
     }
 
 }

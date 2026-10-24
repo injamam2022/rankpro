@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 use App\Models\BannerDescription;
 use App\Models\User_exam;
@@ -222,6 +223,7 @@ class StudentsController extends Controller
             ->leftJoin('users', 'users.id', '=', 'exam_users.user_id')
             ->where('exams.is_deleted', 0)
             ->whereNotNull('exam_users.user_id');
+        \App\Support\StudentScope::constrainOfficialAttempts($leaderBoardQuery);
 
         if (!empty($data['exam_user_type'])) {
             if ($data['exam_user_type'] === 'OTS') {
@@ -263,6 +265,7 @@ class StudentsController extends Controller
             $rankBindings[] = $data['exam_user_type'];
         }
 
+        $officialSql = \App\Support\StudentScope::officialAttemptSql();
         $userRank = DB::select("
             SELECT COUNT(*) + 1 AS `rank`
             FROM (
@@ -271,6 +274,7 @@ class StudentsController extends Controller
                 LEFT JOIN exams ON exams.id = exam_users.exam_id
                 WHERE exams.is_deleted = 0
                 {$rankTypeSql}
+                {$officialSql}
                 GROUP BY exam_users.user_id
                 HAVING SUM(exam_users.total_number) > (
                     SELECT COALESCE(SUM(exam_users.total_number), 0)
@@ -279,6 +283,7 @@ class StudentsController extends Controller
                     WHERE exams.is_deleted = 0
                     AND exam_users.user_id = ?
                     {$rankTypeSql}
+                    {$officialSql}
                 )
             ) AS totals
         ", $rankBindings);
@@ -400,23 +405,27 @@ class StudentsController extends Controller
             $exam_result = Exam_result::select([
                                 DB::raw('count(*) as total'),
                                 DB::raw('COUNT(CASE WHEN (exam_results.result > 0) THEN 1 END) as result'),
-                                DB::raw('SUM(result) as total_mark')
+                                DB::raw('SUM(exam_results.result) as total_mark')
                             ])
                             ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
+                            ->leftJoin('exam_users', 'exam_users.id', '=', 'exam_results.exam_user_id')
                             ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
                             ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
                             ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
                             ->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$value->id])
                             ->where('exam_results.user_id',Auth::user()->id)
-                            ->where('exams.is_deleted',0)
-                            ->first();
+                            ->where('exams.is_deleted',0);
+            \App\Support\StudentScope::constrainOfficialAttempts($exam_result, 'exams', 'exam_users', false);
+            $exam_result = $exam_result->first();
 
             $value->count = "";
             $value->score = "";
+            $value->asked = 0;
 
             if($exam_result){
                 $value->count = $exam_result->result;
                 $value->score = $exam_result->total_mark;
+                $value->asked = (int) $exam_result->total;
             }
         }
         // dd($data);
@@ -676,8 +685,15 @@ class StudentsController extends Controller
             || $request->filled('new_password')
             || $request->filled('new_password_confirmation');
 
+        $classAllowed = student_class_values();
+        $currentClass = (string) (Auth::user()->class_name ?? '');
+        if ($currentClass !== '' && !in_array($currentClass, $classAllowed, true)) {
+            $classAllowed[] = $currentClass;
+        }
+
         $rules = [
             'first_name' => 'required',
+            'class_name' => ['required', Rule::in($classAllowed)],
             'profileImage' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
         ];
 
@@ -780,6 +796,7 @@ class StudentsController extends Controller
 
             $insertData['first_name'] = $request->first_name;
             $insertData['last_name'] = $request->last_name;
+            $insertData['class_name'] = $request->class_name;
             $insertData['address'] = $request->address;
             // $insertData['mobile_number'] = $request->mobile_number;
             $insertData['is_whatsapp'] = ($request->is_whatsapp)?1:0;

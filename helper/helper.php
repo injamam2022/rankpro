@@ -210,3 +210,24 @@ if (!function_exists('question_html_media')) {
         );
     }
 }
+
+if (!function_exists('student_class_options')) {
+    function student_class_options(): array
+    {
+        return ['9', '10', '11', '12', '12 passed'];
+    }
+}
+
+if (!function_exists('student_class_values')) {
+    function student_class_values(): array
+    {
+        return student_class_options();
+    }
+}
+
+if (!function_exists('custom_test_marks_per_question')) {
+    function custom_test_marks_per_question(): int
+    {
+        return 4;
+    }
+}

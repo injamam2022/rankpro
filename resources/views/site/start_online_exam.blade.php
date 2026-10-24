@@ -282,6 +282,16 @@
             border-radius:24px;
             font-size:14px;
         }
+        .exam-heading .q-marks {
+            display:none;
+            margin-left:8px;
+            background:#eef2ff;
+            color:#3561ff;
+            padding:10px 14px;
+            border-radius:24px;
+            font-size:13px;
+            font-weight:600;
+        }
         /* Question box follows File 2's question-text/q-no/q-only structure */
         .questionDiv {
             margin:0 0 20px;
@@ -843,7 +853,7 @@
         <div class="questionBankList" id="question_list"></div>
       </aside>
       <main class="exam-content">
-        <div class="exam-heading"><h5>Online Examination</h5><span class="subject" id="current_subject_label">Question &amp; Answer</span></div>
+        <div class="exam-heading"><h5>Online Examination</h5><span><span class="subject" id="current_subject_label">Question &amp; Answer</span><span class="q-marks" id="current_question_marks"></span></span></div>
         <div class="exampTime" id="sclockdiv" style="display:none"><div class="blueTime"><div style="width:50%;"></div><span><b class="minutes"></b><b class="seconds"></b></span></div></div>
         <div class="questionDiv">
           <div class="question-text">
@@ -903,6 +913,7 @@
         "current_question_time":0,
         "is_current_option_selected":0,
         "questionTimeInterval":'',
+        "marks_per_question": <?php echo (string) ($user_exam_detail->exam_type ?? '') === 'CUSTOM' ? (int) custom_test_marks_per_question() : 0; ?>,
       }
 
       globalData.exam_time = renderQuestionTime();
@@ -1377,6 +1388,16 @@
         var subjectLabel = document.getElementById('current_subject_label');
         if (subjectLabel) {
           subjectLabel.textContent = data.subject_name || 'Question & Answer';
+        }
+        var marksLabel = document.getElementById('current_question_marks');
+        if (marksLabel) {
+          if (globalData.marks_per_question) {
+            marksLabel.textContent = '+' + globalData.marks_per_question + ' marks';
+            marksLabel.style.display = 'inline-block';
+          } else {
+            marksLabel.textContent = '';
+            marksLabel.style.display = 'none';
+          }
         }
         if (typeof resizeQuestionBank === 'function') {
           setTimeout(resizeQuestionBank, 50);

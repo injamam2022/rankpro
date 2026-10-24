@@ -222,6 +222,7 @@
                                   <div class="dashboardEmail">
                                     RankPro ID: {{ $user->rankpro_id ?: $user->id }}
                                     @if($user->email_id) &nbsp;|&nbsp; {{ $user->email_id }} @endif
+                                    @if($user->class_name) &nbsp;|&nbsp; Class {{ $user->class_name }} @endif
                                   </div>
                                   @if(!empty($student_batches) && $student_batches->count())
                                     <div class="mb-3" style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -276,6 +277,12 @@
                                         <div class="form-group">
                                           <label for="email_id">Email</label>
                                           <input type="text" class="form-control" id="email_id" value="{{ $user->email_id }}" placeholder="Not set" readonly disabled>
+                                        </div>
+                                      </div>
+                                      <div class="col-md-6">
+                                        <div class="form-group">
+                                          <label for="class_name">Class <span class="text-danger">*</span></label>
+                                          @include('include._student_class_select', ['required' => true, 'selected' => $user->class_name])
                                         </div>
                                       </div>
                                       <div class="col-md-12">
@@ -877,6 +884,15 @@
           successFlag = false;
         }else{
           document.getElementById('last_name').classList.remove('dangerBoader');
+        }
+        var classEl = document.getElementById('class_name');
+        if (classEl) {
+          if (!classEl.value) {
+            classEl.classList.add('dangerBoader');
+            successFlag = false;
+          } else {
+            classEl.classList.remove('dangerBoader');
+          }
         }
         // Address is optional — do not block profile / photo save when empty.
         var addressEl = document.getElementById('address');

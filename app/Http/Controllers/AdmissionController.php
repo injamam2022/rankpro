@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 use App\Models\User;
 use App\Models\User_apply;
@@ -35,6 +36,7 @@ class AdmissionController extends Controller
             'mobile_number'     => 'required|digits:10',
             'email_id'          => 'required|email',
             'address'           => 'nullable|string|max:255',
+            'class_name'        => ['required', Rule::in(student_class_values())],
             'profileImage'      => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'password'          => 'required|string|min:4|confirmed'
         ]);
@@ -87,9 +89,13 @@ class AdmissionController extends Controller
         if (Schema::hasColumn($user->getTable(), 'address')) {
             $user->address = $request->address;
         }
+        if (Schema::hasColumn($user->getTable(), 'class_name')) {
+            $user->class_name = $request->class_name;
+        }
 
         $user->save();
         session(['pending_signup_address_'.$user->id => $request->address]);
+        session(['pending_signup_class_'.$user->id => $request->class_name]);
         
         $emailData = [
             'subject' => 'Verify Your Account - OTP Code',
@@ -160,6 +166,7 @@ class AdmissionController extends Controller
         $insertData['password'] = $user->password;
         $insertData['profile_img'] = $user->profile_img;
         $insertData['address'] = $user->address ?: session()->pull('pending_signup_address_'.$user->id);
+        $insertData['class_name'] = $user->class_name ?: session()->pull('pending_signup_class_'.$user->id);
         $insertData['rankpro_id'] = $rankproId;
         $insertData['status'] = 1;
 
