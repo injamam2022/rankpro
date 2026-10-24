@@ -20,14 +20,19 @@ class LocationController extends Controller
 
     public function list(){
         $data = [];
-        $data['list'] = Location::select(["locations.*","countries.name as country_name","states.name as state_name","cities.name as city_name"])->leftJoin('states', 'states.id', '=', 'locations.state_id')->leftJoin('countries', 'locations.country_id', '=', 'countries.id')->leftJoin('cities', 'locations.city_id', '=', 'cities.id')->get();
+        $data['list'] = Location::select(["locations.*","countries.name as country_name","states.name as state_name","cities.name as city_name"])
+            ->leftJoin('states', 'states.id', '=', 'locations.state_id')
+            ->leftJoin('countries', 'locations.country_id', '=', 'countries.id')
+            ->leftJoin('cities', 'locations.city_id', '=', 'cities.id')
+            ->where('locations.is_deleted', 0)
+            ->get();
         // dd($data);
         return view('admin.location.list',$data);
     }
 
     public function add(){
         $data = [];
-        $data['country_list'] = Country::where('status',1)->get();
+        $data['country_list'] = Country::where('status',1)->where('is_deleted', 0)->get();
         return view('admin.location.add',$data);
     }
 
@@ -41,10 +46,7 @@ class LocationController extends Controller
 
         $input = $request->all();
         //dd($input);
-        $loginCheck = Location::where(
-            [
-                'location_name'=> $input['location_name']
-            ])->first();
+        $loginCheck = Location::where('location_name', $input['location_name'])->where('is_deleted', 0)->first();
 
         if (!$loginCheck){
             $saveData = [];
@@ -88,9 +90,9 @@ class LocationController extends Controller
             [
                 'id'=> $input['id']
             ])->first();
-        $data['country_list'] = Country::where('status',1)->get();
-        $data['state_list'] = State::where('status',1)->where('country_id',$data['details']->country_id)->get();
-        $data['city_list'] = City::where('status',1)->where('state_id',$data['details']->state_id)->get();
+        $data['country_list'] = Country::where('status',1)->where('is_deleted', 0)->get();
+        $data['state_list'] = State::where('status',1)->where('is_deleted', 0)->where('country_id',$data['details']->country_id)->get();
+        $data['city_list'] = City::where('status',1)->where('is_deleted', 0)->where('state_id',$data['details']->state_id)->get();
         return view('admin.location.edit',$data);
     }
 
@@ -152,9 +154,13 @@ class LocationController extends Controller
     }
     
     public function delete(Request $request){
-        $id = $request->id;
-        Location::where('id',$id)->delete();
-        toastr()->success('Location deleted successfully.');
+        $location = Location::where('id', $request->id)->where('is_deleted', 0)->first();
+        if ($location) {
+            $location->update(['is_deleted' => 1]);
+            toastr()->success('Location deleted successfully.');
+        } else {
+            toastr()->warning('Location not found.');
+        }
         return redirect()->route('admin.location');
     }
 

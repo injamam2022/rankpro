@@ -34,6 +34,9 @@ use App\Models\Offline_exam_question;
 use App\Models\Exam_status;
 use App\Models\Exam_mistake_input;
 use App\Models\CustomTest;
+use App\Models\Batch;
+use App\Services\QuestionPaperPdfService;
+use Illuminate\Support\Facades\Schema;
 
 class Offline_examController extends Controller
 {
@@ -41,20 +44,24 @@ class Offline_examController extends Controller
         $data = [];
         $data['list'] = Exam::select(['exams.*','locations.location_name'])
                         ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
-                        ->where('type',2)->where('is_deleted',0)->get();
+                        ->where('exams.type', 2)
+                        ->where('exams.is_deleted', 0)
+                        ->orderByDesc('exams.id')
+                        ->get();
         return view('admin.offline_exam.list',$data);
     }
 
 
     public function add(){
         $data = [];
-        $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
-        $data['location_list'] = Location::where('status',1)->get();
+        $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
             ->where('is_deleted',0)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())
             ->get();
+        $data['batch_list'] = $this->activeBatches();
+        $data['selected_batch_ids'] = [];
         return view('admin.offline_exam.add',$data);
     }
 
@@ -97,10 +104,22 @@ class Offline_examController extends Controller
                 $destinationPath = public_path('/uploads/exam');
                 $image->move($destinationPath, $insertData['landing_icon']);
             }
+            $schedule = $this->schedulePayload($request);
+            $batchIds = $this->selectedBatchIds($request);
+            if ($redirect = $this->invalidScheduleRedirect($schedule)) {
+                return $redirect;
+            }
+            if (empty($batchIds)) {
+                toastr()->warning('Please select a batch.');
+                return back()->withInput();
+            }
+
             $insertData['type'] = 2;
             $insertData['exam_code'] = $request->exam_code;
-            $insertData['exam_date'] = $request->exam_date;
-            $insertData['exam_time'] = $request->exam_time;
+            $insertData['exam_date'] = $schedule['exam_date'];
+            $insertData['exam_time'] = $schedule['exam_time'];
+            $insertData['exam_end_date'] = $schedule['exam_end_date'];
+            $insertData['exam_end_time'] = $schedule['exam_end_time'];
             $insertData['location_id'] = $request->location_id;
             $insertData['name'] = $request->name;
             $insertData['question_type'] = $request->question_type;
@@ -130,40 +149,8 @@ class Offline_examController extends Controller
             $insertData['status'] = ($request->status)?$request->status:0;
 
             $exam = Exam::create($insertData);
+            $this->syncExamBatches($exam, $batchIds);
 
-            if ($request->language_name && is_array($request->language_name)) {
-                foreach ($request->language_name as $languageName) {
-                    if (!empty($languageName)) {
-                        ExamLanguage::create([
-                            'exam_id' => $exam->id,
-                            'language_id' => $languageName
-                        ]);
-                    }
-                }
-            }
-
-            if ($request->location_name && is_array($request->location_name)) {
-                foreach ($request->location_name as $locationName) {
-                    if (!empty($locationName)) {
-                        ExamLocation::create([
-                            'exam_id' => $exam->id,
-                            'location_id' => $locationName
-                        ]);
-                    }
-                }
-            }
-
-            if ($request->date_name && is_array($request->date_name)) {
-                foreach ($request->date_name as $dateName) {
-                    if (!empty($dateName)) {
-                        ExamDate::create([
-                            'exam_id' => $exam->id,
-                            'date_name' => $dateName
-                        ]);
-                    }
-                }
-            }
-        
             toastr()->success('Offline Exam added successfully.');
             return redirect()->route('admin.offline_exam');
         }else{
@@ -176,16 +163,16 @@ class Offline_examController extends Controller
         $input = $request->all();
         $data = [];
         $data['details'] = Exam::where('id',$request->id)->first();
-        $data['exam_language_list'] = ExamLanguage::where('exam_id',$request->id)->get();
-        $data['exam_location_list'] = ExamLocation::where('exam_id',$request->id)->get();
-        $data['exam_date_list'] = ExamDate::where('exam_id',$request->id)->get();
-        $data['language_list'] = Language::where('status',1)->get();
         $data['subject_list'] = Subject::where('status',1)->get();
-        $data['location_list'] = Location::where('status',1)->get();
+        $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
             ->where('is_deleted',0)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())
             ->get();
+        $data['batch_list'] = $this->activeBatches();
+        $data['selected_batch_ids'] = $data['details']
+            ? $data['details']->batches()->pluck('batches.id')->map(fn ($id) => (int) $id)->values()->all()
+            : [];
         return view('admin.offline_exam.edit',$data);
     }
 
@@ -245,9 +232,21 @@ class Offline_examController extends Controller
                 }
             }
             
+            $schedule = $this->schedulePayload($request);
+            $batchIds = $this->selectedBatchIds($request);
+            if ($redirect = $this->invalidScheduleRedirect($schedule)) {
+                return $redirect;
+            }
+            if (empty($batchIds)) {
+                toastr()->warning('Please select a batch.');
+                return back()->withInput();
+            }
+
             $insertData['exam_code'] = $request->exam_code;
-            $insertData['exam_date'] = $request->exam_date;
-            $insertData['exam_time'] = $request->exam_time;
+            $insertData['exam_date'] = $schedule['exam_date'];
+            $insertData['exam_time'] = $schedule['exam_time'];
+            $insertData['exam_end_date'] = $schedule['exam_end_date'];
+            $insertData['exam_end_time'] = $schedule['exam_end_time'];
             $insertData['location_id'] = $request->location_id;
             $insertData['name'] = $request->name;
             $insertData['question_type'] = $request->question_type;
@@ -277,6 +276,7 @@ class Offline_examController extends Controller
             $insertData['is_trending'] = ($request->is_trending)?$request->is_trending:0;
 
             $loginCheck->update($insertData);
+            $this->syncExamBatches($loginCheck, $batchIds);
             toastr()->success('Offline Exam updated successfully.');
             return redirect()->route('admin.offline_exam');
         }else{
@@ -424,7 +424,7 @@ class Offline_examController extends Controller
             
     }
 
-    public function download_question(Request $request){
+    public function download_question(Request $request, QuestionPaperPdfService $pdfService){
         $data = [];
         $data['details'] = Exam::where('id',$request->id)->first();
         $data['subject_list'] = Exam_subject::select(['exam_subjects.*','subjects.name as subject_name'])
@@ -440,6 +440,9 @@ class Offline_examController extends Controller
 
             foreach ($data['subject_list'][$key]->question_list as $k1 => $v1) {
                 $question = Question_detail::where("question_id",$v1->id)->where("language_id",1)->first();
+                if (!$question) {
+                    continue;
+                }
                 $data['subject_list'][$key]->question_list[$k1]->question_text = $question->question_text;
                 $data['subject_list'][$key]->question_list[$k1]->question_image = $question->question_image;
                 $data['subject_list'][$key]->question_list[$k1]->option1 = $question->option1;
@@ -450,10 +453,22 @@ class Offline_examController extends Controller
                 $data['subject_list'][$key]->question_list[$k1]->is_option2_image = $question->is_option2_image;
                 $data['subject_list'][$key]->question_list[$k1]->is_option3_image = $question->is_option3_image;
                 $data['subject_list'][$key]->question_list[$k1]->is_option4_image = $question->is_option4_image;
+                $pdfService->prepareLoadedQuestion($data['subject_list'][$key]->question_list[$k1]);
             }
         }
 
-        $pdf = PDF::loadView('template.exam_question_pdf', $data);
+        $logoPath = public_path('web/images/logo.png');
+        $data['pdf_logo'] = is_file($logoPath) ? str_replace('\\', '/', $logoPath) : '';
+
+        $pdf = PDF::setOptions([
+            'isRemoteEnabled' => false,
+            'isHtml5ParserEnabled' => true,
+            'isPhpEnabled' => false,
+            'dpi' => 96,
+            'chroot' => public_path(),
+            'defaultFont' => 'DejaVu Sans',
+        ])->loadView('template.exam_question_pdf', $data);
+        $pdf->setPaper('a4', 'portrait');
 
         return $pdf->stream('exam_que.pdf');
     }
@@ -547,5 +562,79 @@ class Offline_examController extends Controller
         toastr()->success('Question change successfully.');
         return redirect()->route('admin.offline_exam.question',['id'=>$exam_id]);
     }
-    
+
+    private function normalizeClock($value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        if (preg_match('/^\d{2}:\d{2}$/', $value)) {
+            return $value.':00';
+        }
+        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    private function schedulePayload(Request $request): array
+    {
+        $examDate = $request->filled('exam_date') ? $request->exam_date : null;
+        $examTime = $this->normalizeClock($request->exam_time);
+        $endDate = $request->filled('exam_end_date') ? $request->exam_end_date : null;
+        $endTime = $this->normalizeClock($request->exam_end_time);
+
+        if ($endDate && !$endTime) {
+            $endTime = '23:59:59';
+        }
+        if ($endTime && !$endDate) {
+            $endDate = $examDate;
+        }
+
+        return [
+            'exam_date' => $examDate,
+            'exam_time' => $examTime,
+            'exam_end_date' => $endDate,
+            'exam_end_time' => $endTime,
+        ];
+    }
+
+    private function invalidScheduleRedirect(array $schedule)
+    {
+        if ($schedule['exam_end_date'] && $schedule['exam_end_time'] && $schedule['exam_date'] && $schedule['exam_time']) {
+            $start = Carbon::parse($schedule['exam_date'].' '.$schedule['exam_time']);
+            $end = Carbon::parse($schedule['exam_end_date'].' '.$schedule['exam_end_time']);
+            if ($end->lte($start)) {
+                toastr()->warning('Exam end date and time must be after the exam date and time.');
+                return back()->withInput();
+            }
+        }
+
+        return null;
+    }
+
+    private function activeBatches()
+    {
+        return Batch::where('status', 1)->orderBy('name')->get(['id', 'name']);
+    }
+
+    private function selectedBatchIds(Request $request): array
+    {
+        $ids = $request->input('batches', $request->input('batch_id'));
+        if (! is_array($ids)) {
+            $ids = ($ids !== null && $ids !== '') ? [$ids] : [];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $ids))));
+    }
+
+    private function syncExamBatches(Exam $exam, array $batchIds): void
+    {
+        $exam->batches()->sync($batchIds);
+        if (Schema::hasColumn('exams', 'batch_id')) {
+            $exam->forceFill(['batch_id' => $batchIds[0] ?? null])->save();
+        }
+    }
 }

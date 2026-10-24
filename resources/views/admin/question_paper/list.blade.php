@@ -25,6 +25,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Type</th>
                     <th>No of question</th>
                     <th>Totals marks for exam</th>
                     <th>Added</th>
@@ -38,6 +39,13 @@
                 @forelse ($list as $row)
                     <tr>
                         <td>{{$row->name}}</td>
+                        <td>
+                            @if(($row->type ?? 1) == 2)
+                                {{ $row->question_source_name ? 'Question Source · '.$row->question_source_name : 'Question Source' }}
+                            @else
+                                Normal
+                            @endif
+                        </td>
                         <td>{{$row->no_of_question}}</td>
                         <td>{{$row->totals_marks_for_exam}}</td>
                         <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>
@@ -85,7 +93,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted">No records found.</td>
+                        <td colspan="9" class="text-center text-muted">No records found.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -28,6 +28,11 @@ class ChapterController extends Controller
         if ($hasClass && ($classFilter === '11' || $classFilter === '12' || $classFilter === '0')) {
             $query->where('chapters.class_level', (int) $classFilter);
         }
+        $tax = AdminListQuery::taxonomyOptions($request, ['subject']);
+        $data = array_merge($data, $tax);
+        if ($tax['subject_id']) {
+            $query->where('chapters.subject_id', $tax['subject_id']);
+        }
         AdminListQuery::applySearch($query, $data['q'], ['chapters.name', 'subjects.name']);
         $data['class_filter'] = $classFilter;
         if ($hasClass) {

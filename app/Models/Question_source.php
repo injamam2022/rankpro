@@ -12,4 +12,14 @@ class Question_source extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function questions()
+    {
+        return $this->belongsToMany(
+            Question::class,
+            'question_question_source',
+            'question_source_id',
+            'question_id'
+        );
+    }
 }

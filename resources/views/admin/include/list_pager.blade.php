@@ -4,7 +4,7 @@
             Showing {{ $list->firstItem() }}–{{ $list->lastItem() }} of {{ $list->total() }}
         </div>
         <div>
-            {{ $list->onEachSide(1)->links('pagination::bootstrap-5') }}
+            {{ $list->onEachSide(1)->links('pagination.admin-links') }}
         </div>
     </div>
 @endif

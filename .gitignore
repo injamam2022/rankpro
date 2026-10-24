@@ -43,6 +43,7 @@ php.ini
 /app-25-08-2026
 /resources-25-08-2026
 /routes-25-08-2026
+/backup
 
 # Local design prototype (not for production)
 /rankpro design/

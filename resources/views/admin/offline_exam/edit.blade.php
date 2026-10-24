@@ -30,7 +30,7 @@
                         <div class="col-sm-6">
                             <div class="row">
                                 <div class="col-sm-10">
-                                    <label class="form-label" for="exam_logo">Exam Logo (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                                    <label class="form-label" for="exam_logo">Exam Logo (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG)</label>
                                     <input class="form-control" id="exam_logo" type="file" name="exam_logo" placeholder=""  value="" />
                                 </div>
                                 <div class="col-sm-2">
@@ -43,7 +43,7 @@
                         <div class="col-sm-6">
                             <div class="row">
                                 <div class="col-sm-10">
-                                    <label class="form-label" for="landing_icon">Landing Exam Logo (Image Size: W- 367 px, H- 206 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                                    <label class="form-label" for="landing_icon">Landing Exam Logo (Image Size: W- 367 px, H- 206 px) (Type: PNG,JPG,JPEG)</label>
                                     <input class="form-control" id="landing_icon" type="file" name="landing_icon" placeholder=""  value="" />
                                 </div>
                                 <div class="col-sm-2">
@@ -54,16 +54,8 @@
                             </div>
                         </div>
                     </div>
+                    @include('admin.online_exam._schedule_batch_fields')
                     <div class="row mt-2">
-                        <div class="col-sm-3">
-                            <label class="form-label" for="exam_date">Exam Date <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_date" type="date" name="exam_date" placeholder=""  value="{{$details->exam_date}}" />
-                        </div>
-                        <div class="col-sm-3">
-                            <label class="form-label" for="exam_time">Exam Time <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_time" type="time" name="exam_time" placeholder=""  value="{{$details->exam_time}}" />
-                        </div>
-                        
                         <div class="col-sm-6" >
                             <label class="form-label" for="location_id">Location <span class="text-danger">*</span></label>
                             <select class="form-control" id="location_id" name="location_id">
@@ -72,6 +64,10 @@
                                     <option value="{{$val->id}}"  @if($details->location_id == $val->id) selected @endif>{{$val->location_name}}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="batch_id">Batch <span class="text-danger">*</span></label>
+                            @include('admin.online_exam._batch_select')
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -163,17 +159,17 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_title">OMR Title <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_title">OMR Title</label>
                             <textarea class="form-control" id="result_title" name="result_title">{{$details->result_title}}</textarea>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_description">OMR Description <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_description">OMR Description</label>
                             <textarea class="form-control" id="result_description" name="result_description">{{$details->result_description}}</textarea>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_declaration">OMR Declaration <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_declaration">OMR Declaration</label>
                             <textarea class="form-control" id="result_declaration" name="result_declaration">{{$details->result_declaration}}</textarea>
                         </div>
 
@@ -182,114 +178,6 @@
                         </div>                            
                     </div>
                     <div class="row">
-
-                        
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="language_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Language</h4>
-                                <a href="javascript:void(0);" onclick="addNewLanguage()"><img src="{{ asset('image/add-box.png') }}" alt="Add Language"></a>
-                            </div>
-
-                            @if(count($exam_language_list))
-                                @foreach($exam_language_list as $key =>$val)
-                                    <div class="row mb-3" id="language_view_{{$key}}">
-                                        <div class="col-11">
-                                            <select class="form-control" name="language_name[]" id="language_name_{{$key}}">
-                                                <option value="">Select</option>
-                                                @foreach($language_list as $value)
-                                                    <option value="{{$value->id}}" @if($value->id == $val->language_id) selected @endif>{{$value->name}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-1 d-flex align-items-center">
-                                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage({{$key}})">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="row mb-3" id="language_view_0">
-                                    <div class="col-11">
-                                        <select class="form-control" name="language_name[]" id="language_name_0">
-                                            <option value="">Select</option>
-                                            @foreach($language_list as $value)
-                                                <option value="{{$value->id}}">{{$value->name}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-1 d-flex align-items-center">
-                                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage(0)">
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="location_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Location</h4>
-                                <a href="javascript:void(0);" onclick="addNewLocation()"><img src="{{ asset('image/add-box.png') }}" alt="Add Location"></a>
-                            </div>
-                            @if(count($exam_location_list))
-                                @foreach($exam_location_list as $key =>$val)
-                                    <div class="row mb-3" id="location_view_{{$key}}">
-                                        <div class="col-11">
-                                            <select class="form-control" name="location_name[]" id="location_name_{{$key}}">
-                                                <option value="">Select</option>
-                                                @foreach($location_list as $value)
-                                                    <option value="{{$value->id}}" @if($value->id == $val->location_id) selected @endif>{{$value->location_name}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-1 d-flex align-items-center">
-                                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation({{$key}})">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="row mb-3" id="location_view_0">
-                                    <div class="col-11">
-                                        <select class="form-control" name="location_name[]" id="location_name_0">
-                                            <option value="">Select</option>
-                                            @foreach($location_list as $value)
-                                                <option value="{{$value->id}}">{{$value->location_name}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-1 d-flex align-items-center">
-                                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation(0)">
-                                    </div>
-                                </div>
-                            @endif
-                           
-                        </div>
-
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="date_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Starting Date</h4>
-                                <a href="javascript:void(0);" onclick="addNewDate()"><img src="{{ asset('image/add-box.png') }}" alt="Add Location"></a>
-                            </div>
-                            @if(count($exam_date_list))
-                                @foreach($exam_date_list as $key =>$val)
-                                    <div class="row mb-3" id="date_view_{{$key}}">
-                                        <div class="col-11">
-                                            <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" value="{{$val->date_name}}" id="date_name_{{$key}}">
-                                        </div>
-                                        <div class="col-1 d-flex align-items-center">
-                                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate({{$key}})">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="row mb-3" id="date_view_0">
-                                    <div class="col-11">
-                                        <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" value="" id="date_name_0">
-                                    </div>
-                                    <div class="col-1 d-flex align-items-center">
-                                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate(0)">
-                                    </div>
-                                </div>
-                            @endif
-                            
-                        </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="exampleFormControlInput">Is In Footer</label>
                             <div class="form-control" style="display:flex;">
@@ -420,81 +308,6 @@
             document.getElementById("subject_view_"+index).remove();
           }
 
-            let language_count = <?php echo count($exam_language_list);?>;
-
-            function addNewLanguage() {
-                const html = `
-                    <div class="row mb-3" id="language_view_${language_count}">
-                        <div class="col-11">
-                            <select class="form-control" name="language_name[]" id="language_name_${language_count}">
-                                <option value="">Select</option>
-                                @foreach($language_list as $value)
-                                    <option value="{{$value->id}}">{{$value->name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-1 d-flex align-items-center">
-                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage(${language_count})">
-                        </div>
-                    </div>
-                `;
-                document.getElementById('language_list_view').insertAdjacentHTML('beforeend', html);
-                language_count++;
-            }
-
-            function removeLanguage(index) {
-                const elem = document.getElementById(`language_view_${index}`);
-                if (elem) elem.remove();
-            }
-
-            let location_count = <?php echo count($exam_location_list);?>;
-
-            function addNewLocation() {
-                const html = `
-                    <div class="row mb-3" id="location_view_${location_count}">
-                        <div class="col-11">
-                            <select class="form-control" name="location_name[]" id="location_name_${location_count}">
-                                <option value="">Select</option>
-                                @foreach($location_list as $value)
-                                    <option value="{{$value->id}}">{{$value->location_name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-1 d-flex align-items-center">
-                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation(${location_count})">
-                        </div>
-                    </div>
-                `;
-                document.getElementById('location_list_view').insertAdjacentHTML('beforeend', html);
-                location_count++;
-            }
-
-            function removeLocation(index) {
-                const elem = document.getElementById(`location_view_${index}`);
-                if (elem) elem.remove();
-            }
-
-            let date_count = <?php echo count($exam_date_list);?>;
-
-            function addNewDate() {
-                const html = `
-                    <div class="row mb-3" id="date_view_${date_count}">
-                        <div class="col-11">
-                            <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" id="date_name_${date_count}">
-                        </div>
-                        <div class="col-1 d-flex align-items-center">
-                            <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate(${date_count})">
-                        </div>
-                    </div>
-                `;
-                document.getElementById('date_list_view').insertAdjacentHTML('beforeend', html);
-                date_count++;
-            }
-
-            function removeDate(index) {
-                const elem = document.getElementById(`date_view_${index}`);
-                if (elem) elem.remove();
-            }
     </script>
     <script type="text/javascript">
         
@@ -534,11 +347,56 @@
                 successFlag = false;
             }
 
+            data.exam_end_date = (document.getElementById('exam_end_date') || {}).value || '';
+            data.exam_end_time = (document.getElementById('exam_end_time') || {}).value || '';
+            if (data.exam_end_date || data.exam_end_time) {
+                if (data.exam_end_date) {
+                    document.getElementById('exam_end_date').classList.remove('dangerBoader');
+                } else {
+                    document.getElementById('exam_end_date').classList.add('dangerBoader');
+                    successFlag = false;
+                }
+                if (data.exam_end_time) {
+                    document.getElementById('exam_end_time').classList.remove('dangerBoader');
+                } else {
+                    document.getElementById('exam_end_time').classList.add('dangerBoader');
+                    successFlag = false;
+                }
+                if (data.exam_end_date && data.exam_end_time && data.exam_date && data.exam_time) {
+                    var startAt = new Date(data.exam_date + 'T' + data.exam_time);
+                    var endAt = new Date(data.exam_end_date + 'T' + data.exam_end_time);
+                    if (!(endAt > startAt)) {
+                        document.getElementById('exam_end_date').classList.add('dangerBoader');
+                        document.getElementById('exam_end_time').classList.add('dangerBoader');
+                        successFlag = false;
+                    }
+                }
+            } else {
+                if (document.getElementById('exam_end_date')) document.getElementById('exam_end_date').classList.remove('dangerBoader');
+                if (document.getElementById('exam_end_time')) document.getElementById('exam_end_time').classList.remove('dangerBoader');
+            }
+
             data.location_id = document.getElementById('location_id').value;
             if(data.location_id){
                 document.getElementById('location_id').classList.remove('dangerBoader');
             }else{
                 document.getElementById('location_id').classList.add('dangerBoader');
+                successFlag = false;
+            }
+
+            var batch = document.getElementById('batch_id');
+            var batchValue = '';
+            if (batch) {
+                if (batch.multiple) {
+                    batchValue = Array.prototype.filter.call(batch.options, function (opt) { return opt.selected && opt.value; }).length ? '1' : '';
+                } else {
+                    batchValue = batch.value;
+                }
+            }
+            if (batchValue) {
+                batch.classList.remove('dangerBoader');
+            } else if (batch) {
+                batch.classList.add('dangerBoader');
                 successFlag = false;
             }
 
@@ -581,30 +439,6 @@
             //     document.getElementById('description').classList.add('dangerBoader');
             //     successFlag = false;
             // }
-
-            data.result_title = document.getElementById('result_title').value;
-            if(data.result_title){
-                document.getElementById('result_title').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_title').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.result_description = document.getElementById('result_description').value;
-            if(data.result_description){
-                document.getElementById('result_description').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_description').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.result_declaration = document.getElementById('result_declaration').value;
-            if(data.result_declaration){
-                document.getElementById('result_declaration').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_declaration').classList.add('dangerBoader');
-                successFlag = false;
-            }
 
             data.price = document.getElementById('price').value;
             if(data.price){

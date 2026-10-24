@@ -27,24 +27,16 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="exam_logo">Exam Icon (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                            <label class="form-label" for="exam_logo">Exam Icon (Image Size: W- 161 px, H- 260 px) (Type: PNG,JPG,JPEG)</label>
                             <input class="form-control" id="exam_logo" type="file" name="exam_logo" placeholder=""  value="" />
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="landing_icon">Landing Exam Icon (Image Size: W- 258 px, H- 340 px) (Type: PNG,JPG,JPEG) <span class="text-danger">*</span></label>
+                            <label class="form-label" for="landing_icon">Landing Exam Icon (Image Size: W- 258 px, H- 340 px) (Type: PNG,JPG,JPEG)</label>
                             <input class="form-control" id="landing_icon" type="file" name="landing_icon" placeholder=""  value="" />
                         </div>
                     </div>
+                    @include('admin.online_exam._schedule_batch_fields')
                     <div class="row mt-2">
-                        <div class="col-sm-3">
-                            <label class="form-label" for="exam_date">Exam Date <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_date" type="date" name="exam_date" placeholder=""  value="" />
-                        </div>
-                        <div class="col-sm-3">
-                            <label class="form-label" for="exam_time">Exam Time <span class="text-danger">*</span></label>
-                            <input class="form-control" id="exam_time" type="time" name="exam_time" placeholder=""  value="" />
-                        </div>
-
                         <div class="col-sm-6" >
                             <label class="form-label" for="location_id">Location <span class="text-danger">*</span></label>
                             <select class="form-control" id="location_id" name="location_id">
@@ -53,6 +45,10 @@
                                     <option value="{{$val->id}}">{{$val->location_name}}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="batch_id">Batch <span class="text-danger">*</span></label>
+                            @include('admin.online_exam._batch_select')
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -144,81 +140,23 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_title">OMR Title <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_title">OMR Title</label>
                             <textarea class="form-control" id="result_title" name="result_title"></textarea>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_description">OMR Description <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_description">OMR Description</label>
                             <textarea class="form-control" id="result_description" name="result_description"></textarea>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_declaration">OMR Declaration <span class="text-danger">*</span></label>
+                            <label class="form-label" for="result_declaration">OMR Declaration</label>
                             <textarea class="form-control" id="result_declaration" name="result_declaration"></textarea>
                         </div>
 
                                                     
                     </div>
                     <div class="row">
-
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="language_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Language <span class="text-danger"></span></h4>
-                                <a href="javascript:void(0);" onclick="addNewLanguage()"><img src="{{ asset('image/add-box.png') }}" alt="Add Language"></a>
-                            </div>
-
-                            <div class="row mb-3" id="language_view_0">
-                                <div class="col-11">
-                                    <select class="form-control" name="language_name[]" id="language_name_0">
-                                        <option value="">Select</option>
-                                        @foreach($language_list as $value)
-                                            <option value="{{$value->id}}">{{$value->name}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-1 d-flex align-items-center">
-                                    <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage(0)">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="location_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Location <span class="text-danger"></span></h4>
-                                <a href="javascript:void(0);" onclick="addNewLocation()"><img src="{{ asset('image/add-box.png') }}" alt="Add Location"></a>
-                            </div>
-
-                            <div class="row mb-3" id="location_view_0">
-                                <div class="col-11">
-                                    <select class="form-control" name="location_name[]" id="location_name_0">
-                                        <option value="">Select</option>
-                                        @foreach($location_list as $value)
-                                            <option value="{{$value->id}}">{{$value->location_name}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-1 d-flex align-items-center">
-                                    <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation(0)">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-12 alert alert-success p-4 mt-4" id="date_list_view">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="fw-bold">Starting Date <span class="text-danger"></span></h4>
-                                <a href="javascript:void(0);" onclick="addNewDate()"><img src="{{ asset('image/add-box.png') }}" alt="Add Location"></a>
-                            </div>
-
-                            <div class="row mb-3" id="date_view_0">
-                                <div class="col-11">
-                                    <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" value="" id="date_name_0">
-                                </div>
-                                <div class="col-1 d-flex align-items-center">
-                                    <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate(0)">
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- <div class="col-sm-12 alert alert-success" id="subject_list_view" style="padding:30px;margin-top:20px;">
                             <div class="row">
@@ -400,82 +338,6 @@
             document.getElementById("subject_view_"+index).remove();
         }
 
-        let language_count = 1;
-
-        function addNewLanguage() {
-            const html = `
-                <div class="row mb-3" id="language_view_${language_count}">
-                    <div class="col-11">
-                        <select class="form-control" name="language_name[]" id="language_name_${language_count}">
-                            <option value="">Select</option>
-                            @foreach($language_list as $value)
-                                <option value="{{$value->id}}">{{$value->name}}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-1 d-flex align-items-center">
-                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLanguage(${language_count})">
-                    </div>
-                </div>
-            `;
-            document.getElementById('language_list_view').insertAdjacentHTML('beforeend', html);
-            language_count++;
-        }
-
-        function removeLanguage(index) {
-            const elem = document.getElementById(`language_view_${index}`);
-            if (elem) elem.remove();
-        }
-
-        let location_count = 1;
-
-        function addNewLocation() {
-            const html = `
-                <div class="row mb-3" id="location_view_${location_count}">
-                    <div class="col-11">
-                        <select class="form-control" name="location_name[]" id="location_name_${location_count}">
-                            <option value="">Select</option>
-                            @foreach($location_list as $value)
-                                <option value="{{$value->id}}">{{$value->location_name}}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-1 d-flex align-items-center">
-                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeLocation(${location_count})">
-                    </div>
-                </div>
-            `;
-            document.getElementById('location_list_view').insertAdjacentHTML('beforeend', html);
-            location_count++;
-        }
-
-        function removeLocation(index) {
-            const elem = document.getElementById(`location_view_${index}`);
-            if (elem) elem.remove();
-        }
-
-        let date_count = 1;
-
-        function addNewDate() {
-            const html = `
-                <div class="row mb-3" id="date_view_${date_count}">
-                    <div class="col-11">
-                        <input type="text" class="form-control" name="date_name[]" placeholder="Enter starting date" id="date_name_${date_count}">
-                    </div>
-                    <div class="col-1 d-flex align-items-center">
-                        <img src="{{ asset('image/remove-box.png') }}" alt="Remove" class="cursor-pointer" onclick="removeDate(${date_count})">
-                    </div>
-                </div>
-            `;
-            document.getElementById('date_list_view').insertAdjacentHTML('beforeend', html);
-            date_count++;
-        }
-
-        function removeDate(index) {
-            const elem = document.getElementById(`date_view_${index}`);
-            if (elem) elem.remove();
-        }
-
         function changeSubject(indd) {
             var data = {};
             data.subject_id = document.getElementById('subject_id_'+indd).value;
@@ -559,7 +421,7 @@
             }
 
             var exam_logo = document.getElementById("exam_logo");
-            var file = exam_logo.files[0];
+            var file = exam_logo && exam_logo.files ? exam_logo.files[0] : null;
             if(file){
                 if (!allowedTypes.includes(file.type) || file.size > maxSize1) {
                   document.getElementById('exam_logo').classList.add('dangerBoader');
@@ -567,23 +429,21 @@
                 }else{
                   document.getElementById('exam_logo').classList.remove('dangerBoader');
                 }
-            }else{
-                document.getElementById('exam_logo').classList.add('dangerBoader');
-                successFlag = false;
+            }else if(exam_logo){
+                exam_logo.classList.remove('dangerBoader');
             }
 
             var landing_icon = document.getElementById("landing_icon");
-            var file = landing_icon.files[0];
-            if(file){
-                if (!allowedTypes.includes(file.type) || file.size > maxSize1) {
+            var landingFile = landing_icon && landing_icon.files ? landing_icon.files[0] : null;
+            if(landingFile){
+                if (!allowedTypes.includes(landingFile.type) || landingFile.size > maxSize1) {
                   document.getElementById('landing_icon').classList.add('dangerBoader');
                   successFlag = false;
                 }else{
                   document.getElementById('landing_icon').classList.remove('dangerBoader');
                 }
-            }else{
-                document.getElementById('landing_icon').classList.add('dangerBoader');
-                successFlag = false;
+            }else if(landing_icon){
+                landing_icon.classList.remove('dangerBoader');
             }  
 
             data.exam_date = document.getElementById('exam_date').value;
@@ -609,6 +469,51 @@
                 document.getElementById('price').classList.add('dangerBoader');
                 successFlag = false;
             }
+
+            var batch = document.getElementById('batch_id');
+            var batchValue = '';
+            if (batch) {
+                if (batch.multiple) {
+                    batchValue = Array.prototype.filter.call(batch.options, function (opt) { return opt.selected && opt.value; }).length ? '1' : '';
+                } else {
+                    batchValue = batch.value;
+                }
+            }
+            if (batchValue) {
+                batch.classList.remove('dangerBoader');
+            } else if (batch) {
+                batch.classList.add('dangerBoader');
+                successFlag = false;
+            }
+
+            data.exam_end_date = (document.getElementById('exam_end_date') || {}).value || '';
+            data.exam_end_time = (document.getElementById('exam_end_time') || {}).value || '';
+            if (data.exam_end_date || data.exam_end_time) {
+                if (data.exam_end_date) {
+                    document.getElementById('exam_end_date').classList.remove('dangerBoader');
+                } else {
+                    document.getElementById('exam_end_date').classList.add('dangerBoader');
+                    successFlag = false;
+                }
+                if (data.exam_end_time) {
+                    document.getElementById('exam_end_time').classList.remove('dangerBoader');
+                } else {
+                    document.getElementById('exam_end_time').classList.add('dangerBoader');
+                    successFlag = false;
+                }
+                if (data.exam_end_date && data.exam_end_time && data.exam_date && data.exam_time) {
+                    var startAt = new Date(data.exam_date + 'T' + data.exam_time);
+                    var endAt = new Date(data.exam_end_date + 'T' + data.exam_end_time);
+                    if (!(endAt > startAt)) {
+                        document.getElementById('exam_end_date').classList.add('dangerBoader');
+                        document.getElementById('exam_end_time').classList.add('dangerBoader');
+                        successFlag = false;
+                    }
+                }
+            } else {
+                if (document.getElementById('exam_end_date')) document.getElementById('exam_end_date').classList.remove('dangerBoader');
+                if (document.getElementById('exam_end_time')) document.getElementById('exam_end_time').classList.remove('dangerBoader');
+            }
             
             // data.dis_price = document.getElementById('dis_price').value;
             // if(data.exam_code){
@@ -633,31 +538,6 @@
             //     document.getElementById('question_paper_id').classList.add('dangerBoader');
             //     successFlag = false;
             // }
-            
-            
-            data.result_title = document.getElementById('result_title').value;
-            if(data.result_title){
-                document.getElementById('result_title').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_title').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-            data.result_description = document.getElementById('result_description').value;
-            if(data.result_description){
-                document.getElementById('result_description').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_description').classList.add('dangerBoader');
-                successFlag = false;
-            }
-            
-            data.result_declaration = document.getElementById('result_declaration').value;
-            if(data.result_declaration){
-                document.getElementById('result_declaration').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('result_declaration').classList.add('dangerBoader');
-                successFlag = false;
-            }
             
             return successFlag;
         }

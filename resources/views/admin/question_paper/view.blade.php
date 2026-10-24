@@ -80,21 +80,36 @@
                     </div>
                     
                     <div class="row mt-2">
-                        <div class="col-sm-4">
-                            <label class="form-label">Difficulty</label>
+                        <div class="col-sm-6">
+                            <label class="form-label">Type</label>
                             <div class="form-control">
-                                @php
-                                    $h = (float) $details->hard_level;
-                                    $m = (float) $details->medium_level;
-                                    $e = (float) $details->easy_level;
-                                    $diffLabel = '—';
-                                    if ($h >= $m && $h >= $e && $h > 0) $diffLabel = 'Hard';
-                                    elseif ($m >= $e && $m > 0) $diffLabel = 'Medium';
-                                    elseif ($e > 0) $diffLabel = 'Easy';
-                                @endphp
-                                {{ $diffLabel }}
+                                {{ ($details->type ?? 1) == 2 ? 'Question Source' : 'Normal' }}
                             </div>
                         </div>
+                        @if(($details->type ?? 1) == 2)
+                            <div class="col-sm-6">
+                                <label class="form-label">Question source</label>
+                                <div class="form-control">
+                                    {{ $details->question_source_name ?? '—' }}
+                                </div>
+                            </div>
+                        @else
+                            <div class="col-sm-6">
+                                <label class="form-label">Difficulty</label>
+                                <div class="form-control">
+                                    @php
+                                        $h = (float) $details->hard_level;
+                                        $m = (float) $details->medium_level;
+                                        $e = (float) $details->easy_level;
+                                        $diffLabel = '—';
+                                        if ($h >= $m && $h >= $e && $h > 0) $diffLabel = 'Hard';
+                                        elseif ($m >= $e && $m > 0) $diffLabel = 'Medium';
+                                        elseif ($e > 0) $diffLabel = 'Easy';
+                                    @endphp
+                                    {{ $diffLabel }}
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <div class="row mt-2">
 

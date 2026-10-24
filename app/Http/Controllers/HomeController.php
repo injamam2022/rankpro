@@ -80,7 +80,7 @@ class HomeController extends Controller
                 ->leftJoin('states', 'states.id', '=', 'locations.state_id')
                 ->leftJoin('countries', 'locations.country_id', '=', 'countries.id')
                 ->leftJoin('cities', 'locations.city_id', '=', 'cities.id')
-                ->where('locations.status', 1)->get();
+                ->where('locations.status', 1)->where('locations.is_deleted', 0)->get();
 
         $data['test_series'] = TestSeries::with(['descriptions' => function ($query) use ($language_id) {
                                     $query->where('language', $language_id);

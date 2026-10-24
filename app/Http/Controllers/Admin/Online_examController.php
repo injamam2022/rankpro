@@ -13,6 +13,7 @@ use Carbon\Carbon;
 
 use App\Models\User;
 use App\Models\Exam;
+use App\Models\Batch;
 use App\Models\Subject;
 use App\Models\Exam_subject;
 use App\Models\Exam_question;
@@ -21,8 +22,10 @@ use App\Models\Question;
 use App\Models\Question_detail;
 use App\Models\Question_paper;
 use App\Models\Exam_user;
+use App\Models\Exam_status;
 use App\Models\Exam_proctoring_event;
 use App\Models\CustomTest;
+use Illuminate\Support\Facades\Schema;
 use DB;
 
 class Online_examController extends Controller
@@ -35,6 +38,7 @@ class Online_examController extends Controller
                 $q->whereNull('exam_code')->orWhere('exam_code', 'not like', 'CT-%');
             })
             ->whereNotIn('id', CustomTest::examIdQuery())
+            ->orderByDesc('id')
             ->get();
         return view('admin.online_exam.list',$data);
     }
@@ -42,72 +46,41 @@ class Online_examController extends Controller
 
     public function add(){
         $data = [];
-        $data['location_list'] = Location::where('status',1)->get();
+        $data['location_list'] = Location::where('status',1)->where('is_deleted', 0)->get();
         $data['subject_list'] = Subject::select(['id','name'])->where('status',1)->get();
         $data['question_paper_list'] = Question_paper::where('status',1)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())
             ->get();
+        $data['batch_list'] = $this->activeBatches();
+        $data['selected_batch_ids'] = [];
         return view('admin.online_exam.add',$data);
     }
 
     public function save(Request $request){
-        $validatedData = $request->validate([
-                            'name' => 'required'
-                        ]);
+        $request->validate([
+            'name' => 'required',
+        ]);
 
-        $input = $request->all();
-        // dd($input);
+        $schedule = $this->schedulePayload($request);
+        $batchIds = $this->selectedBatchIds($request);
+        if ($redirect = $this->scheduleOrBatchRedirect($schedule, $batchIds)) {
+            return $redirect;
+        }
+
         $loginCheck = Exam::where('exam_code',$request->exam_code)->first();
 
         if (!$loginCheck){
-            $insertData = [];
+            $insertData = $this->examFieldPayload($request, $schedule);
+            $insertData['type'] = 1;
             if ($image = $request->file('exam_logo')){
-                $insertData['exam_logo'] = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                $destinationPath = public_path('/uploads/exam/thumbnail');
-                $img = Image::make($image->getRealPath());
-                $img->resize(100, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                })->save($destinationPath.'/'.$insertData['exam_logo']);
-
-
-                $destinationPath = public_path('/uploads/exam');
-                $image->move($destinationPath, $insertData['exam_logo']);
+                $insertData['exam_logo'] = $this->storeExamImage($image);
             }
             if ($image = $request->file('landing_icon')){
-                $insertData['landing_icon'] = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                $destinationPath = public_path('/uploads/exam/thumbnail');
-                $img = Image::make($image->getRealPath());
-                $img->resize(100, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                })->save($destinationPath.'/'.$insertData['landing_icon']);
-
-
-                $destinationPath = public_path('/uploads/exam');
-                $image->move($destinationPath, $insertData['landing_icon']);
+                $insertData['landing_icon'] = $this->storeExamImage($image);
             }
-            $insertData['type'] = 1;
-            $insertData['exam_code'] = $request->exam_code;
-            $insertData['name'] = $request->name;
-            $insertData['exam_date'] = $request->exam_date;
-            $insertData['exam_time'] = $request->exam_time;
-            $insertData['price'] = $request->price;
-            $insertData['dis_price'] = $request->dis_price;
-            $insertData['tax'] = $request->tax;
-            $insertData['question_paper_id'] = $request->question_paper_id;
-            $insertData['exam_instructions'] = $request->exam_instructions;
-            $insertData['description'] = $request->description;
-            $insertData['result_title'] = $request->result_title;
-            $insertData['result_description'] = $request->result_description;
-            $insertData['result_declaration'] = $request->result_declaration;
-            $insertData['status'] = $request->status;
-            $insertData['is_in_footer'] = ($request->is_in_footer)?$request->is_in_footer:0;
-            $insertData['is_trending'] = ($request->is_trending)?$request->is_trending:0;
-            $insertData['is_proctored'] = ($request->is_proctored)?1:0;
-            $insertData['proctoring_max_violations'] = $request->proctoring_max_violations ? (int)$request->proctoring_max_violations : 5;
 
             $exam = Exam::create($insertData);
+            $this->syncExamBatches($exam, $batchIds);
 
             toastr()->success('Online Exam added successfully.');
             return redirect()->route('admin.online_exam');
@@ -118,91 +91,45 @@ class Online_examController extends Controller
     }
 
     public function edit(Request $request){
-        $input = $request->all();
         $data = [];
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['details'] = Exam::where('id',$request->id)->first();
         $data['question_paper_list'] = Question_paper::where('status',1)
             ->whereNotIn('id', CustomTest::questionPaperIdQuery())
             ->get();
+        $data['batch_list'] = $this->activeBatches();
+        $data['selected_batch_ids'] = $data['details']
+            ? $data['details']->batches()->pluck('batches.id')->map(fn ($id) => (int) $id)->values()->all()
+            : [];
         return view('admin.online_exam.edit',$data);
     }
 
     public function update(Request $request){
-        $validatedData = $request->validate([
-                            'name' => 'required'
-                        ]);
+        $request->validate([
+            'name' => 'required',
+        ]);
 
-        $input = $request->all();
+        $schedule = $this->schedulePayload($request);
+        $batchIds = $this->selectedBatchIds($request);
+        if ($redirect = $this->scheduleOrBatchRedirect($schedule, $batchIds)) {
+            return $redirect;
+        }
+
         $loginCheck = Exam::where('id',$request->id)->first();
 
         if ($loginCheck){
-            $insertData = [];
-            if ($image = $request->file('profile_icon')){
-                $saveData['profile_icon'] = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                $destinationPath = public_path('/uploads/exam/thumbnail');
-                $img = Image::make($image->getRealPath());
-                $img->resize(100, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                })->save($destinationPath.'/'.$saveData['profile_icon']);
-
-
-                $destinationPath = public_path('/uploads/exam');
-                $image->move($destinationPath, $saveData['profile_icon']);
-
-                if($loginCheck->profile_icon){
-                    if (file_exists(public_path('uploads/exam/'.$loginCheck->profile_icon))) {
-                        unlink(public_path('uploads/exam/'.$loginCheck->profile_icon));
-                    }
-                    if (file_exists(public_path('uploads/exam/thumbnail/'.$loginCheck->profile_icon))) {
-                        unlink(public_path('uploads/exam/thumbnail/'.$loginCheck->profile_icon));
-                    }
-                }
+            $insertData = $this->examFieldPayload($request, $schedule);
+            if ($image = $request->file('exam_logo')){
+                $insertData['exam_logo'] = $this->storeExamImage($image);
+                $this->deleteExamImage($loginCheck->exam_logo);
             }
             if ($image = $request->file('landing_icon')){
-                $saveData['landing_icon'] = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-
-                $destinationPath = public_path('/uploads/exam/thumbnail');
-                $img = Image::make($image->getRealPath());
-                $img->resize(100, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                })->save($destinationPath.'/'.$saveData['landing_icon']);
-
-
-                $destinationPath = public_path('/uploads/exam');
-                $image->move($destinationPath, $saveData['landing_icon']);
-
-                if($loginCheck->landing_icon){
-                    if (file_exists(public_path('uploads/exam/'.$loginCheck->landing_icon))) {
-                        unlink(public_path('uploads/exam/'.$loginCheck->landing_icon));
-                    }
-                    if (file_exists(public_path('uploads/exam/thumbnail/'.$loginCheck->landing_icon))) {
-                        unlink(public_path('uploads/exam/thumbnail/'.$loginCheck->landing_icon));
-                    }
-                }
+                $insertData['landing_icon'] = $this->storeExamImage($image);
+                $this->deleteExamImage($loginCheck->landing_icon);
             }
-            
-            $insertData['exam_code'] = $request->exam_code;
-            $insertData['name'] = $request->name;
-            $insertData['exam_date'] = $request->exam_date;
-            $insertData['exam_time'] = $request->exam_time;
-            $insertData['price'] = $request->price;
-            $insertData['dis_price'] = $request->dis_price;
-            $insertData['tax'] = $request->tax;
-            $insertData['question_paper_id'] = $request->question_paper_id;
-            $insertData['exam_instructions'] = $request->exam_instructions;
-            $insertData['description'] = $request->description;
-            $insertData['result_title'] = $request->result_title;
-            $insertData['result_description'] = $request->result_description;
-            $insertData['result_declaration'] = $request->result_declaration;
-            $insertData['is_in_footer'] = ($request->is_in_footer)?$request->is_in_footer:0;
-            $insertData['is_trending'] = ($request->is_trending)?$request->is_trending:0;
-            $insertData['is_proctored'] = ($request->is_proctored)?1:0;
-            $insertData['proctoring_max_violations'] = $request->proctoring_max_violations ? (int)$request->proctoring_max_violations : 5;
-            $insertData['status'] = $request->status;
 
             $loginCheck->update($insertData);
+            $this->syncExamBatches($loginCheck, $batchIds);
             toastr()->success('Online Exam updated successfully.');
             return redirect()->route('admin.online_exam');
         }else{
@@ -238,6 +165,27 @@ class Online_examController extends Controller
 
         toastr()->success('Online Exam status change successfully.');
         return redirect()->route('admin.online_exam');
+    }
+
+    public function view(Request $request)
+    {
+        $exam = Exam::where('id', $request->id)->where('is_deleted', 0)->firstOrFail();
+        $list = Exam_status::select([
+                'exam_statuses.type',
+                'exam_statuses.created_at',
+                'users.first_name',
+                'users.last_name',
+                'users.email_id',
+            ])
+            ->leftJoin('users', 'exam_statuses.user_id', '=', 'users.id')
+            ->where('exam_statuses.exam_id', $exam->id)
+            ->orderByDesc('exam_statuses.id')
+            ->get();
+
+        return view('admin.online_exam.view', [
+            'details' => $exam,
+            'list' => $list,
+        ]);
     }
 
     public function end(Request $request){
@@ -381,5 +329,145 @@ class Online_examController extends Controller
 
         return response()->file($full, ['Content-Type' => 'image/jpeg']);
     }
-    
+
+    private function activeBatches()
+    {
+        return Batch::where('status', 1)->orderBy('name')->get(['id', 'name']);
+    }
+
+    private function selectedBatchIds(Request $request): array
+    {
+        $ids = $request->input('batches', $request->input('batch_id'));
+        if (!is_array($ids)) {
+            $ids = ($ids !== null && $ids !== '') ? [$ids] : [];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $ids))));
+    }
+
+    private function normalizeClock($value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        if (preg_match('/^\d{2}:\d{2}$/', $value)) {
+            return $value.':00';
+        }
+        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $value)) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    private function schedulePayload(Request $request): array
+    {
+        $examDate = $request->filled('exam_date') ? $request->exam_date : null;
+        $examTime = $this->normalizeClock($request->exam_time);
+        $endDate = $request->filled('exam_end_date') ? $request->exam_end_date : null;
+        $endTime = $this->normalizeClock($request->exam_end_time);
+
+        if ($endDate && !$endTime) {
+            $endTime = '23:59:59';
+        }
+        if ($endTime && !$endDate) {
+            $endDate = $examDate;
+        }
+
+        return [
+            'exam_date' => $examDate,
+            'exam_time' => $examTime,
+            'exam_end_date' => $endDate,
+            'exam_end_time' => $endTime,
+        ];
+    }
+
+    private function scheduleOrBatchRedirect(array $schedule, array $batchIds)
+    {
+        if (empty($schedule['exam_date']) || empty($schedule['exam_time'])) {
+            toastr()->warning('Exam date and time are required.');
+            return back()->withInput();
+        }
+
+        if ($schedule['exam_end_date'] && $schedule['exam_end_time']) {
+            $start = Carbon::parse($schedule['exam_date'].' '.$schedule['exam_time']);
+            $end = Carbon::parse($schedule['exam_end_date'].' '.$schedule['exam_end_time']);
+            if ($end->lte($start)) {
+                toastr()->warning('Exam end date and time must be after the exam date and time.');
+                return back()->withInput();
+            }
+        }
+
+        if (empty($batchIds)) {
+            toastr()->warning('Please select a batch.');
+            return back()->withInput();
+        }
+
+        return null;
+    }
+
+    private function examFieldPayload(Request $request, array $schedule): array
+    {
+        return array_merge($schedule, [
+            'exam_code' => $request->exam_code,
+            'name' => $request->name,
+            'price' => $request->price,
+            'dis_price' => $request->dis_price,
+            'tax' => $request->tax,
+            'question_paper_id' => $request->question_paper_id,
+            'exam_instructions' => $request->exam_instructions,
+            'description' => $request->description,
+            'result_title' => $request->result_title,
+            'result_description' => $request->result_description,
+            'result_declaration' => $request->result_declaration,
+            'status' => $request->status,
+            'is_in_footer' => $request->is_in_footer ? $request->is_in_footer : 0,
+            'is_trending' => $request->is_trending ? $request->is_trending : 0,
+            'is_proctored' => $request->is_proctored ? 1 : 0,
+            'proctoring_max_violations' => $request->proctoring_max_violations ? (int) $request->proctoring_max_violations : 5,
+        ]);
+    }
+
+    private function syncExamBatches(Exam $exam, array $batchIds): void
+    {
+        $exam->batches()->sync($batchIds);
+        if (Schema::hasColumn('exams', 'batch_id')) {
+            $exam->forceFill(['batch_id' => $batchIds[0] ?? null])->save();
+        }
+    }
+
+    private function storeExamImage($image): string
+    {
+        $filename = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
+        $thumbnailPath = public_path('/uploads/exam/thumbnail');
+        if (!is_dir($thumbnailPath)) {
+            mkdir($thumbnailPath, 0755, true);
+        }
+        $img = Image::make($image->getRealPath());
+        $img->resize(100, null, function ($constraint) {
+            $constraint->aspectRatio();
+        })->save($thumbnailPath.'/'.$filename);
+
+        $destinationPath = public_path('/uploads/exam');
+        if (!is_dir($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+        $image->move($destinationPath, $filename);
+
+        return $filename;
+    }
+
+    private function deleteExamImage($filename): void
+    {
+        if (!$filename) {
+            return;
+        }
+        foreach (['uploads/exam/', 'uploads/exam/thumbnail/'] as $dir) {
+            $path = public_path($dir.$filename);
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+    }
 }

@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('ranker_feedbacks')) {
+            return;
+        }
+
         Schema::create('ranker_feedbacks', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('ranker_id');

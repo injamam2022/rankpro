@@ -51,6 +51,12 @@
                         <td>
                             <div class="rp-actions">
                                 @include('admin.include.icon_btn', [
+                                    'href' => route('admin.question_source.view', ['id' => $row->id]),
+                                    'variant' => 'preview',
+                                    'icon' => 'visibility',
+                                    'title' => 'View tagged questions',
+                                ])
+                                @include('admin.include.icon_btn', [
                                     'href' => route('admin.question_source.edit', ['id' => $row->id]),
                                     'variant' => 'edit',
                                     'icon' => 'edit',

@@ -36,6 +36,7 @@ class ExamAssignmentTest extends TestCase
         });
         (require database_path('migrations/2026_09_27_000001_create_exam_assignments.php'))->up();
         (require database_path('migrations/2026_09_28_000002_add_status_to_batches_table.php'))->up();
+        (require database_path('migrations/2026_10_17_000001_add_description_and_start_date_to_batches_table.php'))->up();
         DB::table('exams')->insert([['id' => 1], ['id' => 2], ['id' => 3]]);
     }
 

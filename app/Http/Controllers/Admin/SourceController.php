@@ -22,6 +22,11 @@ class SourceController extends Controller
         $data['per_page'] = AdminListQuery::perPage($request);
         $query = Source::select(['sources.*','subjects.name as subject_name'])
                             ->leftJoin('subjects', 'sources.subject_id', '=', 'subjects.id');
+        $tax = AdminListQuery::taxonomyOptions($request, ['subject']);
+        $data = array_merge($data, $tax);
+        if ($tax['subject_id']) {
+            $query->where('sources.subject_id', $tax['subject_id']);
+        }
         AdminListQuery::applySearch($query, $data['q'], ['sources.name', 'subjects.name']);
         $data['list'] = $query->orderByDesc('sources.id')->paginate($data['per_page'])->withQueryString();
         return view('admin.source.list',$data);

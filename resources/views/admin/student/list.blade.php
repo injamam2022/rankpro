@@ -59,8 +59,8 @@
                                 </a>
                             </td>
                             <td>
+                                <a href="{{route('admin.student.exam_list',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1" title="Exam analytics"><i class="material-icons">visibility</i></a>
                                 <a href="{{route('admin.student.edit',['id'=>$row->id])}}" class="btn btn-primary btn-sm mr-1"><i class="material-icons">edit</i></a>
-                                {{-- <a href="{{route('admin.student.delete',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1"><i class="material-icons">visibility</i></a> --}}
                                 <a href="{{route('admin.student.delete',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1"><i class="material-icons">close</i></a>
                             </td>
                         </tr>

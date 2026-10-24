@@ -451,6 +451,19 @@
                     </div>
                 </div>
 
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="bm-label" for="batch-start-date">Start date</label>
+                        <input id="batch-start-date" class="bm-input" type="date" name="start_date"
+                               value="{{ old('start_date', optional($batch)->start_date) }}">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="bm-label" for="batch-description">Description</label>
+                        <input id="batch-description" class="bm-input" name="description" maxlength="2000"
+                               value="{{ old('description', optional($batch)->description) }}" placeholder="Optional notes for this batch">
+                    </div>
+                </div>
+
                 <button type="button" class="bm-collapse-head" id="students-collapse-toggle" aria-expanded="false" aria-controls="students-collapse-body">
                     <span class="bm-collapse-title">
                         Students
@@ -517,13 +530,16 @@
                 <ul class="bm-batch-list" id="batches-side-list">
                     @foreach($batches as $item)
                         <li class="bm-batch-item bm-side-item @if(optional($batch)->id == $item->id) active @endif"
-                            data-search="{{ strtolower($item->name.' '.( ((int)$item->status === 1) ? 'active' : 'inactive')) }}">
+                            data-search="{{ strtolower($item->name.' '.($item->description ?? '').' '.( ((int)$item->status === 1) ? 'active' : 'inactive')) }}">
                             <a href="{{ route('admin.batches', ['batch_id' => $item->id]) }}">
                                 <span>
                                     <span class="bm-batch-name">{{ $item->name }}</span>
                                     <span class="bm-batch-meta">
                                         <span class="bm-pill">{{ $item->students_count }} students</span>
                                         <span class="bm-pill">{{ $item->exams_count }} tests</span>
+                                        @if(!empty($item->start_date))
+                                            <span class="bm-pill bm-pill-muted">{{ \Illuminate\Support\Carbon::parse($item->start_date)->format('j M Y') }}</span>
+                                        @endif
                                         @if((int) $item->status === 1)
                                             <span class="bm-pill bm-pill-muted">Active</span>
                                         @else

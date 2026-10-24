@@ -38,7 +38,7 @@
                 @if(count($list)>0)
                     @foreach ($list as $key=>$row)
                         <tr>
-                            <td>{!!$row->question_text!!}</td>
+                            <td>{!! question_html_media($row->question_text) !!}</td>
                             <td>{{$row->answer}}</td>
                             <td>{{$row->solution_video_link}}</td>
                             <td>

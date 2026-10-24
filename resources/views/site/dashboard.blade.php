@@ -45,23 +45,6 @@
             ? ($user->father_full_name ?? '')
             : trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
 
-        $modeLabel = 'Overall';
-        if ((string) $exam_type === '1') {
-            $modeLabel = 'Online';
-        } elseif ((string) $exam_type === '2') {
-            $modeLabel = 'Offline';
-        }
-
-        $subjectLabel = 'Combined';
-        if (!empty($subject_id)) {
-            foreach ($subject_list as $s) {
-                if ((string) $s->id === (string) $subject_id) {
-                    $subjectLabel = $s->name;
-                    break;
-                }
-            }
-        }
-
         $dashQs = [
             'subject_id' => $subject_id,
             'exam_type' => $exam_type,
@@ -98,35 +81,6 @@
               <div class="dashboardRight">
                     <div class="dashboardRightBody">
                         <div class="rp-stack">
-
-                            <div class="rp-card rp-filter">
-                                <div class="rp-filter__group">
-                                    <span class="rp-filter__label"><i class="fas fa-sliders-h"></i> Mode:</span>
-                                    <div class="rp-seg">
-                                        <a href="{{ route('dashboard', array_merge($dashQs, ['exam_type' => ''])) }}"
-                                           class="{{ $exam_type === '' || $exam_type === null || (string)$exam_type === '3' ? 'is-active-pink' : '' }}">Overall</a>
-                                        <a href="{{ route('dashboard', array_merge($dashQs, ['exam_type' => 1])) }}"
-                                           class="{{ (string)$exam_type === '1' ? 'is-active-pink' : '' }}">Online</a>
-                                        <a href="{{ route('dashboard', array_merge($dashQs, ['exam_type' => 2])) }}"
-                                           class="{{ (string)$exam_type === '2' ? 'is-active-pink' : '' }}">Offline</a>
-                                    </div>
-                              </div>
-                                <div class="rp-filter__group">
-                                    <span class="rp-filter__label">Subject:</span>
-                                    <div class="rp-seg">
-                                        <a href="{{ route('dashboard', array_merge($dashQs, ['subject_id' => ''])) }}"
-                                           class="{{ $subject_id === '' || $subject_id === null ? 'is-active-blue' : '' }}">Combined</a>
-                                        @foreach($subject_list as $subj)
-                                            <a href="{{ route('dashboard', array_merge($dashQs, ['subject_id' => $subj->id])) }}"
-                                               class="{{ (string)$subject_id === (string)$subj->id ? 'is-active-blue' : '' }}">{{ $subj->name }}</a>
-                                        @endforeach
-                                    </div>
-                                    <div class="rp-filter__active">
-                                        Active: <strong>{{ $modeLabel }}</strong> &middot; <em>{{ $subjectLabel }}</em>
-                                    </div>
-                                </div>
-                                        </div>
-                                
                             <div class="rp-card">
                                 <div class="rp-lb__head">
                                     <h2 class="rp-lb__title">

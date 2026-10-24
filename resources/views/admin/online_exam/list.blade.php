@@ -22,7 +22,8 @@
         <table id="datatablesSimple">
             <thead>
                 <tr>
-                    <th>Logo</th>
+                    <th data-hidden="true" data-type="number" data-sort="desc" data-searchable="false">ID</th>
+                    <th data-sortable="false" data-searchable="false">Logo</th>
                     <th>Exam Code</th>
                     <th>Name</th>
                     <!-- <th>No of question</th> -->
@@ -31,14 +32,21 @@
                     <!-- <th>Result</th> -->
                     <th>Status</th>
                     <!-- <th>Question</th> -->
-                    <th>Action</th>
+                    <th data-sortable="false" data-searchable="false">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @if(count($list)>0)
                     @foreach ($list as $key=>$row)
                         <tr>
-                            <td><img src="{{asset('')}}uploads/exam/thumbnail/{{$row->exam_logo}}" style="width: 50px;"></td>
+                            <td class="d-none">{{ $row->id }}</td>
+                            <td>
+                                @if($row->exam_logo)
+                                    <img src="{{asset('')}}uploads/exam/thumbnail/{{$row->exam_logo}}" style="width: 50px;">
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td>{{$row->exam_code}}</td>
                             <td>{{$row->name}}</td>
                             <!-- <td>{{$row->no_of_question}}</td> -->
@@ -75,8 +83,7 @@
                                     <a href="{{route('admin.online_exam.end',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you realy want to end exam?');"><i class="material-icons">stop</i></a>
                                 @endif
                                 <a href="{{route('admin.online_exam.proctoring',['id'=>$row->id])}}" class="btn btn-warning btn-sm mr-1" title="Proctoring log"><i class="material-icons">videocam</i></a>
-                                
-                                    <a href="{{route('admin.offline_exam.view',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1"><i class="material-icons">visibility</i></a>
+                                <a href="{{route('admin.online_exam.view',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1" title="Accept / Reject log"><i class="material-icons">visibility</i></a>
                             </td>
                         </tr>
                     @endforeach

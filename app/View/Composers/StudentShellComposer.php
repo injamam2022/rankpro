@@ -6,6 +6,7 @@ use App\Models\Batch;
 use App\Models\Exam;
 use App\Models\Exam_user;
 use App\Models\Setting;
+use App\Models\Subject;
 use App\Services\StudentNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -70,6 +71,16 @@ class StudentShellComposer
         if (! array_key_exists('notif_unread', $data) && Schema::hasTable('student_notifications')) {
             $view->with('notif_unread', app(StudentNotificationService::class)->unreadCount($userId));
             $view->with('notif_preview', app(StudentNotificationService::class)->latest($userId, null, 8));
+        }
+
+        if (! array_key_exists('scope_subjects', $data)) {
+            $view->with(
+                'scope_subjects',
+                Subject::query()
+                    ->where('status', 1)
+                    ->orderBy('id')
+                    ->get(['id', 'name'])
+            );
         }
     }
 }

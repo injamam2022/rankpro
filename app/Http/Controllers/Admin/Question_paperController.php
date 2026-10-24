@@ -22,9 +22,11 @@ use App\Models\Chapter;
 use App\Models\Topic;
 use App\Models\Sub_topic;
 use App\Models\Exam;
+use App\Models\Question_source;
 use App\Services\QuestionPaperMixService;
 use App\Services\QuestionPaperPdfService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Support\AdminListQuery;
 
 class Question_paperController extends Controller
@@ -34,13 +36,18 @@ class Question_paperController extends Controller
         $data['q'] = AdminListQuery::q($request);
         $data['per_page'] = AdminListQuery::perPage($request);
 
-        $query = Question_paper::where('is_deleted',0)
-            ->whereNotIn('id', CustomTest::questionPaperIdQuery());
-        if(session()->get('admmin_is_super') == 'T'){
-            $query->where('administrator_id',session()->get('adminAuth'));
+        $query = Question_paper::query()
+            ->where('question_papers.is_deleted', 0)
+            ->whereNotIn('question_papers.id', CustomTest::questionPaperIdQuery());
+        if (Schema::hasColumn('question_papers', 'question_source_id')) {
+            $query->select('question_papers.*', 'question_sources.name as question_source_name')
+                ->leftJoin('question_sources', 'question_sources.id', '=', 'question_papers.question_source_id');
         }
-        AdminListQuery::applySearch($query, $data['q'], ['name']);
-        $data['list'] = $query->orderByDesc('id')->paginate($data['per_page'])->withQueryString();
+        if(session()->get('admmin_is_super') == 'T'){
+            $query->where('question_papers.administrator_id',session()->get('adminAuth'));
+        }
+        AdminListQuery::applySearch($query, $data['q'], ['question_papers.name']);
+        $data['list'] = $query->orderByDesc('question_papers.id')->paginate($data['per_page'])->withQueryString();
 
         return view('admin.question_paper.list',$data);
     }
@@ -53,6 +60,7 @@ class Question_paperController extends Controller
         }else{
             $data['subject_list'] = Subject::where('status',1)->get();
         }
+        $data['question_source_list'] = Question_source::where('status', 1)->orderBy('name')->get();
 
         return view('admin.question_paper.add',$data);
     }
@@ -60,128 +68,78 @@ class Question_paperController extends Controller
     public function mixPreview(Request $request, QuestionPaperMixService $mix)
     {
         $total = (int) $request->input('no_of_question', 0);
+        $type = $this->paperType($request);
+        $sourceId = $this->sourceId($request);
+        $lockSubjectId = $this->lockedSubjectId();
+        $sections = $this->sectionRows($request, false);
+
+        if ($type === 2) {
+            if (! $sourceId) {
+                return response()->json([
+                    'total' => $total,
+                    'pool_total' => 0,
+                    'difficulty' => [
+                        'hard' => ['percent' => 0, 'count' => 0, 'pool' => 0],
+                        'medium' => ['percent' => 0, 'count' => 0, 'pool' => 0],
+                        'easy' => ['percent' => 0, 'count' => 0, 'pool' => 0],
+                    ],
+                    'types' => [],
+                    'warnings' => ['Select a question source.'],
+                ]);
+            }
+
+            return response()->json($mix->preview(
+                $total,
+                ['hard' => 0, 'medium' => 0, 'easy' => 0],
+                $sections,
+                [],
+                $lockSubjectId,
+                $sourceId,
+                true
+            ));
+        }
+
         $choice = $this->difficultyChoice($request);
         $percents = [
             'hard' => $choice['hard'],
             'medium' => $choice['medium'],
             'easy' => $choice['easy'],
         ];
-        $lockSubjectId = session()->get('admmin_is_super') == 'T'
-            ? (int) session()->get('admmin_subject_id')
-            : null;
 
-        $preview = $mix->preview($total, $percents, $this->sectionRows($request, false), [], $lockSubjectId);
+        $preview = $mix->preview($total, $percents, $sections, [], $lockSubjectId);
 
         return response()->json($preview);
     }
 
     public function save(Request $request, QuestionPaperMixService $mix){
+        $type = $this->paperType($request);
         $request->validate([
             'name' => 'required',
             'no_of_question' => 'required|integer|min:1',
             'marks_per_question' => 'required|numeric|min:0',
             'time_per_question' => 'required|numeric|min:0',
-            'difficulty' => 'required|in:hard,medium,easy',
+            'type' => 'nullable|in:1,2',
+            'question_source_id' => 'required_if:type,2|nullable|integer|exists:question_sources,id',
+            'difficulty' => $type === 2 ? 'nullable|in:hard,medium,easy' : 'required|in:hard,medium,easy',
         ]);
 
-        $choice = $this->difficultyChoice($request);
-        $hard = $choice['hard'];
-        $medium = $choice['medium'];
-        $easy = $choice['easy'];
-        if ($choice['choice'] === '') {
-            toastr()->error('Select Hard, Medium or Easy.');
-            return back()->withInput();
-        }
-
-        $sections = $this->sectionRows($request);
-        if ($sections === []) {
-            toastr()->error('Add at least one subject with a question count.');
-            return back()->withInput();
-        }
-
-        $sectionSum = 0;
-        foreach ($sections as $row) {
-            $sectionSum += (int) $row['total_no_of_question'];
-        }
-        $totalWanted = (int) $request->no_of_question;
-        if ($sectionSum !== $totalWanted) {
-            toastr()->error('Subject question counts ('.$sectionSum.') must equal Total No. Of Questions ('.$totalWanted.').');
-            return back()->withInput();
-        }
-
-        $lockSubjectId = session()->get('admmin_is_super') == 'T'
-            ? (int) session()->get('admmin_subject_id')
-            : null;
-
-        $percents = ['hard' => $hard, 'medium' => $medium, 'easy' => $easy];
-        $pick = $mix->pick($sections, $percents, [], $lockSubjectId);
-
-        if ($pick['shortfall'] > 0) {
-            $msg = 'Not enough matching questions in the pool (short by '.$pick['shortfall'].').';
-            if (! empty($pick['notes'])) {
-                $msg .= ' '.implode(' ', $pick['notes']);
-            }
-            toastr()->error($msg);
-            return back()->withInput();
+        $prepared = $this->preparePaperPick($request, $mix, $type, true);
+        if ($prepared instanceof \Illuminate\Http\RedirectResponse) {
+            return $prepared;
         }
 
         try {
-            DB::transaction(function () use ($request, $sections, $pick, $hard, $medium, $easy) {
-                $insertData = [];
-                $insertData['name'] = $request->name;
-                $insertData['no_of_question'] = $request->no_of_question;
-                $insertData['totals_marks_for_exam'] = $request->totals_marks_for_exam;
-                $insertData['total_time_for_exam'] = $request->total_time_for_exam;
-                $insertData['marks_per_question'] = $request->marks_per_question;
-                $insertData['time_per_question'] = $request->time_per_question;
-                $insertData['negative_marking_applicable'] = $request->negative_marking_applicable;
-                $insertData['negative_marking_per_question'] = $request->negative_marking_per_question;
-                $insertData['hard_level'] = $hard;
-                $insertData['medium_level'] = $medium;
-                $insertData['easy_level'] = $easy;
-                $insertData['status'] = ($request->status) ? $request->status : 0;
-
-                if (session()->get('admmin_is_super') == 'T') {
-                    $insertData['administrator_id'] = session()->get('adminAuth');
-                }
-
-                $exam = Question_paper::create($insertData);
-
-                $subjectRows = [];
-                foreach ($sections as $key => $row) {
-                    $payload = [
-                        'subject_id' => $row['subject_id'],
-                        'question_paper_id' => $exam->id,
-                        'total_no_of_question' => $row['total_no_of_question'],
-                        'status' => 1,
-                    ];
-                    if (! empty($row['chapter_id'])) {
-                        $payload['chapter_id'] = $row['chapter_id'];
-                    }
-                    if (! empty($row['topic_id'])) {
-                        $payload['topic_id'] = $row['topic_id'];
-                    }
-                    if (! empty($row['sub_topic_id'])) {
-                        $payload['sub_topic_id'] = $row['sub_topic_id'];
-                    }
-                    $subjectRows[$key] = Question_paper_subject::create($payload);
-                }
-
-                $questionNumber = 1;
-                foreach ($pick['picked'] as $item) {
-                    $sectionKey = $item['section_key'];
-                    if (! isset($subjectRows[$sectionKey])) {
-                        continue;
-                    }
-                    Question_paper_question::create([
-                        'question_number' => $questionNumber,
-                        'question_id' => $item['question_id'],
-                        'question_paper_subject_id' => $subjectRows[$sectionKey]->id,
-                        'question_paper_id' => $exam->id,
-                        'status' => 1,
-                    ]);
-                    $questionNumber++;
-                }
+            DB::transaction(function () use ($request, $prepared) {
+                $exam = Question_paper::create($this->paperPayload(
+                    $request,
+                    $prepared['hard'],
+                    $prepared['medium'],
+                    $prepared['easy'],
+                    $prepared['type'],
+                    $prepared['source_id'],
+                    true
+                ));
+                $this->storePickedQuestions($exam->id, $prepared['sections'], $prepared['pick']);
             });
         } catch (\Throwable $e) {
             toastr()->error('Could not save the question bank. Please try again.');
@@ -232,6 +190,7 @@ class Question_paperController extends Controller
             $data['subject_list'] = Subject::where('status',1)->get();
         }
 
+        $data['question_source_list'] = Question_source::where('status', 1)->orderBy('name')->get();
         $data['details'] = Question_paper::where('id',$request->id)->where('is_deleted',0)->first();
         if (!$data['details']) {
             toastr()->error('Question bank not found.');
@@ -260,13 +219,16 @@ class Question_paperController extends Controller
     }
 
     public function update(Request $request, QuestionPaperMixService $mix){
+        $type = $this->paperType($request);
         $request->validate([
             'name' => 'required',
             'id' => 'required',
             'no_of_question' => 'required|integer|min:1',
             'marks_per_question' => 'required|numeric|min:0',
             'time_per_question' => 'required|numeric|min:0',
-            'difficulty' => 'required|in:hard,medium,easy',
+            'type' => 'nullable|in:1,2',
+            'question_source_id' => 'required_if:type,2|nullable|integer|exists:question_sources,id',
+            'difficulty' => $type === 2 ? 'nullable|in:hard,medium,easy' : 'required|in:hard,medium,easy',
         ]);
 
         $paper = Question_paper::where('id', $request->id)->where('is_deleted', 0)->first();
@@ -275,108 +237,29 @@ class Question_paperController extends Controller
             return redirect()->route('admin.question_paper');
         }
 
-        $choice = $this->difficultyChoice($request);
-        $hard = $choice['hard'];
-        $medium = $choice['medium'];
-        $easy = $choice['easy'];
-        if ($choice['choice'] === '') {
-            toastr()->error('Select Hard, Medium or Easy.');
-            return back()->withInput();
-        }
-
         $rebuild = $request->boolean('regenerate_questions');
-        $sections = $this->sectionRows($request);
-        $totalWanted = (int) $request->no_of_question;
-
-        if ($rebuild) {
-            if ($sections === []) {
-                toastr()->error('Add at least one subject with a question count before rebuilding.');
-                return back()->withInput();
-            }
-            $sectionSum = 0;
-            foreach ($sections as $row) {
-                $sectionSum += (int) $row['total_no_of_question'];
-            }
-            if ($sectionSum !== $totalWanted) {
-                toastr()->error('Subject question counts ('.$sectionSum.') must equal Total No. Of Questions ('.$totalWanted.').');
-                return back()->withInput();
-            }
-        }
-
-        $pick = ['picked' => [], 'shortfall' => 0, 'notes' => []];
-        $lockSubjectId = session()->get('admmin_is_super') == 'T'
-            ? (int) session()->get('admmin_subject_id')
-            : null;
-        if ($rebuild) {
-            $pick = $mix->pick($sections, ['hard' => $hard, 'medium' => $medium, 'easy' => $easy], [], $lockSubjectId);
-            if ($pick['shortfall'] > 0) {
-                $msg = 'Not enough matching questions in the pool (short by '.$pick['shortfall'].').';
-                if (! empty($pick['notes'])) {
-                    $msg .= ' '.implode(' ', $pick['notes']);
-                }
-                toastr()->error($msg);
-                return back()->withInput();
-            }
+        $prepared = $this->preparePaperPick($request, $mix, $type, $rebuild);
+        if ($prepared instanceof \Illuminate\Http\RedirectResponse) {
+            return $prepared;
         }
 
         try {
-            DB::transaction(function () use ($request, $paper, $sections, $pick, $hard, $medium, $easy, $rebuild) {
-                $paper->update([
-                    'name' => $request->name,
-                    'no_of_question' => $request->no_of_question,
-                    'totals_marks_for_exam' => $request->totals_marks_for_exam,
-                    'total_time_for_exam' => $request->total_time_for_exam,
-                    'marks_per_question' => $request->marks_per_question,
-                    'time_per_question' => $request->time_per_question,
-                    'negative_marking_applicable' => $request->negative_marking_applicable,
-                    'negative_marking_per_question' => $request->negative_marking_per_question,
-                    'hard_level' => $hard,
-                    'medium_level' => $medium,
-                    'easy_level' => $easy,
-                    'status' => $request->status ? $request->status : 0,
-                ]);
+            DB::transaction(function () use ($request, $paper, $prepared, $rebuild) {
+                $paper->update($this->paperPayload(
+                    $request,
+                    $prepared['hard'],
+                    $prepared['medium'],
+                    $prepared['easy'],
+                    $prepared['type'],
+                    $prepared['source_id']
+                ));
 
                 Question_paper_question_type::where('question_paper_id', $paper->id)->delete();
 
                 if ($rebuild) {
                     Question_paper_question::where('question_paper_id', $paper->id)->delete();
                     Question_paper_subject::where('question_paper_id', $paper->id)->delete();
-
-                    $subjectRows = [];
-                    foreach ($sections as $key => $row) {
-                        $payload = [
-                            'subject_id' => $row['subject_id'],
-                            'question_paper_id' => $paper->id,
-                            'total_no_of_question' => $row['total_no_of_question'],
-                            'status' => 1,
-                        ];
-                        if (! empty($row['chapter_id'])) {
-                            $payload['chapter_id'] = $row['chapter_id'];
-                        }
-                        if (! empty($row['topic_id'])) {
-                            $payload['topic_id'] = $row['topic_id'];
-                        }
-                        if (! empty($row['sub_topic_id'])) {
-                            $payload['sub_topic_id'] = $row['sub_topic_id'];
-                        }
-                        $subjectRows[$key] = Question_paper_subject::create($payload);
-                    }
-
-                    $questionNumber = 1;
-                    foreach ($pick['picked'] as $item) {
-                        $sectionKey = $item['section_key'];
-                        if (! isset($subjectRows[$sectionKey])) {
-                            continue;
-                        }
-                        Question_paper_question::create([
-                            'question_number' => $questionNumber,
-                            'question_id' => $item['question_id'],
-                            'question_paper_subject_id' => $subjectRows[$sectionKey]->id,
-                            'question_paper_id' => $paper->id,
-                            'status' => 1,
-                        ]);
-                        $questionNumber++;
-                    }
+                    $this->storePickedQuestions($paper->id, $prepared['sections'], $prepared['pick']);
                 }
             });
         } catch (\Throwable $e) {
@@ -496,6 +379,9 @@ class Question_paperController extends Controller
         if ($subjectId) {
             $query->where('questions.subject_id', $subjectId);
         }
+        if ((int) ($paper->type ?? 1) === 2 && ! empty($paper->question_source_id)) {
+            Question::constrainBySource($query, (int) $paper->question_source_id);
+        }
         if (session()->get('admmin_is_super') == 'T') {
             $query->where('questions.subject_id', session()->get('admmin_subject_id'));
         }
@@ -570,13 +456,30 @@ class Question_paperController extends Controller
             return redirect()->route('admin.question_paper.question', ['id' => $question_paper_id]);
         }
 
+        $paper = Question_paper::where('id', $question_paper_id)->where('is_deleted', 0)->first();
         $question_paper_question = Question_paper_question::where('id', $question_paper_question_id)
             ->where('question_paper_id', $question_paper_id)
             ->first();
 
-        if (!$question_paper_question) {
+        if (!$paper || !$question_paper_question) {
             toastr()->error('Question slot not found.');
             return redirect()->route('admin.question_paper');
+        }
+
+        $replacement = Question::where('id', $question_id)
+            ->where('status', 1)
+            ->where(function ($q) {
+                $q->where('is_deleted', 0)->orWhereNull('is_deleted');
+            })
+            ->first();
+        if (!$replacement) {
+            toastr()->error('Selected question is not available.');
+            return redirect()->route('admin.question_paper.question', ['id' => $question_paper_id]);
+        }
+        if ((int) ($paper->type ?? 1) === 2 && ! empty($paper->question_source_id)
+            && ! $replacement->belongsToQuestionSource((int) $paper->question_source_id)) {
+            toastr()->error('That question does not belong to this question source.');
+            return redirect()->route('admin.question_paper.question', ['id' => $question_paper_id]);
         }
 
         $question_paper_question->update(['question_id' => $question_id]);
@@ -589,7 +492,18 @@ class Question_paperController extends Controller
         $input = $request->all();
         $data = [];
         $data['subject_list'] = Subject::where('status',1)->get();
-        $data['details'] = Question_paper::where('id',$request->id)->first();
+        if (Schema::hasColumn('question_papers', 'question_source_id')) {
+            $data['details'] = Question_paper::select(['question_papers.*', 'question_sources.name as question_source_name'])
+                ->leftJoin('question_sources', 'question_papers.question_source_id', '=', 'question_sources.id')
+                ->where('question_papers.id', $request->id)
+                ->first();
+        } else {
+            $data['details'] = Question_paper::where('id', $request->id)->first();
+        }
+        if (!$data['details']) {
+            toastr()->error('Question bank not found.');
+            return redirect()->route('admin.question_paper');
+        }
         $data['question_paper_subject'] = Question_paper_subject::select(['question_paper_subjects.*','subjects.name as subject_name','chapters.name as chapter_name','topics.name as topic_name','sub_topics.name as sub_topic_name'])
                 ->leftJoin('subjects', 'question_paper_subjects.subject_id', '=', 'subjects.id')
                 ->leftJoin('chapters', 'question_paper_subjects.chapter_id', '=', 'chapters.id')
@@ -604,6 +518,174 @@ class Question_paperController extends Controller
 
         // dd($data['question_paper_subject']);
         return view('admin.question_paper.view',$data);
+    }
+
+    private function paperType(Request $request): int
+    {
+        $type = (int) $request->input('type', 1);
+
+        return in_array($type, [1, 2], true) ? $type : 1;
+    }
+
+    private function sourceId(Request $request): ?int
+    {
+        $id = (int) $request->input('question_source_id', 0);
+
+        return $id > 0 ? $id : null;
+    }
+
+    private function lockedSubjectId(): ?int
+    {
+        return session()->get('admmin_is_super') == 'T'
+            ? (int) session()->get('admmin_subject_id')
+            : null;
+    }
+
+    private function sectionSumMatches(array $sections, int $totalWanted): bool
+    {
+        $sum = 0;
+        foreach ($sections as $row) {
+            $sum += (int) $row['total_no_of_question'];
+        }
+
+        return $sum === $totalWanted;
+    }
+
+    /**
+     * @return array{type:int,source_id:?int,hard:float,medium:float,easy:float,sections:array,pick:array}| \Illuminate\Http\RedirectResponse
+     */
+    private function preparePaperPick(Request $request, QuestionPaperMixService $mix, int $type, bool $mustPick)
+    {
+        $choice = $this->difficultyChoice($request);
+        $hard = $type === 2 ? 0 : $choice['hard'];
+        $medium = $type === 2 ? 0 : $choice['medium'];
+        $easy = $type === 2 ? 0 : $choice['easy'];
+        if ($type === 1 && $choice['choice'] === '') {
+            toastr()->error('Select Hard, Medium or Easy.');
+            return back()->withInput();
+        }
+
+        $sourceId = $this->sourceId($request);
+        if ($type === 2 && ! $sourceId) {
+            toastr()->error('Select a question source.');
+            return back()->withInput();
+        }
+
+        $sections = $this->sectionRows($request);
+        $totalWanted = (int) $request->no_of_question;
+        $pick = ['picked' => [], 'shortfall' => 0, 'notes' => [], 'auto_sections' => []];
+
+        if ($mustPick) {
+            if ($sections === []) {
+                toastr()->error('Add at least one subject with a question count.');
+                return back()->withInput();
+            }
+            if (! $this->sectionSumMatches($sections, $totalWanted)) {
+                $sectionSum = 0;
+                foreach ($sections as $row) {
+                    $sectionSum += (int) $row['total_no_of_question'];
+                }
+                toastr()->error('Subject question counts ('.$sectionSum.') must equal Total No. Of Questions ('.$totalWanted.').');
+                return back()->withInput();
+            }
+
+            if ($type === 2) {
+                $pick = $mix->pickFromSource($sections, (int) $sourceId, $totalWanted, $this->lockedSubjectId());
+            } else {
+                $pick = $mix->pick($sections, ['hard' => $hard, 'medium' => $medium, 'easy' => $easy], [], $this->lockedSubjectId());
+            }
+
+            if ($pick['shortfall'] > 0) {
+                $msg = 'Not enough matching questions in the pool (short by '.$pick['shortfall'].').';
+                if (! empty($pick['notes'])) {
+                    $msg .= ' '.implode(' ', $pick['notes']);
+                }
+                toastr()->error($msg);
+                return back()->withInput();
+            }
+        }
+
+        return [
+            'type' => $type,
+            'source_id' => $sourceId,
+            'hard' => $hard,
+            'medium' => $medium,
+            'easy' => $easy,
+            'sections' => $sections,
+            'pick' => $pick,
+        ];
+    }
+
+    private function paperPayload(Request $request, $hard, $medium, $easy, int $type, ?int $sourceId, bool $creating = false): array
+    {
+        $data = [
+            'name' => $request->name,
+            'no_of_question' => $request->no_of_question,
+            'totals_marks_for_exam' => $request->totals_marks_for_exam,
+            'total_time_for_exam' => $request->total_time_for_exam,
+            'marks_per_question' => $request->marks_per_question,
+            'time_per_question' => $request->time_per_question,
+            'negative_marking_applicable' => $request->negative_marking_applicable,
+            'negative_marking_per_question' => $request->negative_marking_per_question,
+            'hard_level' => $hard,
+            'medium_level' => $medium,
+            'easy_level' => $easy,
+            'type' => $type,
+            'question_source_id' => $type === 2 ? $sourceId : null,
+            'status' => $request->status ? $request->status : 0,
+        ];
+
+        if ($creating && session()->get('admmin_is_super') == 'T') {
+            $data['administrator_id'] = session()->get('adminAuth');
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param  array<int|string,array<string,mixed>>  $sections
+     * @param  array{picked: array<int,array{question_id:int,section_key:int|string}>}  $pick
+     */
+    private function storePickedQuestions(int $paperId, array $sections, array $pick): void
+    {
+        $subjectRows = [];
+        foreach ($sections as $key => $row) {
+            if (empty($row['subject_id'])) {
+                continue;
+            }
+            $payload = [
+                'subject_id' => $row['subject_id'],
+                'question_paper_id' => $paperId,
+                'total_no_of_question' => $row['total_no_of_question'],
+                'status' => 1,
+            ];
+            if (! empty($row['chapter_id'])) {
+                $payload['chapter_id'] = $row['chapter_id'];
+            }
+            if (! empty($row['topic_id'])) {
+                $payload['topic_id'] = $row['topic_id'];
+            }
+            if (! empty($row['sub_topic_id'])) {
+                $payload['sub_topic_id'] = $row['sub_topic_id'];
+            }
+            $subjectRows[$key] = Question_paper_subject::create($payload);
+        }
+
+        $questionNumber = 1;
+        foreach ($pick['picked'] ?? [] as $item) {
+            $sectionKey = $item['section_key'];
+            if (! isset($subjectRows[$sectionKey])) {
+                continue;
+            }
+            Question_paper_question::create([
+                'question_number' => $questionNumber,
+                'question_id' => $item['question_id'],
+                'question_paper_subject_id' => $subjectRows[$sectionKey]->id,
+                'question_paper_id' => $paperId,
+                'status' => 1,
+            ]);
+            $questionNumber++;
+        }
     }
 
     /**

@@ -12,6 +12,7 @@
     }
 
     $menuExamId = $exam_id ?? request('exam_id');
+    $scopeQ = \App\Support\StudentScope::query();
 
     $onExamInsightPages = request()->is('exam-answers-analytics*')
         || request()->is('exam-strength*')
@@ -115,20 +116,20 @@
     </div>
     <ul class="dashboardMenu dashboardMenuMain dashboardMenuPL list-unstyled mb-0">
         <li class="{{ request()->is('dashboard') || request()->is('dashboard/*') ? 'active' : '' }}">
-            <a href="{{ route('dashboard') }}"><img src="{{ asset('') }}web/images/d_layout_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Dashboard</span></a>
+            <a href="{{ route('dashboard', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_layout_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Dashboard</span></a>
         </li>
 
         <li class="{{ request()->is('notice') || request()->is('notice/*') ? 'active' : '' }}">
-            <a href="{{ route('notice') }}"><img src="{{ asset('') }}web/images/d_notice_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Notices</span></a>
+            <a href="{{ route('notice', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_notice_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Notices</span><span class="rp-menu-badge">Updates</span></a>
         </li>
 
         <li class="{{ request()->is('custom-test') || request()->is('custom-test/*') ? 'active' : '' }}">
-            <a href="{{ route('custom_test') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Custom Test</span></a>
+            <a href="{{ route('custom_test', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Custom Test</span></a>
         </li>
 
         <li class="menuHasSub {{ ($examSubOpen || request()->is('exam-given') || request()->is('exam-given/*')) ? 'active' : '' }} {{ $examSubOpen ? 'open' : '' }}">
             <div class="menuItemRow">
-                <a href="{{ route('exam_given') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Exams Given</span></a>
+                <a href="{{ route('exam_given', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Exams Given</span></a>
                 @if($showExamSub)
                     <button type="button" class="menuCollapseBtn" aria-label="Toggle Exams Given submenu">
                         <i class="fas fa-chevron-down"></i>
@@ -138,26 +139,23 @@
             @if($showExamSub)
                 <ul class="dashboardMenu dashboardMenuPL dashboardMenuSub list-unstyled mb-0 {{ $examSubOpen ? 'is-open' : '' }}">
                     <li class="{{ request()->is('exam-answers-analytics*') ? 'active' : '' }}">
-                        <a href="{{ route('exam_answers_analytics', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
+                        <a href="{{ route('exam_answers_analytics', array_merge($scopeQ, ['exam_id' => $menuExamId])) }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
                     </li>
-                    <li class="{{ request()->is('exam-strength*') ? 'active' : '' }}">
-                        <a href="{{ route('exam_strength', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
-                    </li>
-                    <li class="{{ request()->is('exam-weakness*') ? 'active' : '' }}">
-                        <a href="{{ route('exam_weakness', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
+                    <li class="{{ request()->is('exam-strength*') || request()->is('exam-weakness*') ? 'active' : '' }}">
+                        <a href="{{ route('exam_strength', array_merge($scopeQ, ['exam_id' => $menuExamId])) }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength &amp; Weakness</span></a>
                     </li>
                     <li class="{{ request()->is('exam-progress-report*') ? 'active' : '' }}">
-                        <a href="{{ route('exam_progress_report', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
+                        <a href="{{ route('exam_progress_report', array_merge($scopeQ, ['exam_id' => $menuExamId])) }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
                     </li>
                     <li class="{{ request()->is('exam-personal-coach*') ? 'active' : '' }}">
-                        <a href="{{ route('exam_personal_coach', ['exam_id' => $menuExamId]) }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
+                        <a href="{{ route('exam_personal_coach', array_merge($scopeQ, ['exam_id' => $menuExamId])) }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
                     </li>
                 </ul>
             @endif
         </li>
 
         <li class="{{ request()->is('upcoming-exam') || request()->is('upcoming-exam/*') ? 'active' : '' }}">
-            <a href="{{ route('upcoming_exam') }}"><img src="{{ asset('') }}web/images/d_upcoming_ex_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Give Exam</span></a>
+            <a href="{{ route('upcoming_exam', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_upcoming_ex_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Give Exam</span></a>
         </li>
 
         <li class="menuHasSub {{ $insightsOpen ? 'active open' : '' }}">
@@ -169,25 +167,22 @@
             </div>
             <ul class="dashboardMenu dashboardMenuPL dashboardMenuSub list-unstyled mb-0 {{ $insightsOpen ? 'is-open' : '' }}">
                 <li class="{{ request()->is('answers-analytics*') ? 'active' : '' }}">
-                    <a href="{{ route('answers_analytics') }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
+                    <a href="{{ route('answers_analytics', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_ans_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Answers Analytics</span></a>
                 </li>
-                <li class="{{ request()->is('strength*') ? 'active' : '' }}">
-                    <a href="{{ route('strength') }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength</span></a>
-                </li>
-                <li class="{{ request()->is('weakness*') ? 'active' : '' }}">
-                    <a href="{{ route('weakness') }}"><img src="{{ asset('') }}web/images/d_weakness_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Weakness</span></a>
+                <li class="{{ request()->is('strength*') || request()->is('weakness*') ? 'active' : '' }}">
+                    <a href="{{ route('strength', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_strength_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Strength &amp; Weakness</span></a>
                 </li>
                 <li class="{{ request()->is('progress-report*') ? 'active' : '' }}">
-                    <a href="{{ route('progress_report') }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
+                    <a href="{{ route('progress_report', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_progress_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Progress Report</span></a>
                 </li>
                 <li class="{{ request()->is('personal-coach*') ? 'active' : '' }}">
-                    <a href="{{ route('personal_coach') }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
+                    <a href="{{ route('personal_coach', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_user_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Personal Coach</span></a>
                 </li>
             </ul>
         </li>
 
-        <li class="{{ request()->is('common_confusion') || request()->is('common_confusion/*') ? 'active' : '' }}">
-            <a href="{{ route('common_confusion') }}"><img src="{{ asset('') }}web/images/d_conf_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Mistake Monitor</span></a>
+        <li class="{{ request()->is('common_confusion') || request()->is('common_confusion/*') || request()->is('mistake-monitor-input*') ? 'active' : '' }}">
+            <a href="{{ route('common_confusion', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_conf_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Mistake Monitor</span></a>
         </li>
 
         @if(config('rankpro.student_modules.rankpro_ai'))
@@ -198,7 +193,7 @@
 
         @if(config('rankpro.student_modules.air'))
         <li class="{{ request()->is('air') || request()->is('air/*') ? 'active' : '' }}">
-            <a href="{{ route('air') }}"><img src="{{ asset('') }}web/images/d_air_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>AIR</span></a>
+            <a href="{{ route('air', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_air_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>AIR</span></a>
         </li>
         @endif
 

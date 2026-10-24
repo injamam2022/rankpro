@@ -107,6 +107,39 @@
         }
         .ct-next:disabled { background: #d0d5dd; cursor: not-allowed; }
         .ct-next-meta { text-align: center; font-size: .78rem; color: #667085; margin-top: .4rem; }
+        .ct-search {
+            display: flex; align-items: center; gap: .55rem;
+            border: 1px solid #eaecf0; background: #fff; border-radius: .9rem;
+            padding: .55rem .85rem; margin-bottom: .9rem;
+        }
+        .ct-search i { color: #98a2b3; font-size: .85rem; }
+        .ct-search input {
+            flex: 1; border: 0; outline: 0; background: transparent;
+            font-size: .875rem; color: #101828; min-width: 0;
+        }
+        .ct-search input::placeholder { color: #98a2b3; }
+        .ct-search button {
+            border: 0; background: #1f1b4d; color: #fff; border-radius: .6rem;
+            padding: .35rem .75rem; font-size: .78rem; font-weight: 600; cursor: pointer;
+        }
+        .ct-search__clear { color: #667085; font-size: .78rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+        .ct-search__clear:hover { color: #101828; }
+        .nt-pager {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eef2f7;
+        }
+        .nt-pager__meta { font-size: 11px; color: #64748b; font-weight: 600; }
+        .nt-pager__btns { display: flex; flex-wrap: wrap; gap: 4px; }
+        .nt-page-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            border: 1px solid #e2e8f0; background: #fff; color: #334155;
+            border-radius: 8px; min-width: 34px; height: 32px; padding: 0 8px;
+            font-size: 12px; font-weight: 700; text-decoration: none !important; cursor: pointer;
+        }
+        a.nt-page-btn:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+        .nt-page-btn.is-on { background: #0f172a; border-color: #0f172a; color: #fff; }
+        .nt-page-btn.is-disabled { opacity: .45; cursor: default; }
+        .nt-pager__gap { padding: 6px 4px; color: #94a3b8; }
         @media (min-width: 992px) {
             .ct-footer { left: 280px; }
         }
@@ -143,12 +176,27 @@
                             <div class="ct-alert ct-alert-ok">{{ session('success') }}</div>
                         @endif
 
+                        @php
+                            $ctScope = array_filter(['subject_id' => $subject_id ?? null]);
+                        @endphp
                         <div class="ct-tabs">
-                            <a class="ct-tab {{ $tab === 'create' ? 'active' : '' }}" href="{{ route('custom_test', ['tab' => 'create']) }}">Create New</a>
-                            <a class="ct-tab {{ $tab === 'attempted' ? 'active' : '' }}" href="{{ route('custom_test', ['tab' => 'attempted']) }}">Attempted tests</a>
+                            <a class="ct-tab {{ $tab === 'create' ? 'active' : '' }}" href="{{ route('custom_test', array_merge($ctScope, ['tab' => 'create'])) }}">Create New</a>
+                            <a class="ct-tab {{ $tab === 'attempted' ? 'active' : '' }}" href="{{ route('custom_test', array_merge($ctScope, ['tab' => 'attempted'])) }}">Attempted tests</a>
                         </div>
 
                         @if($tab === 'attempted')
+                            <form class="ct-search" method="get" action="{{ route('custom_test') }}">
+                                <input type="hidden" name="tab" value="attempted">
+                                @if(!empty($subject_id))
+                                    <input type="hidden" name="subject_id" value="{{ $subject_id }}">
+                                @endif
+                                <i class="fas fa-search" aria-hidden="true"></i>
+                                <input type="search" name="q" value="{{ $search ?? '' }}" placeholder="Search attempted tests" autocomplete="off">
+                                @if(!empty($search))
+                                    <a class="ct-search__clear" href="{{ route('custom_test', array_merge($ctScope, ['tab' => 'attempted'])) }}">Clear</a>
+                                @endif
+                                <button type="submit">Search</button>
+                            </form>
                             <div class="ct-attempt-list">
                                 @forelse($attempted as $item)
                                     @php
@@ -163,9 +211,18 @@
                                         <span class="ct-attempt-date">{{ $item->created_at->format('d M Y') }}</span>
                                     </a>
                                 @empty
-                                    <div class="ct-empty">No custom tests yet. Create one from the Create New tab.</div>
+                                    <div class="ct-empty">
+                                        @if(!empty($search))
+                                            No tests match “{{ $search }}”.
+                                        @elseif(!empty($subject_id))
+                                            No custom tests for this subject yet. Create one from the Create New tab.
+                                        @else
+                                            No custom tests yet. Create one from the Create New tab.
+                                        @endif
+                                    </div>
                                 @endforelse
                             </div>
+                            @include('site.include.notices_pager', ['paginator' => $attempted])
                         @else
                             <div class="ct-step-row">
                                 <div class="ct-step-label">

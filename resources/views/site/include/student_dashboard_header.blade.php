@@ -125,6 +125,35 @@
         </div>
     </div>
 </header>
+@php
+    $hideScopeFilter = request()->is('online-exam*', 'start-online-exam*', 'start-offline-exam*', 'start-exam*', 'profile*', 'report-problem*')
+        || request()->routeIs('start_online_exam', 'start_exam', 'online_exam', 'profile', 'report_problem');
+    $hideScopeMode = request()->is('custom-test*') || request()->routeIs('custom_test*');
+@endphp
+@unless($hideScopeFilter)
+<div id="rpScopeFilterSlot" class="rp-scope-filter-slot">
+    @include('site.include.scope_filter_bar', ['hideScopeMode' => $hideScopeMode])
+</div>
+<script>
+(function () {
+    function placeRpScopeFilter() {
+        var slot = document.getElementById('rpScopeFilterSlot');
+        if (!slot) return;
+        var bar = slot.querySelector('.rp-filter');
+        var body = document.querySelector('.dashboardRightBody');
+        if (bar && body) {
+            body.insertBefore(bar, body.firstChild);
+        }
+        slot.remove();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', placeRpScopeFilter);
+    } else {
+        placeRpScopeFilter();
+    }
+})();
+</script>
+@endunless
 <script>
 (function () {
     if (window.__rpNeetTimerStarted) return;

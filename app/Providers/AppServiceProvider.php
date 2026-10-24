@@ -29,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             [
                 'site.include.student_left_menu',
                 'site.include.student_dashboard_header',
+                'site.include.scope_filter_bar',
             ],
             StudentShellComposer::class
         );

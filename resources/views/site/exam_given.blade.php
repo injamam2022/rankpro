@@ -87,7 +87,8 @@
                                             <span>Search</span>
                                         </button>
 
-                                        <div class="eg-filters" role="tablist" aria-label="Exam mode filter">
+                                        {{-- Hidden: global Mode header covers this. Remove `hidden` to restore. --}}
+                                        <div class="eg-filters" role="tablist" aria-label="Exam mode filter" hidden>
                                             <a class="eg-filter is-all {{ $filterType === '' ? 'is-active' : '' }}"
                                                href="{{ route('exam_given', $baseQuery) }}">All</a>
                                             <a class="eg-filter is-online {{ $filterType === '1' ? 'is-active' : '' }}"

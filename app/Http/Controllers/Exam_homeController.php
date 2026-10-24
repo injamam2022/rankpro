@@ -23,6 +23,9 @@ use App\Models\Offline_exam_question;
 use App\Models\Question_paper_question;
 use App\Models\Mistake_input;
 use App\Models\Question_type;
+use App\Support\AnswersAnalyticsStats;
+use App\Support\StrengthWeaknessStats;
+use App\Support\ProgressReportStats;
 
 use DB;
 
@@ -157,27 +160,29 @@ class Exam_homeController extends Controller
         $data['user'] = Auth::user();
         $data['exam_type'] = $request->exam_type;
         $data['subject_id'] = $request->subject_id;
+        $data['difficulty'] = $request->input('difficulty', '');
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
+        $examType = AnswersAnalyticsStats::normalizeExamType($data['exam_type']);
 
         
-        $data['easy_toper_list'] = $this->getToperResultList(1,$data['exam_type'],$data['subject_id']);
-        $data['avg_easy_toper_list'] = $this->getAvgResultList(1,$data['exam_type'],$data['subject_id']);
-        $data['my_easy_toper_list'] = $this->getYourResultList(1,$data['exam_type'],$data['subject_id']);
+        $data['easy_toper_list'] = $this->getToperResultList(1,$examType,$data['subject_id']);
+        $data['avg_easy_toper_list'] = $this->getAvgResultList(1,$examType,$data['subject_id']);
+        $data['my_easy_toper_list'] = $this->getYourResultList(1,$examType,$data['subject_id']);
 
         
-        $data['medium_toper_list'] = $this->getToperResultList(2,$data['exam_type'],$data['subject_id']);
-        $data['avg_medium_toper_list'] = $this->getAvgResultList(2,$data['exam_type'],$data['subject_id']);
-        $data['my_medium_toper_list'] = $this->getYourResultList(2,$data['exam_type'],$data['subject_id']);
+        $data['medium_toper_list'] = $this->getToperResultList(2,$examType,$data['subject_id']);
+        $data['avg_medium_toper_list'] = $this->getAvgResultList(2,$examType,$data['subject_id']);
+        $data['my_medium_toper_list'] = $this->getYourResultList(2,$examType,$data['subject_id']);
 
         
-        $data['hard_toper_list'] = $this->getToperResultList(3,$data['exam_type'],$data['subject_id']);
-        $data['avg_hard_toper_list'] = $this->getAvgResultList(3,$data['exam_type'],$data['subject_id']);
-        $data['my_hard_toper_list'] = $this->getYourResultList(3,$data['exam_type'],$data['subject_id']);
+        $data['hard_toper_list'] = $this->getToperResultList(3,$examType,$data['subject_id']);
+        $data['avg_hard_toper_list'] = $this->getAvgResultList(3,$examType,$data['subject_id']);
+        $data['my_hard_toper_list'] = $this->getYourResultList(3,$examType,$data['subject_id']);
 
-        $data['topper_data'] = $this->getToperResultList(null,$data['exam_type'],$data['subject_id']);
-        $data['average_data'] = $this->getAvgResultList(null,$data['exam_type'],$data['subject_id']);
-        $data['you_data'] = $this->getYourResultList(null,$data['exam_type'],$data['subject_id']);
+        $data['topper_data'] = $this->getToperResultList(null,$examType,$data['subject_id']);
+        $data['average_data'] = $this->getAvgResultList(null,$examType,$data['subject_id']);
+        $data['you_data'] = $this->getYourResultList(null,$examType,$data['subject_id']);
 
         $data['hard_topper_vs_average_you'] = $this->getToperResultList(null,$data['exam_type'],$data['subject_id']);
         $data['avg_topper_vs_average_you'] = $this->getAvgResultList(null,$data['exam_type'],$data['subject_id']);
@@ -215,6 +220,7 @@ class Exam_homeController extends Controller
 
         $data['analytics_exam_list'] = $this->getAnalyticsExamList();
         $data['exam_id'] = null;
+        $data['aa_diagnostics'] = AnswersAnalyticsStats::diagnostics($examType, $data['subject_id'], null, $data['difficulty']);
 
         return view('site.answers_analytics',$data);
     }
@@ -241,82 +247,77 @@ class Exam_homeController extends Controller
         $data['subject_id'] = $request->subject_id;
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
-        $subject_id = $request->subject_id;
-        $exam_type = $request->exam_type;
-        $data['chapter_list'] = Exam_result::select([
-                                        DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) as chapter_id'),
-                                        DB::raw('SUM(exam_results.result) as total_result')
-                                    ])
-                                    ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->where('exam_results.result', '>=',1)
-                                    ->where('exam_results.user_id', Auth::id())
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->whereRaw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) IS NOT NULL')
-                                    ->where('exams.is_deleted',0)
-                                    ->groupBy(DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id)'))
-                                    ->orderByDesc('total_result')
-                                    ->get();
-
-        foreach($data['chapter_list'] as $key => $value){
-            $chapter_detail = Chapter::where('id',$value->chapter_id)->first();
-            $data['chapter_list'][$key]->chapter_name = ($chapter_detail)?$chapter_detail->name:'';
-        }
-        $total_count = Exam_result::where('exam_results.user_id', Auth::id())->count();
-        
-        if($total_count){
-            $data['silly_percentage'] = $this->progressReportAnswerType(1,3,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['wrong_percentage'] = $this->progressReportAnswerType(1,2,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['irrelevant_percentage'] = $this->progressReportAnswerType(1,4,$data['exam_type'],$data['subject_id'],$total_count);
-        }else{
-            $data['silly_percentage'] = 0;
-            $data['wrong_percentage'] = 0;
-            $data['irrelevant_percentage'] = 0;
-        }
-        
-        $data['easy_details'] = $this->progressReportQuestionLevel(1,1,$data['exam_type'],$data['subject_id']);
-        $data['medium_details'] = $this->progressReportQuestionLevel(1,2,$data['exam_type'],$data['subject_id']);
-        $data['hard_details'] = $this->progressReportQuestionLevel(1,3,$data['exam_type'],$data['subject_id']);
-
-        $data['question_type'] = Question_type::select(['id','name'])->where('status',1)->get();
-
-        foreach($data['question_type'] as $key => $value){
-            $data['question_type'][$key]->data = Exam_result::select([
-                                        DB::raw('count(*) as total_question'),
-                                        DB::raw('COUNT(CASE WHEN (exam_results.result != 0 AND exam_results.result != -1) THEN 1 END) as right_answer'),
-                                        DB::raw('COUNT(CASE WHEN (exam_results.result = 0 AND exam_results.answer = 0) THEN 1 END) as skip_answer'),
-                                        DB::raw('COUNT(CASE WHEN ((exam_results.result = 0 OR exam_results.result = -1) AND exam_results.answer != 0) THEN 1 END) as wrong_answer'),
-                                        DB::raw('SUM(result) as total_mark'),
-                                        DB::raw('COALESCE(exams.totals_marks_for_exam, question_papers.totals_marks_for_exam) as totals_marks_for_exam')
-                                    ])
-                                    ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('question_papers', 'question_papers.id', '=', 'question_paper_questions.question_paper_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->where('exam_results.user_id', Auth::id())
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->where('exams.is_deleted',0)
-                                    ->whereRaw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id) = ?', [$value->id])
-                                    ->groupBy(DB::raw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id)'))
-                                    ->first();
-        }
-        // dd($data['question_type']);
         $data['analytics_exam_list'] = $this->getAnalyticsExamList();
         $data['exam_id'] = null;
+        $data['sw'] = StrengthWeaknessStats::dashboard(
+            AnswersAnalyticsStats::normalizeExamType($data['exam_type']),
+            $data['subject_id'],
+            null
+        );
         return view('site.strength',$data);
+    }
+
+    public function strength_drilldown(Request $request)
+    {
+        return response()->json(StrengthWeaknessStats::drilldown(
+            (int) $request->sub_topic_id,
+            $request->exam_type,
+            $request->subject_id,
+            $request->exam_id,
+            (string) $request->input('kind', 'strength'),
+            max(1, (int) $request->input('mcq_page', 1))
+        ));
+    }
+
+    public function strength_list(Request $request)
+    {
+        $kind = $request->input('kind', 'strengths');
+        if (!in_array($kind, ['strengths', 'weaknesses', 'mistakes'], true)) {
+            $kind = 'strengths';
+        }
+        $page = max(1, (int) $request->input('page', 1));
+        $payload = StrengthWeaknessStats::listPage(
+            $kind,
+            $page,
+            $request->exam_type,
+            $request->subject_id,
+            $request->exam_id,
+            $request->input('mistake_subject')
+        );
+
+        if ($kind === 'mistakes') {
+            return response()->json([
+                'html' => view('site.include.strength_weakness_mistakes', [
+                    'mistakes' => $payload['mistakes'],
+                ])->render(),
+                'pager_html' => view('site.include.strength_weakness_pager', [
+                    'pager' => $payload['pager'],
+                    'kind' => 'mistakes',
+                ])->render(),
+            ]);
+        }
+
+        return response()->json([
+            'html' => view('site.include.strength_weakness_units', [
+                'units' => $payload['units'],
+                'kind' => $payload['kind'],
+            ])->render(),
+            'pager_html' => view('site.include.strength_weakness_pager', [
+                'pager' => $payload['pager'],
+                'kind' => $kind,
+            ])->render(),
+        ]);
+    }
+
+    public function strength_review_mistake(Request $request)
+    {
+        $id = (int) $request->input('exam_result_id');
+        $ids = session('sw_reviewed_mistakes', []);
+        if ($id) {
+            $ids[] = $id;
+            session(['sw_reviewed_mistakes' => array_values(array_unique($ids))]);
+        }
+        return response()->json(['ok' => true]);
     }
 
     public function strength_topics(Request $request){
@@ -399,91 +400,12 @@ class Exam_homeController extends Controller
     }
 
     public function weakness(Request $request){
-        $data = [];
-        $data['user'] = Auth::user();
-        $data['exam_type'] = $request->exam_type;
-        $data['subject_id'] = $request->subject_id;
-        $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
-        $data['subject_list'] = Subject::where('status',1)->get();
-        $subject_id = $request->subject_id;
-        $exam_type = $request->exam_type;
-
-        $data['chapter_list'] = Exam_result::select([
-                                        DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) as chapter_id'),
-                                        DB::raw('SUM(exam_results.result) as total_result')
-                                    ])
-                                    ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->where('exam_results.user_id', Auth::id())
-                                    ->where('exam_results.result', '<',1)
-                                    ->whereRaw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id) IS NOT NULL')
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->where('exams.is_deleted',0)
-                                    ->groupBy(DB::raw('COALESCE(questions.chapter_id, offline_exam_questions.chapter_id)'))
-                                    ->orderBy('total_result', 'asc')
-                                    ->get();
-
-        foreach($data['chapter_list'] as $key => $value){
-            $chapter_detail = Chapter::where('id',$value->chapter_id)->first();
-            $data['chapter_list'][$key]->chapter_name = ($chapter_detail)?$chapter_detail->name:'';
-        }
-
-        $total_count = Exam_result::where('exam_results.user_id', Auth::id())->count();
-        
-        if($total_count){
-            $data['silly_percentage'] = $this->progressReportAnswerType(2,3,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['wrong_percentage'] = $this->progressReportAnswerType(2,2,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['irrelevant_percentage'] = $this->progressReportAnswerType(2,4,$data['exam_type'],$data['subject_id'],$total_count);
-        }else{
-            $data['silly_percentage'] = 0;
-            $data['wrong_percentage'] = 0;
-            $data['irrelevant_percentage'] = 0;
-        }
-        
-        $data['easy_details'] = $this->progressReportQuestionLevel(2,1,$data['exam_type'],$data['subject_id']);
-        $data['medium_details'] = $this->progressReportQuestionLevel(2,2,$data['exam_type'],$data['subject_id']);
-        $data['hard_details'] = $this->progressReportQuestionLevel(2,3,$data['exam_type'],$data['subject_id']);
-
-        $data['question_type'] = Question_type::select(['id','name'])->where('status',1)->get();
-
-        foreach($data['question_type'] as $key => $value){
-            $data['question_type'][$key]->data = Exam_result::select([
-                                        DB::raw('count(*) as total_question'),
-                                        DB::raw('COUNT(CASE WHEN (exam_results.result != 0 AND exam_results.result != -1) THEN 1 END) as right_answer'),
-                                        DB::raw('COUNT(CASE WHEN (exam_results.result = 0 AND exam_results.answer = 0) THEN 1 END) as skip_answer'),
-                                        DB::raw('COUNT(CASE WHEN ((exam_results.result = 0 OR exam_results.result = -1) AND exam_results.answer != 0) THEN 1 END) as wrong_answer'),
-                                        DB::raw('SUM(result) as total_mark'),
-                                        DB::raw('COALESCE(exams.totals_marks_for_exam, question_papers.totals_marks_for_exam) as totals_marks_for_exam')
-                                    ])
-                                    ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('question_papers', 'question_papers.id', '=', 'question_paper_questions.question_paper_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                                    ->where('exam_results.user_id', Auth::id())
-                                    ->where('exam_results.result', '<',1)
-                                    ->when($subject_id !== null, function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when($exam_type !== null, function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->where('exams.is_deleted',0)
-                                    ->whereRaw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id) = ?', [$value->id])
-                                    ->groupBy(DB::raw('COALESCE(questions.question_type_id, offline_exam_questions.question_type_id)'))
-                                    ->first();
-        }
-
-        $data['analytics_exam_list'] = $this->getAnalyticsExamList();
-        $data['exam_id'] = null;
-        return view('site.weakness',$data);
+        return redirect()->route('strength', array_filter([
+            'subject_id' => $request->subject_id,
+            'exam_type' => $request->exam_type,
+        ], function ($v) {
+            return $v !== null && $v !== '';
+        }));
     }
 
     public function weakness_topics(Request $request){
@@ -663,54 +585,10 @@ class Exam_homeController extends Controller
         $data['subject_id'] = $request->subject_id;
         $data['subject_details'] = Subject::where('id',$request->subject_id)->first();
         $data['subject_list'] = Subject::where('status',1)->get();
-
-        $data['topper_data'] = $this->getToperResultList(null,$data['exam_type'],$data['subject_id']);
-        $data['average_data'] = $this->getAvgResultList(null,$data['exam_type'],$data['subject_id']);
-        $data['you_data'] = $this->getYourResultList(null,$data['exam_type'],$data['subject_id']);
-
-        $total_count = Exam_result::where('exam_results.user_id', Auth::id())->count();
-        if($total_count){
-            $data['silly_percentage'] = $this->progressReportAnswerType('',3,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['wrong_percentage'] = $this->progressReportAnswerType('',2,$data['exam_type'],$data['subject_id'],$total_count);
-            $data['irrelevant_percentage'] = $this->progressReportAnswerType('',4,$data['exam_type'],$data['subject_id'],$total_count);
-        }else{
-            $data['silly_percentage'] = 0;
-            $data['wrong_percentage'] = 0;
-            $data['irrelevant_percentage'] = 0;
-        }
-            
-        
-        $data['easy_details'] = $this->progressReportQuestionLevel('',1,$data['exam_type'],$data['subject_id']);
-        $data['medium_details'] = $this->progressReportQuestionLevel('',2,$data['exam_type'],$data['subject_id']);
-        $data['hard_details'] = $this->progressReportQuestionLevel('',3,$data['exam_type'],$data['subject_id']);
-
-        foreach($data['subject_list'] as $key => $value){
-            $exam_result = Exam_result::select([
-                                DB::raw('count(*) as total'),
-                                DB::raw('COUNT(CASE WHEN (exam_results.result > 0) THEN 1 END) as result'),
-                                DB::raw('SUM(result) as total_mark')
-                            ])
-                            ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
-                            ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                            ->leftJoin('offline_exam_questions', 'offline_exam_questions.id', '=', 'exam_results.exam_question_id')
-                            ->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$value->id])
-                            ->first();
-            $value->percentage = "";
-            if($exam_result){
-                if($exam_result->total){
-                    $value->percentage = $exam_result->result/$exam_result->total*100;
-                }else{
-                    $value->percentage = 0;
-                }
-                    
-            }
-        }
-
-        // dd($data['subject_list']);
-
-
         $data['analytics_exam_list'] = $this->getAnalyticsExamList();
         $data['exam_id'] = null;
+        $data['pr'] = ProgressReportStats::dashboard($data['exam_type'], $data['subject_id'], null);
+
         return view('site.progress_report',$data);
     }
 

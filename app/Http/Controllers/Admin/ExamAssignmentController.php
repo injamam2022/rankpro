@@ -10,6 +10,7 @@ use App\Models\CustomTest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class ExamAssignmentController extends Controller
@@ -104,16 +105,25 @@ class ExamAssignmentController extends Controller
             'batch_id' => ['nullable', 'integer', 'exists:batches,id'],
             'name' => ['required', 'string', 'max:255', Rule::unique('batches', 'name')->ignore($request->input('batch_id'))],
             'status' => ['required', 'in:0,1'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'start_date' => ['nullable', 'date'],
             'students' => ['nullable', 'array'],
             'students.*' => ['integer', 'distinct', 'exists:users,id'],
         ]);
 
         $batch = DB::transaction(function () use ($data) {
             $batch = !empty($data['batch_id']) ? Batch::findOrFail($data['batch_id']) : new Batch();
-            $batch->fill([
+            $payload = [
                 'name' => $data['name'],
                 'status' => (int) $data['status'],
-            ])->save();
+            ];
+            if (Schema::hasColumn('batches', 'description')) {
+                $payload['description'] = $data['description'] ?? null;
+            }
+            if (Schema::hasColumn('batches', 'start_date')) {
+                $payload['start_date'] = $data['start_date'] ?? null;
+            }
+            $batch->fill($payload)->save();
             $batch->students()->sync($data['students'] ?? []);
             return $batch;
         });

@@ -19,13 +19,17 @@ class CityController extends Controller
 
     public function list(){
         $data = [];
-        $data['list'] = City::select(["cities.*","countries.name as country_name","states.name as state_name"])->leftJoin('states', 'states.id', '=', 'cities.state_id')->leftJoin('countries', 'states.country_id', '=', 'countries.id')->get();
+        $data['list'] = City::select(["cities.*","countries.name as country_name","states.name as state_name"])
+            ->leftJoin('states', 'states.id', '=', 'cities.state_id')
+            ->leftJoin('countries', 'states.country_id', '=', 'countries.id')
+            ->where('cities.is_deleted', 0)
+            ->get();
         return view('admin.city.list',$data);
     }
 
     public function add(){
         $data = [];
-        $data['country_list'] = Country::where('status',1)->get();
+        $data['country_list'] = Country::where('status',1)->where('is_deleted', 0)->get();
         $data['state_list'] = [];
         return view('admin.city.add',$data);
     }
@@ -38,10 +42,7 @@ class CityController extends Controller
 
         $input = $request->all();
         //dd($input);
-        $loginCheck = City::where(
-            [
-                'name'=> $input['name']
-            ])->first();
+        $loginCheck = City::where('name', $input['name'])->where('is_deleted', 0)->first();
 
         if (!$loginCheck){
             $saveData = [];
@@ -67,8 +68,8 @@ class CityController extends Controller
             [
                 'id'=> $input['id']
             ])->first();
-        $data['country_list'] = Country::where('status',1)->get();
-        $data['state_list'] = State::where('status',1)->where('country_id',$data['details']->country_id)->get();
+        $data['country_list'] = Country::where('status',1)->where('is_deleted', 0)->get();
+        $data['state_list'] = State::where('status',1)->where('is_deleted', 0)->where('country_id',$data['details']->country_id)->get();
         return view('admin.city.edit',$data);
     }
 
@@ -98,6 +99,17 @@ class CityController extends Controller
             toastr()->warning('City already exist');
             return back()->withInput();
         }
+    }
+
+    public function delete(Request $request){
+        $city = City::where('id', $request->id)->where('is_deleted', 0)->first();
+        if ($city) {
+            $city->update(['is_deleted' => 1]);
+            toastr()->success('City deleted successfully.');
+        } else {
+            toastr()->warning('City not found.');
+        }
+        return redirect()->route('admin.city');
     }
     
 }

@@ -104,7 +104,7 @@
                                     </div>
                                     @if($language->question_image)
                                         <div class="col-sm-6">
-                                            <img src="{{asset('')}}uploads/question/{{$language->question_image}}" style="width:100px;">
+                                            <img src="{{ question_media_url($language->question_image) }}" style="width:100px;">
                                         </div>
                                     @endif
                                 </div>
@@ -130,7 +130,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option1_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option1}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option1) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -179,7 +179,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option2_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option2}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option2) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -228,7 +228,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option3_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option3}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option3) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -277,7 +277,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option4_image == 1)
-                                            <img src="{{asset('')}}uploads/question/{{$language->option4}}" style="width:100%;">
+                                            <img src="{{ question_media_url($language->option4) }}" style="width:100%;">
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -315,11 +315,17 @@
                         @endforeach
                                 
                         <div class="col-sm-6">
-                            <label class="form-label" for="question_source_id">Question source</label>
+                            <label class="form-label" for="question_source_id">Question source <span class="text-danger">*</span></label>
+                            @php
+                                $selectedSourceId = (string) old(
+                                    'question_source_id',
+                                    $details->question_source_id ?: (($selected_question_source_ids[0] ?? '') ?: '')
+                                );
+                            @endphp
                             <select class="form-control" id="question_source_id" name="question_source_id">
-                                <option>Select Question source</option>
+                                <option value="">Select Question source</option>
                                 @foreach($question_source_list as $key => $value)
-                                    <option value="{{$value->id}}" @if($details->question_source_id == $value->id) selected  @endif>{{$value->name}}</option>
+                                    <option value="{{$value->id}}" @if($selectedSourceId === (string) $value->id) selected @endif>{{$value->name}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -347,6 +353,19 @@
                                 <div class="form-check" style="margin-left: 15px;">
                                     <input class="form-check-input" id="status_inactive" type="radio" name="status" value="0" @if($details->status == 0) checked  @endif />
                                     <label class="form-check-label" for="status_inactive">Inactive</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Premium</label>
+                            <div class="form-control" style="display:flex;">
+                                <div class="form-check">
+                                    <input class="form-check-input" id="is_premium_no" type="radio" name="is_premium" value="0" @if((int)($details->is_premium ?? 0) !== 1) checked @endif />
+                                    <label class="form-check-label" for="is_premium_no">No</label>
+                                </div>
+                                <div class="form-check" style="margin-left: 15px;">
+                                    <input class="form-check-input" id="is_premium_yes" type="radio" name="is_premium" value="1" @if((int)($details->is_premium ?? 0) === 1) checked @endif />
+                                    <label class="form-check-label" for="is_premium_yes">Yes</label>
                                 </div>
                             </div>
                         </div>

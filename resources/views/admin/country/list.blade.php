@@ -51,6 +51,9 @@
                                 @if(isUserPermitted('country', 'edit'))
                                 <a href="{{route('admin.country.edit',['id'=>$row->id])}}" class="btn btn-primary btn-sm mr-1"><i class="material-icons">edit</i></a>
                                 @endif
+                                @if(isUserPermitted('country', 'edit') || isUserPermitted('country', 'delete'))
+                                <a href="{{route('admin.country.delete',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you really want to delete this country?');"><i class="material-icons">delete</i></a>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

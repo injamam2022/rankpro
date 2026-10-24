@@ -84,6 +84,11 @@
             color: #8a5a00;
             font-weight: 700;
         }
+        .question-body img {
+            max-width: 220px;
+            height: auto;
+            vertical-align: middle;
+        }
     </style>
 @endsection
 
@@ -101,58 +106,52 @@
             </div>
         </div>
         <form action="" method="get">
-            <div class="row mb-4">
-                <div class="col-sm-3">
-                    <label class="form-label" for="subject_id">Subject</label>
-                    <select class="form-control" id="subject_id" name="subject_id" onchange="changeSubject();">
-                        <option value="">Select Subject</option>
-                        @foreach($subject_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $subject_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-3">
-                    <label class="form-label" for="chapter_id">Chapter</label>
-                    <select class="form-control" id="chapter_id" name="chapter_id" onchange="changeChapter();">
-                        <option value="">Select Chapter</option>
-                        @foreach($chapter_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $chapter_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-3">
-                    <label class="form-label" for="topic_id">Topic  <span class="text-danger">*</span></label>
-                    <select class="form-control" id="topic_id" name="topic_id" onchange="changeTopic();">
-                        <option value="">Select Topic</option>
-                        @foreach($topic_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $topic_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-2">
-                    <label class="form-label" for="sub_topic_id">Sub Topic  <span class="text-danger">*</span></label>
-                    <select class="form-control" id="sub_topic_id" name="sub_topic_id">
-                        <option value="">Select Sub Topic</option>
-                        @foreach($sub_topic_list as $key => $value)
-                            <option value="{{$value->id}}" @if($value->id == $sub_topic_id) selected @endif>{{$value->name}}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-sm-1">
-                    <button class="rp-act rp-act-add" type="submit" style="margin-top: 25px;">
-                        <i class="material-icons">search</i>
-                        Search
-                    </button>
-                </div>
-            </div>
-            <div class="admin-list-bar">
-                <input class="form-control" type="search" name="q" value="{{ $q ?? '' }}" placeholder="Search question, subject, chapter..." style="max-width:320px;">
-                <label class="mb-0" style="font-size:13px;color:#64748b;">Per page</label>
-                <select class="form-control" name="per_page" style="width:90px;" onchange="this.form.submit()">
-                    @foreach([10, 25, 50] as $n)
-                        <option value="{{ $n }}" @if((int)($per_page ?? 10) === $n) selected @endif>{{ $n }}</option>
+            <div class="admin-list-bar" style="margin-bottom: 10px;">
+            <div class="admin-list-field">
+                <label for="subject_id">Subject</label>
+                <select class="form-control" id="subject_id" name="subject_id" onchange="changeSubject();">
+                    <option value="">Select Subject</option>
+                    @foreach($subject_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $subject_id) selected @endif>{{$value->name}}</option>
                     @endforeach
                 </select>
+            </div>
+            <div class="admin-list-field">
+                <label for="chapter_id">Chapter</label>
+                <select class="form-control" id="chapter_id" name="chapter_id" onchange="changeChapter();">
+                    <option value="">Select Chapter</option>
+                    @foreach($chapter_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $chapter_id) selected @endif>{{$value->name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="admin-list-field">
+                <label for="topic_id">Topic</label>
+                <select class="form-control" id="topic_id" name="topic_id" onchange="changeTopic();">
+                    <option value="">Select Topic</option>
+                    @foreach($topic_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $topic_id) selected @endif>{{$value->name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="admin-list-field">
+                <label for="sub_topic_id">Sub Topic</label>
+                <select class="form-control" id="sub_topic_id" name="sub_topic_id">
+                    <option value="">Select Sub Topic</option>
+                    @foreach($sub_topic_list as $key => $value)
+                        <option value="{{$value->id}}" @if($value->id == $sub_topic_id) selected @endif>{{$value->name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="admin-list-field">
+                <label for="is_premium">Premium</label>
+                <select class="form-control" id="is_premium" name="is_premium">
+                    <option value="">All</option>
+                    <option value="0" @if((string)($is_premium ?? '') === '0') selected @endif>Non-premium</option>
+                    <option value="1" @if((string)($is_premium ?? '') === '1') selected @endif>Premium</option>
+                </select>
+            </div>
+            @include('admin.include.list_toolbar', ['search_placeholder' => 'Search question, subject, chapter...'])
             </div>
             <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap" style="gap:10px;">
                 <label class="mb-0" style="font-weight: 600;">
@@ -185,8 +184,8 @@
                 <input type="hidden" name="chapter_id" value="{{ $chapter_id }}">
                 <input type="hidden" name="topic_id" value="{{ $topic_id }}">
                 <input type="hidden" name="sub_topic_id" value="{{ $sub_topic_id }}">
+                <input type="hidden" name="is_premium" value="{{ $is_premium ?? '' }}">
                 <input type="hidden" name="q" value="{{ $q ?? '' }}">
-                <input type="hidden" name="per_page" value="{{ $per_page ?? 10 }}">
             </form>
         @endif
         <table class="table table-striped">
@@ -210,6 +209,11 @@
                             <td>{{$row->chapter_name}}</td>
                             <td>{{$row->source_name}}</td>
                             <td>
+                                @if(!empty($row->is_premium))
+                                    <div>
+                                        <span class="duplicate-flag" style="background:#7c3aed;color:#fff;">Premium</span>
+                                    </div>
+                                @endif
                                 @if(!empty($row->is_duplicate))
                                     <div>
                                         <span class="duplicate-flag">Duplicate</span>
@@ -224,12 +228,13 @@
                                         @endif
                                     </div>
                                 @endif
-                                {!!$row->question_text!!}
+                                <div class="question-body">
+                                {!! question_html_media($row->question_text) !!}
 
 
                                 @if($row->question_image)
                                     <div>
-                                        <img src="{{ asset('') }}uploads/question/{{$row->question_image}}" style="width:50px;">
+                                        <img src="{{ question_media_url($row->question_image) }}" style="width:50px;">
                                     </div>
                                 @endif
                                 
@@ -237,35 +242,36 @@
                                     <div style="display:flex;">
                                         (1) 
                                         @if($row->is_option1_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option1}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option1) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option1!!}
+                                            {!! question_html_media($row->option1) !!}
                                         @endif
                                     </div>
                                     <div style="display:flex;">
                                         (2) 
                                         @if($row->is_option2_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option2}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option2) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option2!!}
+                                            {!! question_html_media($row->option2) !!}
                                         @endif
                                     </div>
                                     <div style="display:flex;">
                                         (3) 
                                         @if($row->is_option3_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option3}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option3) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option3!!}
+                                            {!! question_html_media($row->option3) !!}
                                         @endif
                                     </div>
                                     <div style="display:flex;">
                                         (4) 
                                         @if($row->is_option4_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ asset('') }}uploads/question/{{$row->option4}}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option4) }}" style="width:100px;"></div>
                                         @else
-                                            {!!$row->option4!!}
+                                            {!! question_html_media($row->option4) !!}
                                         @endif
                                     </div>
+                                </div>
                                 </div>
                             </td>
                             <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>

@@ -80,9 +80,9 @@ class QuestionPaperMixService
     /**
      * @param  array<int,array<string,mixed>>  $sections
      */
-    public function activePool(array $sections = [], ?int $lockSubjectId = null): Collection
+    public function activePool(array $sections = [], ?int $lockSubjectId = null, ?int $sourceId = null): Collection
     {
-        $query = $this->baseQuery($lockSubjectId);
+        $query = $this->baseQuery($lockSubjectId, $sourceId);
 
         $usable = array_values(array_filter($sections, function ($row) {
             return ! empty($row['subject_id']);
@@ -171,10 +171,12 @@ class QuestionPaperMixService
      * @param  array{hard:int|float,medium:int|float,easy:int|float}  $percents
      * @param  array<int,int>  $typeIds
      */
-    public function preview(int $total, array $percents, array $sections, array $typeIds, ?int $lockSubjectId = null): array
+    public function preview(int $total, array $percents, array $sections, array $typeIds, ?int $lockSubjectId = null, ?int $sourceId = null, bool $ignoreDifficulty = false): array
     {
-        $pool = $this->activePool($sections, $lockSubjectId);
-        $diffCounts = $this->difficultyCounts($total, $percents);
+        $pool = $this->activePool($sections, $lockSubjectId, $sourceId);
+        $diffCounts = $ignoreDifficulty
+            ? ['hard' => 0, 'medium' => 0, 'easy' => 0]
+            : $this->difficultyCounts($total, $percents);
         $typeCounts = $this->autoTypeCounts($pool, $diffCounts, $typeIds);
 
         $byDiff = [
@@ -203,9 +205,11 @@ class QuestionPaperMixService
         if ($total > 0 && $pool->count() < $total) {
             $warnings[] = 'Only '.$pool->count().' matching questions in the pool (need '.$total.').';
         }
-        foreach (['hard' => 'Hard', 'medium' => 'Medium', 'easy' => 'Easy'] as $key => $label) {
-            if ($diffCounts[$key] > $byDiff[$key]) {
-                $warnings[] = $label.' needs '.$diffCounts[$key].' but the pool has '.$byDiff[$key].'. Extra will come from other levels.';
+        if (! $ignoreDifficulty) {
+            foreach (['hard' => 'Hard', 'medium' => 'Medium', 'easy' => 'Easy'] as $key => $label) {
+                if ($diffCounts[$key] > $byDiff[$key]) {
+                    $warnings[] = $label.' needs '.$diffCounts[$key].' but the pool has '.$byDiff[$key].'. Extra will come from other levels.';
+                }
             }
         }
 
@@ -230,7 +234,7 @@ class QuestionPaperMixService
      * @param  array<int,int>  $typeCounts  type_id => count (or % — normalised by weight)
      * @return array{picked: array<int,array{question_id:int,section_key:int|string}>, shortfall:int, notes:array<int,string>}
      */
-    public function pick(array $sections, array $percents, array $typeCounts, ?int $lockSubjectId = null): array
+    public function pick(array $sections, array $percents, array $typeCounts, ?int $lockSubjectId = null, ?int $sourceId = null): array
     {
         $picked = [];
         $used = [];
@@ -253,7 +257,7 @@ class QuestionPaperMixService
                 if ($dWant <= 0) {
                     continue;
                 }
-                $ids = $this->takeFromPool($section, $level, null, $dWant, $used, $lockSubjectId);
+                $ids = $this->takeFromPool($section, $level, null, $dWant, $used, $lockSubjectId, $sourceId);
                 $this->appendPicked($picked, $used, $ids, $sectionKey);
             }
 
@@ -263,13 +267,13 @@ class QuestionPaperMixService
                     if ($have >= $want) {
                         break;
                     }
-                    $ids = $this->takeFromPool($section, $level, null, $want - $have, $used, $lockSubjectId);
+                    $ids = $this->takeFromPool($section, $level, null, $want - $have, $used, $lockSubjectId, $sourceId);
                     $have += $this->appendPicked($picked, $used, $ids, $sectionKey);
                 }
             }
 
             if ($have < $want) {
-                $ids = $this->takeFromPool($section, null, null, $want - $have, $used, $lockSubjectId);
+                $ids = $this->takeFromPool($section, null, null, $want - $have, $used, $lockSubjectId, $sourceId);
                 $have += $this->appendPicked($picked, $used, $ids, $sectionKey);
             }
 
@@ -284,6 +288,84 @@ class QuestionPaperMixService
             'picked' => $picked,
             'shortfall' => $shortfall,
             'notes' => $notes,
+            'auto_sections' => [],
+        ];
+    }
+
+    /**
+     * Type=2: pick from one question source. Subject rows are optional.
+     * With no subject rows, take $totalWanted at random and group by subject.
+     *
+     * @param  array<int|string,array<string,mixed>>  $sections
+     * @return array{picked: array<int,array{question_id:int,section_key:int|string}>, shortfall:int, notes:array<int,string>, auto_sections: array<int|string,array<string,mixed>>}
+     */
+    public function pickFromSource(array $sections, int $sourceId, int $totalWanted, ?int $lockSubjectId = null): array
+    {
+        $usable = [];
+        foreach ($sections as $key => $section) {
+            if (empty($section['subject_id']) || (int) ($section['total_no_of_question'] ?? 0) <= 0) {
+                continue;
+            }
+            $usable[$key] = $section;
+        }
+
+        if ($usable !== []) {
+            $picked = [];
+            $used = [];
+            $notes = [];
+            $shortfall = 0;
+
+            foreach ($usable as $sectionKey => $section) {
+                $want = (int) $section['total_no_of_question'];
+                $ids = $this->takeFromPool($section, null, null, $want, $used, $lockSubjectId, $sourceId);
+                $have = $this->appendPicked($picked, $used, $ids, $sectionKey);
+                $missing = $want - $have;
+                if ($missing > 0) {
+                    $shortfall += $missing;
+                    $notes[] = 'Subject '.$section['subject_id'].' is short by '.$missing.' question(s) in this source.';
+                }
+            }
+
+            return [
+                'picked' => $picked,
+                'shortfall' => $shortfall,
+                'notes' => $notes,
+                'auto_sections' => [],
+            ];
+        }
+
+        $questions = $this->baseQuery($lockSubjectId, $sourceId)
+            ->inRandomOrder()
+            ->limit(max(0, $totalWanted))
+            ->get(['id', 'subject_id']);
+
+        $shortfall = max(0, $totalWanted - $questions->count());
+        $picked = [];
+        $auto = [];
+        foreach ($questions->groupBy('subject_id') as $subjectId => $group) {
+            $key = 'src_'.(int) $subjectId;
+            $auto[$key] = [
+                'subject_id' => (int) $subjectId,
+                'chapter_id' => null,
+                'topic_id' => null,
+                'sub_topic_id' => null,
+                'total_no_of_question' => $group->count(),
+            ];
+            foreach ($group as $question) {
+                $picked[] = ['question_id' => (int) $question->id, 'section_key' => $key];
+            }
+        }
+
+        $notes = [];
+        if ($shortfall > 0) {
+            $notes[] = 'This question source has '.$questions->count().' usable question(s); '.$totalWanted.' were requested.';
+        }
+
+        return [
+            'picked' => $picked,
+            'shortfall' => $shortfall,
+            'notes' => $notes,
+            'auto_sections' => $auto,
         ];
     }
 
@@ -305,13 +387,13 @@ class QuestionPaperMixService
      * @param  array<int,int>  $used
      * @return array<int,int>
      */
-    private function takeFromPool(array $section, ?int $level, ?int $typeId, int $take, array $used, ?int $lockSubjectId): array
+    private function takeFromPool(array $section, ?int $level, ?int $typeId, int $take, array $used, ?int $lockSubjectId, ?int $sourceId = null): array
     {
         if ($take <= 0) {
             return [];
         }
 
-        $query = $this->baseQuery($lockSubjectId)
+        $query = $this->baseQuery($lockSubjectId, $sourceId)
             ->where('subject_id', (int) $section['subject_id']);
 
         if (! empty($section['chapter_id'])) {
@@ -333,7 +415,7 @@ class QuestionPaperMixService
         return $query->inRandomOrder()->limit($take)->pluck('id')->map(fn ($id) => (int) $id)->all();
     }
 
-    private function baseQuery(?int $lockSubjectId): Builder
+    private function baseQuery(?int $lockSubjectId, ?int $sourceId = null): Builder
     {
         $query = Question::query()
             ->where('status', 1)
@@ -343,6 +425,9 @@ class QuestionPaperMixService
 
         if ($lockSubjectId) {
             $query->where('subject_id', $lockSubjectId);
+        }
+        if ($sourceId) {
+            Question::constrainBySource($query, $sourceId, 'questions.id', 'questions.question_source_id');
         }
 
         return $query;

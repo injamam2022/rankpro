@@ -1105,6 +1105,10 @@
         return @json(asset(''));
       }
 
+      function examMediaFallbackBase() {
+        return @json(rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/') . '/');
+      }
+
       function looksLikeImageFile(value) {
         if (value == null || value === '') return false;
         var v = String(value).trim();
@@ -1146,13 +1150,34 @@
         return primary.replace('/uploads/question/', '/uploads/option/');
       }
 
+      function productionMediaUrl(file) {
+        if (!file) return '';
+        var f = String(file).trim();
+        if (/^https?:\/\//i.test(f) || /^data:/i.test(f)) return '';
+        f = f.replace(/\\/g, '/').replace(/^(\.\.\/)+/, '').replace(/^\/+/, '');
+        if (f.indexOf('public/uploads/') === 0) f = f.replace('public/uploads/', 'uploads/');
+        if (f.indexOf('uploads/option/') === 0) f = f.replace('uploads/option/', 'uploads/question/');
+        if (f.indexOf('uploads/') !== 0) f = 'uploads/question/' + f.split('/').pop();
+        return examMediaFallbackBase() + f;
+      }
+
+      function mediaOnErrorAttr(primary, file) {
+        var chain = [];
+        var optionFb = mediaUrlFallback(file);
+        var prod = productionMediaUrl(file);
+        if (optionFb && optionFb !== primary) chain.push(optionFb);
+        if (prod && prod !== primary && prod !== optionFb) chain.push(prod);
+        if (!chain.length) return '';
+        var js = 'if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + chain[0].replace(/'/g, "\\'") + '\';}';
+        if (chain[1]) {
+          js += 'else if(this.dataset.fb==1){this.dataset.fb=2;this.src=\'' + chain[1].replace(/'/g, "\\'") + '\';}';
+        }
+        return ' onerror="' + js + '"';
+      }
+
       function imgTag(src, alt) {
         var primary = mediaUrl(src);
-        var fallback = mediaUrlFallback(src);
-        var onerr = fallback && fallback !== primary
-          ? ' onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + fallback.replace(/'/g, "\\'") + '\';}"'
-          : '';
-        return '<img src="' + primary + '" alt="' + (alt || '') + '"' + onerr + '>';
+        return '<img src="' + primary + '" alt="' + (alt || '') + '"' + mediaOnErrorAttr(primary, src) + '>';
       }
 
       function fixHtmlMedia(html) {
@@ -1179,13 +1204,22 @@
             } else {
               img.setAttribute('src', mediaUrl(cleaned.split('/').pop()));
             }
-            var fallback = (img.getAttribute('src') || '').replace('/uploads/question/', '/uploads/option/');
-            if (fallback && fallback !== img.getAttribute('src')) {
-              img.setAttribute('data-fallback', fallback);
+            var current = img.getAttribute('src') || '';
+            var chain = [];
+            var optionFb = current.replace('/uploads/question/', '/uploads/option/');
+            var prod = productionMediaUrl(cleaned || src);
+            if (optionFb && optionFb !== current) chain.push(optionFb);
+            if (prod && prod !== current && prod !== optionFb) chain.push(prod);
+            if (chain.length) {
+              img.setAttribute('data-fallback', chain[0]);
+              if (chain[1]) img.setAttribute('data-fallback2', chain[1]);
               img.onerror = function () {
                 if (!this.dataset.fb) {
                   this.dataset.fb = '1';
                   this.src = this.getAttribute('data-fallback');
+                } else if (this.dataset.fb === '1' && this.getAttribute('data-fallback2')) {
+                  this.dataset.fb = '2';
+                  this.src = this.getAttribute('data-fallback2');
                 }
               };
             }

@@ -262,7 +262,7 @@
                             <select class="form-control" id="question_source_id" name="question_source_id">
                                 <option value="">Select Question source</option>
                                 @foreach($question_source_list as $key => $value)
-                                    <option value="{{$value->id}}">{{$value->name}}</option>
+                                    <option value="{{$value->id}}" @if((string) old('question_source_id') === (string) $value->id) selected @endif>{{$value->name}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -290,6 +290,19 @@
                                 <div class="form-check" style="margin-left: 15px;">
                                     <input class="form-check-input" id="status_inactive" type="radio" name="status" value="0" />
                                     <label class="form-check-label" for="status_inactive">Inactive</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Premium</label>
+                            <div class="form-control" style="display:flex;">
+                                <div class="form-check">
+                                    <input class="form-check-input" id="is_premium_no" type="radio" name="is_premium" checked value="0" />
+                                    <label class="form-check-label" for="is_premium_no">No</label>
+                                </div>
+                                <div class="form-check" style="margin-left: 15px;">
+                                    <input class="form-check-input" id="is_premium_yes" type="radio" name="is_premium" value="1" />
+                                    <label class="form-check-label" for="is_premium_yes">Yes</label>
                                 </div>
                             </div>
                         </div>

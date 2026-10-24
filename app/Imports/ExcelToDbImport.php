@@ -134,6 +134,10 @@ class ExcelToDbImport implements ToCollection, WithHeadingRow
                 }
 
                 DB::transaction(function () use ($val, $chapterId, $topicId, $subTopicId, $difficulty, $answer, $questionText, $questionImage, $option1, $option2, $option3, $option4, $isOpt1, $isOpt2, $isOpt3, $isOpt4) {
+                    $sourceIds = array_values(array_unique(array_filter(array_map(
+                        'intval',
+                        preg_split('/[,\s]+/', (string) ($val['question_source'] ?? ''), -1, PREG_SPLIT_NO_EMPTY) ?: []
+                    ))));
                     $question = Question::create([
                         'subject_id' => $this->subject_id,
                         'chapter_id' => $chapterId,
@@ -141,14 +145,16 @@ class ExcelToDbImport implements ToCollection, WithHeadingRow
                         'topic_id' => $topicId,
                         'sub_topic_id' => $subTopicId,
                         'difficulty_level' => $difficulty,
+                        'is_premium' => 0,
                         'question_type_id' => (int) ($val['question_type'] ?? 0),
-                        'question_source_id' => (int) ($val['question_source'] ?? 0),
+                        'question_source_id' => $sourceIds[0] ?? 0,
                         'solution_video_link' => trim((string) ($val['solution_video_link'] ?? '')),
                         'answer' => $answer,
                         'administrator_id' => $this->administrator_id,
                         'is_deleted' => 0,
                         'status' => $this->flag($val['status'] ?? 1) ? 1 : 0,
                     ]);
+                    $question->syncQuestionSources($sourceIds);
 
                     Question_detail::create([
                         'question_id' => $question->id,

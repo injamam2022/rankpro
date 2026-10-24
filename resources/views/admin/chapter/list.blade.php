@@ -21,13 +21,16 @@
             </div>
         </div>
         <form method="get" class="admin-list-bar">
-            <label class="mb-0" for="class_level">Class</label>
-            <select name="class_level" id="class_level" class="form-control" style="width:180px;" onchange="this.form.submit()">
-                <option value="">All</option>
-                <option value="11" @if(($class_filter ?? '') === '11') selected @endif>Class 11</option>
-                <option value="12" @if(($class_filter ?? '') === '12') selected @endif>Class 12</option>
-                <option value="0" @if(($class_filter ?? '') === '0') selected @endif>Both / Not set</option>
-            </select>
+            @include('admin.include.taxonomy_filters', ['show_subject' => true])
+            <div class="admin-list-field">
+                <label for="class_level">Class</label>
+                <select name="class_level" id="class_level" class="form-control" onchange="this.form.submit()">
+                    <option value="">All classes</option>
+                    <option value="11" @if(($class_filter ?? '') === '11') selected @endif>Class 11</option>
+                    <option value="12" @if(($class_filter ?? '') === '12') selected @endif>Class 12</option>
+                    <option value="0" @if(($class_filter ?? '') === '0') selected @endif>Both / Not set</option>
+                </select>
+            </div>
             @include('admin.include.list_toolbar')
         </form>
         <table class="table table-striped">

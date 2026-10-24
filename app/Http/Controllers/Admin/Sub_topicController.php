@@ -26,6 +26,17 @@ class Sub_topicController extends Controller
                             ->leftJoin('topics', 'sub_topics.topic_id', '=', 'topics.id')
                             ->leftJoin('chapters', 'sub_topics.chapter_id', '=', 'chapters.id')
                             ->leftJoin('subjects', 'sub_topics.subject_id', '=', 'subjects.id');
+        $tax = AdminListQuery::taxonomyOptions($request, ['subject', 'chapter', 'topic']);
+        $data = array_merge($data, $tax);
+        if ($tax['subject_id']) {
+            $query->where('sub_topics.subject_id', $tax['subject_id']);
+        }
+        if ($tax['chapter_id']) {
+            $query->where('sub_topics.chapter_id', $tax['chapter_id']);
+        }
+        if ($tax['topic_id']) {
+            $query->where('sub_topics.topic_id', $tax['topic_id']);
+        }
         AdminListQuery::applySearch($query, $data['q'], ['sub_topics.name', 'topics.name', 'chapters.name', 'subjects.name']);
         $data['list'] = $query->orderByDesc('sub_topics.id')->paginate($data['per_page'])->withQueryString();
         return view('admin.sub_topic.list',$data);

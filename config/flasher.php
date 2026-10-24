@@ -190,4 +190,15 @@ return array(
     'filter_criteria' => array(
         'limit' => 5, // Limit the number of notifications to display
     ),
+
+    /*
+    |---------------------------------------------------------------------------
+    | Default notification options
+    |---------------------------------------------------------------------------
+    | Applied to the built-in Flasher theme (session flashes and default handler).
+    | Positions: top-right, top-left, top-center, bottom-right, bottom-left, bottom-center
+    */
+    'options' => array(
+        'position' => 'top-center',
+    ),
 );

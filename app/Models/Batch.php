@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Batch extends Model
 {
-    protected $fillable = ['name', 'status'];
+    protected $fillable = ['name', 'status', 'description', 'start_date'];
 
     public function students()
     {

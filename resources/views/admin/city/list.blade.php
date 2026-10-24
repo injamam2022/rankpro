@@ -50,6 +50,7 @@
                             </td>
                             <td>
                                 <a href="{{route('admin.city.edit',['id'=>$row->id])}}" class="btn btn-primary btn-sm mr-1"><i class="material-icons">edit</i></a>
+                                <a href="{{route('admin.city.delete',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you really want to delete this city?');"><i class="material-icons">delete</i></a>
                             </td>
                         </tr>
                     @endforeach
