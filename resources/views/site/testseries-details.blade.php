@@ -3,7 +3,13 @@
 
 <head>
     <meta charset="utf-8">
-    @include('site.include.seo', ['seo' => ['name' => $test->name ?? '', 'schema' => [\App\Support\Seo::courseSchema($test ?? null)]]])
+    @php
+        $seoSchema = [];
+        if (class_exists(\App\Support\Seo::class)) {
+            $seoSchema[] = \App\Support\Seo::courseSchema($test ?? null);
+        }
+    @endphp
+    @include('site.include.seo', ['seo' => ['name' => $test->name ?? '', 'schema' => $seoSchema]])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <!-- Favicon -->

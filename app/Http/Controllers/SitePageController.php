@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Support\Seo;
 use App\Support\WebsiteSettings;
+use Illuminate\Support\Facades\Route;
 
 class SitePageController extends Controller
 {
@@ -82,5 +84,40 @@ class SitePageController extends Controller
             'meta_description' => $post->meta_description ?: $post->excerpt,
             'post' => $post,
         ]);
+    }
+
+    public function sitemap()
+    {
+        $urls = [];
+
+        foreach (array_keys(Seo::pages()) as $routeName) {
+            if (!Route::has($routeName)) {
+                continue;
+            }
+
+            $route = Route::getRoutes()->getByName($routeName);
+            if (!$route || count($route->parameterNames()) > 0) {
+                continue;
+            }
+
+            $urls[] = [
+                'loc' => route($routeName),
+                'changefreq' => $routeName === 'index' ? 'daily' : 'weekly',
+                'priority' => $routeName === 'index' ? '1.0' : '0.7',
+            ];
+        }
+
+        foreach (Blog::published()->orderByDesc('published_at')->get(['slug', 'updated_at', 'published_at']) as $post) {
+            $urls[] = [
+                'loc' => route('blog.show', $post->slug),
+                'lastmod' => optional($post->updated_at ?: $post->published_at)->toAtomString(),
+                'changefreq' => 'monthly',
+                'priority' => '0.6',
+            ];
+        }
+
+        $xml = view('site.sitemap', compact('urls'))->render();
+
+        return response($xml, 200)->header('Content-Type', 'application/xml');
     }
 }

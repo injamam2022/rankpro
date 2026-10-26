@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    @include('site.include.seo')
+    @include('site.include.seo', ['seo' => [
+        'name' => $post->title,
+        'title' => $title ?? null,
+        'description' => $meta_description ?? null,
+        'image' => $post->image_url ?: null,
+    ]])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -3,7 +3,14 @@
 
 <head>
     <meta charset="utf-8">
-    @include('site.include.seo', ['seo' => ['name' => $ranker->name ?? '', 'image' => isset($ranker) && $ranker->profile_icon ? asset('uploads/ranker/' . $ranker->profile_icon) : '', 'schema' => [\App\Support\Seo::personSchema($ranker ?? null, isset($ranker) && $ranker->profile_icon ? asset('uploads/ranker/' . $ranker->profile_icon) : '')]]])
+    @php
+        $rankerImage = isset($ranker) && $ranker->profile_icon ? asset('uploads/ranker/' . $ranker->profile_icon) : '';
+        $seoSchema = [];
+        if (class_exists(\App\Support\Seo::class)) {
+            $seoSchema[] = \App\Support\Seo::personSchema($ranker ?? null, $rankerImage);
+        }
+    @endphp
+    @include('site.include.seo', ['seo' => ['name' => $ranker->name ?? '', 'image' => $rankerImage, 'schema' => $seoSchema]])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <!-- Favicon -->

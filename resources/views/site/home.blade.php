@@ -3,7 +3,13 @@
 
 <head>
     <meta charset="utf-8">
-    @include('site.include.seo', ['seo' => ['schema' => [\App\Support\Seo::faqSchema($asked_questien ?? [])]]])
+    @php
+        $seoSchema = [];
+        if (class_exists(\App\Support\Seo::class)) {
+            $seoSchema[] = \App\Support\Seo::faqSchema($asked_questien ?? $asked_question ?? []);
+        }
+    @endphp
+    @include('site.include.seo', ['seo' => ['schema' => $seoSchema]])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <!-- Favicon -->

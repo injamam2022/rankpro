@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    @include('site.include.seo')
+    @include('site.include.seo', ['seo' => ['title' => $title ?? null]])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
