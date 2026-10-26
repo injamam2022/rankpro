@@ -33,6 +33,7 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
+    <link href="{{ asset('') }}web/css/redesign.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/style_a.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/form.css" rel="stylesheet">
     @include('site.include.head_meta')
