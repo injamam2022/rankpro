@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Blog;
 use App\Support\WebsiteSettings;
 
 class SitePageController extends Controller
@@ -61,10 +62,25 @@ class SitePageController extends Controller
 
     public function blog()
     {
-        return view('site.page', [
+        $posts = Blog::published()
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->paginate(9);
+
+        return view('site.blog.index', [
             'title' => 'Blog',
-            'heading' => 'RankPro Blog',
-            'body' => view('site.pages.blog')->render(),
+            'posts' => $posts,
+        ]);
+    }
+
+    public function blogShow(string $slug)
+    {
+        $post = Blog::published()->where('slug', $slug)->firstOrFail();
+
+        return view('site.blog.show', [
+            'title' => $post->meta_title ?: $post->title,
+            'meta_description' => $post->meta_description ?: $post->excerpt,
+            'post' => $post,
         ]);
     }
 }

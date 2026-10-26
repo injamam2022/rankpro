@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{{ $custom->name }} - Question Paper</title>
+    @include('site.include.seo', ['seo' => ['title' => ($custom->name) . ' - Question Paper']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <style>
         :root {

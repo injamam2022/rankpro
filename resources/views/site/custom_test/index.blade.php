@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Custom Test - RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Custom Test - RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="shortcut icon" href="{{ asset('') }}web/images/favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">

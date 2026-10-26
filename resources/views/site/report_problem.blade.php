@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Help & Report a Problem | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Help & Report a Problem | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Help, Support & Report a Problem – RankPro">
-    <meta name="description" content="FAQs, academic desk tickets, and complaint tracking for RankPro mocks.">
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">

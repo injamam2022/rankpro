@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{{ $title }} | RankPro</title>
+    @include('site.include.seo')
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">

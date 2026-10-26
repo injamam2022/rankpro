@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Dashboard | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Dashboard | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="RankPro Student Dashboard">
-    <meta name="description" content="Prepare for NEET with AI-powered tools. Access mock tests, analytics, and mentorship on RankPro.">
 
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">

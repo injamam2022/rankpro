@@ -602,6 +602,7 @@
                                     {{ request()->is('admin/head_quater') ? ' active' : '' }} {{ request()->is('admin/head_quater/*') ? ' active' : '' }}
                                     {{ request()->is('admin/real_story') ? ' active' : '' }} {{ request()->is('admin/real_story/*') ? ' active' : '' }}
                                     {{ request()->is('admin/success_story') ? ' active' : '' }} {{ request()->is('admin/success_story/*') ? ' active' : '' }}
+                                    {{ request()->is('admin/blog') ? ' active' : '' }} {{ request()->is('admin/blog/*') ? ' active' : '' }}
                                     {{ request()->is('admin/hurry_now') ? ' active' : '' }} {{ request()->is('admin/hurry_now/*') ? ' active' : '' }}
                                     {{ request()->is('admin/learning') ? ' active' : '' }} {{ request()->is('admin/learning/*') ? ' active' : '' }}
                                     {{ request()->is('admin/asked_question') ? ' active' : '' }} {{ request()->is('admin/asked_question/*') ? ' active' : '' }}
@@ -643,6 +644,7 @@
                                         @if(isUserPermitted('success-story-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/success_story') ? ' active' : '' }} {{ request()->is('admin/success_story/*') ? ' active' : '' }}" href="{{route('admin.success_story')}}">Success Story</a>
                                         @endif
+                                            <a class="nav-link {{ request()->is('admin/blog') ? ' active' : '' }} {{ request()->is('admin/blog/*') ? ' active' : '' }}" href="{{route('admin.blog')}}">Blog</a>
                                         @if(isUserPermitted('hurry-now-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/hurry_now') ? ' active' : '' }} {{ request()->is('admin/hurry_now/*') ? ' active' : '' }}" href="{{route('admin.hurry_now')}}">Hurry Now</a>
                                         @endif
@@ -669,6 +671,7 @@
                                         @endif
                                         @if(isUserPermitted('footer-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/footer') ? ' active' : '' }} {{ request()->is('admin/footer/*') ? ' active' : '' }}" href="{{route('admin.footer')}}">Website Settings</a>
+                                            <a class="nav-link {{ request()->is('admin/seo') ? ' active' : '' }} {{ request()->is('admin/seo/*') ? ' active' : '' }}" href="{{route('admin.seo')}}">SEO</a>
                                         @endif
                                     </nav>
                                 </div>

@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Answers Analytics | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Answers Analytics | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Answers Analytics – RankPro">
-    <meta name="description" content="Compare your NEET mock answers against toppers and averages with RankPro diagnostics.">
 
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">

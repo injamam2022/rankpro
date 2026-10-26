@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>RankPro - Online Examination</title>
+    @include('site.include.seo', ['seo' => ['title' => 'RankPro - Online Examination']])
     <link rel="shortcut icon" href="{{ asset('') }}exam/img/fav-icon.png">
     <link rel="stylesheet" href="{{ asset('') }}exam/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ asset('') }}exam/fonts/font-awesome-4.7.0/css/font-awesome.min.css">

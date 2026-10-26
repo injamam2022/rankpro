@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>RankPro</title>
+    @include('site.include.seo', ['seo' => ['name' => $ranker->name ?? '', 'image' => isset($ranker) && $ranker->profile_icon ? asset('uploads/ranker/' . $ranker->profile_icon) : '', 'schema' => [\App\Support\Seo::personSchema($ranker ?? null, isset($ranker) && $ranker->profile_icon ? asset('uploads/ranker/' . $ranker->profile_icon) : '')]]])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta content="" name="description">
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('') }}web/images/favicon.ico" type="image/x-icon">

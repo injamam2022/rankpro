@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Give Exam | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Give Exam | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Give Exam & Mock Test Portal – RankPro">
-    <meta name="description" content="Take NEET mock tests on demand, view upcoming exam schedule, and manage your daily study plan on RankPro.">
 
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">

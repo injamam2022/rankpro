@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Exams Given | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Exams Given | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Exams Given & Past Scorecards – RankPro">
-    <meta name="description" content="Review past NEET mock scores, ranks, OMR sheets, and detailed analytics on RankPro.">
 
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">

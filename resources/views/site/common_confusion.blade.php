@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Mistake Monitor | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Mistake Monitor | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Doctor Mistake Monitor & Error Analytics – RankPro">
-    <meta name="description" content="Track unforced errors, negative marking leaks, and mark mistakes as mastered.">
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">

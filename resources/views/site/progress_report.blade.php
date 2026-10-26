@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Progress Report | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Progress Report | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Progress Report & Performance Trajectory – RankPro">
-    <meta name="description" content="Track mock score growth, CBT vs OMR performance, and projected All-India Rank.">
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">

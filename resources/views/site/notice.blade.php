@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Notices | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Notices | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Official Notices & Batch Announcements – RankPro">
-    <meta name="description" content="Official RankPro, NTA and batch announcements for your NEET preparation.">
 
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">

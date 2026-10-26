@@ -69,6 +69,7 @@
     use App\Http\Controllers\Admin\CounsellorController;
 
     use App\Http\Controllers\Admin\FooterController;
+    use App\Http\Controllers\Admin\SeoController;
     use App\Http\Controllers\Admin\SubscriptionController;
     use App\Http\Controllers\Admin\ContactController;
     use App\Http\Controllers\Admin\ProblemController;
@@ -91,6 +92,7 @@
     use App\Http\Controllers\Admin\AskedQuestionController;
     use App\Http\Controllers\Admin\GalleryController;
     use App\Http\Controllers\Admin\MentionController;
+    use App\Http\Controllers\Admin\BlogController;
 
     //Sourav End
 
@@ -247,6 +249,8 @@
     Route::get('/careers', [SitePageController::class, 'careers'])->name('careers');
     Route::get('/help-support', [SitePageController::class, 'help'])->name('help');
     Route::get('/blog', [SitePageController::class, 'blog'])->name('blog');
+    Route::get('/blog/{slug}', [SitePageController::class, 'blogShow'])->name('blog.show');
+    Route::get('/sitemap.xml', [SitePageController::class, 'sitemap'])->name('sitemap');
 
     Route::get('/signup', [AdmissionController::class, 'signup'])->name('signup');
     Route::post('/admissionstore', [AdmissionController::class, 'store'])->name('admissionstore');
@@ -640,6 +644,11 @@
 
         Route::get('/footer', [FooterController::class, 'list'])->name('footer');
         Route::post('/footer/settings', [FooterController::class, 'saveSettings'])->name('footer.settings');
+
+        Route::get('/seo', [SeoController::class, 'list'])->name('seo');
+        Route::get('/seo/edit', [SeoController::class, 'edit'])->name('seo.edit');
+        Route::post('/seo/update', [SeoController::class, 'update'])->name('seo.update');
+        Route::get('/seo/reset', [SeoController::class, 'reset'])->name('seo.reset');
         Route::get('/footer/add', [FooterController::class, 'add'])->name('footer.add');
         Route::post('/footer/save', [FooterController::class, 'save'])->name('footer.save');
         Route::get('/footer/edit', [FooterController::class, 'edit'])->name('footer.edit');
@@ -709,6 +718,14 @@
         Route::post('/success_story/update', [SuccessStoryController::class, 'update'])->name('success_story.update');
         Route::get('/success_story/delete', [SuccessStoryController::class, 'delete'])->name('success_story.delete');
         Route::get('/success_story/change', [SuccessStoryController::class, 'change'])->name('success_story.change');
+
+        Route::get('/blog', [BlogController::class, 'list'])->name('blog');
+        Route::get('/blog/add', [BlogController::class, 'add'])->name('blog.add');
+        Route::post('/blog/save', [BlogController::class, 'save'])->name('blog.save');
+        Route::get('/blog/edit', [BlogController::class, 'edit'])->name('blog.edit');
+        Route::post('/blog/update', [BlogController::class, 'update'])->name('blog.update');
+        Route::get('/blog/delete', [BlogController::class, 'delete'])->name('blog.delete');
+        Route::get('/blog/change', [BlogController::class, 'change'])->name('blog.change');
 
         Route::get('/hurry_now', [HurryNowController::class, 'list'])->name('hurry_now');
         Route::get('/hurry_now/edit', [HurryNowController::class, 'edit'])->name('hurry_now.edit');

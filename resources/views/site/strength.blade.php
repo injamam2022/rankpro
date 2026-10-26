@@ -3,10 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Strength & Weakness | RankPro</title>
+    @include('site.include.seo', ['seo' => ['title' => 'Strength & Weakness | RankPro']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="title" content="Strength & Weakness Diagnostic Center – RankPro">
-    <meta name="description" content="See mastered units, focus areas, and mistake review from your NEET mocks.">
 
     <link rel="shortcut icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ asset('web/images/favicon.ico') }}" type="image/x-icon">
