@@ -26,11 +26,13 @@ class Blog extends Model
 
     public function scopePublished($query)
     {
-        return $query->where('status', 1)
-            ->where(function ($q) {
-                $q->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
-            });
+        // "Active" in admin = visible on the public blog.
+        return $query->where('status', 1);
+    }
+
+    public function isLive(): bool
+    {
+        return (int) $this->status === 1;
     }
 
     public function getImageUrlAttribute()

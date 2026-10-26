@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
@@ -44,7 +45,7 @@ class BlogController extends Controller
             'meta_title' => $request->meta_title,
             'meta_description' => $request->meta_description,
             'status' => (int) $request->status,
-            'published_at' => $request->published_at ?: now(),
+            'published_at' => $this->resolvePublishedAt($request->published_at),
         ];
 
         if ($request->hasFile('image')) {
@@ -89,7 +90,10 @@ class BlogController extends Controller
             'meta_title' => $request->meta_title,
             'meta_description' => $request->meta_description,
             'status' => (int) $request->status,
-            'published_at' => $request->published_at ?: $blog->published_at ?: now(),
+            'published_at' => $this->resolvePublishedAt(
+                $request->published_at,
+                $blog->published_at
+            ),
         ];
 
         if ($request->hasFile('image')) {
@@ -128,6 +132,23 @@ class BlogController extends Controller
         }
 
         return redirect()->route('admin.blog');
+    }
+
+    private function resolvePublishedAt($value, $fallback = null)
+    {
+        if (filled($value)) {
+            try {
+                return Carbon::parse($value, config('app.timezone'));
+            } catch (\Throwable $e) {
+                // fall through
+            }
+        }
+
+        if ($fallback) {
+            return $fallback;
+        }
+
+        return now();
     }
 
     private function storeImage($image): string
