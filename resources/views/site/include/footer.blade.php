@@ -10,7 +10,11 @@
     $wsAddress = $ws['address'] ?? '';
 
     $exam = \App\Models\Exam::where('status', 1)->where('type', 2)->where('is_in_footer', 1)->orderByDesc('id')->limit(8)->get();
-    $locations = \App\Models\Location::where('status', 1)->where('is_deleted', 0)->orderBy('location_name')->limit(8)->get();
+    $locationsQuery = \App\Models\Location::where('status', 1)->orderBy('location_name');
+    if (\Illuminate\Support\Facades\Schema::hasColumn('locations', 'is_deleted')) {
+        $locationsQuery->where('is_deleted', 0);
+    }
+    $locations = $locationsQuery->limit(8)->get();
 @endphp
 
 <footer class="rp-ft">

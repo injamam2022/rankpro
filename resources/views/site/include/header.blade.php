@@ -16,6 +16,9 @@
                     <a class="nav-link" href="{{ route('index') }}#pricing">Pricing</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('blog', 'blog.show') ? 'active' : '' }}" href="{{ route('blog') }}">Blog</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ route('contact') }}">Contact us</a>
                 </li>
             </ul>
