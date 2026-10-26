@@ -2366,7 +2366,7 @@ footer dd a:hover {
 }
 @media (max-width: 1208px) {
     .navbar .navbar-nav .nav-link {
-        padding: 66px 6px 0px 7px;
+        padding: 10px 8px;
         font-size: 14px;
     }
     .ranktestbuttons a {

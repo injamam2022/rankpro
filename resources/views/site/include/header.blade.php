@@ -1,10 +1,11 @@
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top wow fadeIn" data-wow-delay="0.1s">
     <div class="cusContainer fornavonly navbar-expand-lg" style="max-width: 1420px;">
-        <a href="{{ route('index') }}" class="navbar-brand ms-4 ms-lg-0">
-            <h1 class="text-primary m-0"><img src="{{ asset('') }}web/images/logo.png" alt="RankPro - Educational Advisory solutions">
+        <a href="{{ route('index') }}" class="navbar-brand">
+            <h1 class="text-primary m-0">
+                <img src="{{ asset('web/images/logo.png') }}" alt="RankPro - Educational Advisory solutions">
             </h1>
         </a>
-        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -25,14 +26,14 @@
             <div class="headerright">
                 @if (Auth::check())
                     <div class="loginRegistration">
-                        <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? ' active' : '' }}">Dashboard</a>
+                        <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">Dashboard</a>
                     </div>
                 @else
                     <div class="loginRegistration">
-                        <a href="{{ route('signup') }}" class="{{ request()->is('signup') ? ' active' : '' }}">Sign Up</a>
+                        <a href="{{ route('signup') }}" class="{{ request()->is('signup') ? 'active' : '' }}">Sign Up</a>
                     </div>
-                    <div class="loginRegistration" style="margin-left: 5px;">
-                        <a href="{{ route('login') }}" class="{{ request()->is('login') ? ' active' : '' }}">Login</a>
+                    <div class="loginRegistration">
+                        <a href="{{ route('login') }}" class="{{ request()->is('login') ? 'active' : '' }}">Login</a>
                     </div>
                 @endif
             </div>
