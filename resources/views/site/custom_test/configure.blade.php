@@ -69,7 +69,7 @@
                     <div class="ct-wrap">
                         <a class="ct-back" href="{{ route('custom_test') }}"><i class="fas fa-arrow-left"></i> Back</a>
                         <div class="ct-title">Configure test</div>
-                        <div class="ct-sub">{{ $subjectNames }} · {{ $totalQuestions }} questions</div>
+                        <div class="ct-sub">{{ $subjectNames }} · {{ $totalQuestions }} questions · {{ $totalMarks }} marks ({{ $marksPerQuestion }} each)</div>
 
                         <div class="ct-step-row">
                             <div class="ct-step-label">
@@ -88,10 +88,11 @@
                             <ul>
                                 @foreach($plan as $item)
                                     <li>{{ $item['name'] }} — {{ $item['question_count'] }} Qs
+                                        ({{ $item['question_count'] * $marksPerQuestion }} marks)
                                         @if(!empty($item['selection']))
-                                            (filtered chapters)
+                                            · filtered chapters
                                         @else
-                                            (all chapters)
+                                            · all chapters
                                         @endif
                                     </li>
                                 @endforeach

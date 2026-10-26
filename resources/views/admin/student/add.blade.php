@@ -49,6 +49,10 @@
                             <input class="form-control" id="address" type="text" name="address" placeholder=""  value="" />
                         </div>
                         <div class="col-sm-6">
+                            <label class="form-label" for="class_name">Class</label>
+                            @include('include._student_class_select')
+                        </div>
+                        <div class="col-sm-6">
                             <label class="form-label" for="exampleFormControlInput">Status</label>
                             <div class="form-check">
                                 <input class="form-check-input" id="status_active" type="radio" name="status" checked value="1" />

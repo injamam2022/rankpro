@@ -232,7 +232,7 @@
                                 <div class="ct-progress"><span class="on"></span><span></span></div>
                             </div>
 
-                            <div class="ct-hint">Tap <strong>Show Chapters</strong> on a subject to pick chapters/topics. Question counts appear only for subjects you select.</div>
+                            <div class="ct-hint">Tap <strong>Show Chapters</strong> on a subject to pick chapters/topics. Question counts appear only for subjects you select. Each question carries <strong>{{ custom_test_marks_per_question() }} marks</strong>.</div>
 
                             <form method="post" action="{{ route('custom_test.configure') }}" id="ct-step1-form">
                                 @csrf
@@ -338,7 +338,8 @@
         } else if (total < 1) {
             nextMeta.textContent = 'Choose how many questions for your selected subject(s)';
         } else {
-            nextMeta.textContent = subjects + ' subject' + (subjects === 1 ? '' : 's') + ' · ' + total + ' questions';
+            var marksEach = {{ custom_test_marks_per_question() }};
+            nextMeta.textContent = subjects + ' subject' + (subjects === 1 ? '' : 's') + ' · ' + total + ' questions · ' + (total * marksEach) + ' marks';
         }
     }
 

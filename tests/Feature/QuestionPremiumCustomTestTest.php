@@ -38,4 +38,9 @@ class QuestionPremiumCustomTestTest extends TestCase
 
         $this->assertSame([1, 3], $ids);
     }
+
+    public function test_custom_test_questions_are_four_marks_each(): void
+    {
+        $this->assertSame(4, custom_test_marks_per_question());
+    }
 }

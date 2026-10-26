@@ -145,7 +145,7 @@
                                                                 </span>
                                                             </div>
                                                         </td> 
-                                                        <td class="is-center">{{ $value->total_number }}/{{ $value->total_mark }}</td>
+                                                        <td class="is-center">{{ (int) round($value->total_number) }}/{{ (int) round($value->total_mark) }}</td>
                                                         <td class="is-center">{{ $pct }}@if($pct !== '—')%@endif</td>
                                                     </tr>
                                                 @empty
@@ -175,7 +175,7 @@
                                                                 <span>{{ $user_name }} <span class="rp-you-tag">YOU</span></span>
                                                             </div>
                                                         </td>
-                                                        <td class="is-center">{{ $my_leader_board->total_number }}/{{ $my_leader_board->total_mark }}</td>
+                                                        <td class="is-center">{{ (int) round($my_leader_board->total_number) }}/{{ (int) round($my_leader_board->total_mark) }}</td>
                                                         <td class="is-center">{{ $myPct }}@if($myPct !== '—')%@endif</td>
                                                     </tr>
                                                 @endif
@@ -220,7 +220,7 @@
                                                                 <span>{{ $user_name }} <span class="rp-you-tag">YOU</span></span>
                                                             </div>
                                                         </td>
-                                                        <td class="is-center">{{ $my_leader_board->total_number }}/{{ $my_leader_board->total_mark }}</td>
+                                                        <td class="is-center">{{ (int) round($my_leader_board->total_number) }}/{{ (int) round($my_leader_board->total_mark) }}</td>
                                                         <td class="is-center">{{ $myPct2 }}@if($myPct2 !== '—')%@endif</td>
                                                         <td class="is-center"><span class="rp-rank">#{{ $your_score }}</span></td>
                                                     </tr>
@@ -236,7 +236,7 @@
                                                               </div>
                                                         <div>
                                                             <div style="font-size:12px;font-weight:700;">{{ $value->name }}</div>
-                                                            <div style="font-size:11px;color:#64748b;">{{ (int)$value->count }} correct</div>
+                                                            <div style="font-size:11px;color:#64748b;">{{ (int) $value->count }} correct</div>
                                                           </div>
                                                       </div>
                                                   </div>
@@ -825,16 +825,17 @@
         });
       });
         
-      var max = {{ (int) $total_question }};
         @foreach($subject_list as $value)
       (function () {
         var el = document.getElementById("comparison_{{ $value->id }}");
         if (!el || typeof Chart === "undefined") return;
+        var correct = {{ (int) $value->count }};
+        var asked = {{ (int) ($value->asked ?? 0) }};
         new Chart(el, {
           type: "doughnut",
                 data: {
                     datasets: [{
-              data: [{{ (int) $value->count }}, Math.max(0, max - {{ (int) $value->count }})],
+              data: [correct, Math.max(0, asked - correct)],
               backgroundColor: ["#2563eb", "#e2e8f0"],
                         borderWidth: 0
                     }]
@@ -863,7 +864,7 @@
               ctx.fillStyle = "#64748b";
               ctx.fillText("Score", cx, cy - 4);
               ctx.font = "bold 13px Poppins, sans-serif";
-              ctx.fillStyle = "#0f172a";
+              ctx.fillStyle = Number(score) < 0 ? "#dc2626" : "#0f172a";
               ctx.fillText(score, cx, cy + 14);
                         ctx.restore();
                     }

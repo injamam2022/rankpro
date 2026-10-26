@@ -69,4 +69,60 @@ class StudentScope
 
         return request()->url() . ($query !== '' ? '?' . $query : '');
     }
+
+    public static function constrainOfficialAttempts($query, string $exams = 'exams', string $examUsers = 'exam_users', bool $includeSubject = true)
+    {
+        $query->where(function ($q) use ($exams) {
+            $q->whereNull($exams.'.exam_code')
+                ->orWhere($exams.'.exam_code', 'not like', 'CT-%');
+        })->where(function ($q) use ($examUsers) {
+            $q->whereNull($examUsers.'.exam_type')
+                ->orWhere($examUsers.'.exam_type', '<>', 'CUSTOM');
+        })->whereNotNull($examUsers.'.percentage');
+
+        $type = self::examType();
+        if ($type !== '') {
+            $query->where($exams.'.type', $type);
+        }
+
+        $subjectId = $includeSubject ? self::subjectId() : '';
+        if ($subjectId !== '') {
+            $query->where(function ($outer) use ($subjectId, $exams) {
+                $outer->where(function ($online) use ($subjectId, $exams) {
+                    $online->whereNotNull($exams.'.question_paper_id')
+                        ->whereExists(function ($sub) use ($subjectId, $exams) {
+                            $sub->selectRaw('1')
+                                ->from('question_paper_questions')
+                                ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                                ->whereColumn('question_paper_questions.question_paper_id', $exams.'.question_paper_id')
+                                ->where('questions.subject_id', $subjectId);
+                        });
+                })->orWhere(function ($offline) use ($subjectId, $exams) {
+                    $offline->whereNull($exams.'.question_paper_id')
+                        ->whereExists(function ($sub) use ($subjectId, $exams) {
+                            $sub->selectRaw('1')
+                                ->from('offline_exam_questions')
+                                ->whereColumn('offline_exam_questions.exam_id', $exams.'.id')
+                                ->where('offline_exam_questions.subject_id', $subjectId);
+                        });
+                });
+            });
+        }
+
+        return $query;
+    }
+
+    public static function officialAttemptSql(string $exams = 'exams', string $examUsers = 'exam_users'): string
+    {
+        $sql = " AND ({$exams}.exam_code IS NULL OR {$exams}.exam_code NOT LIKE 'CT-%')"
+            ." AND ({$examUsers}.exam_type IS NULL OR {$examUsers}.exam_type <> 'CUSTOM')"
+            ." AND {$examUsers}.percentage IS NOT NULL";
+
+        $type = self::examType();
+        if ($type !== '') {
+            $sql .= ' AND '.$exams.'.type = '.(int) $type;
+        }
+
+        return $sql;
+    }
 }

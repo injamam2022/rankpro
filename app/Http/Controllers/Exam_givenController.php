@@ -117,8 +117,9 @@ class Exam_givenController extends Controller
             ->when($exam_type !== null && $exam_type !== '', function ($query) use ($exam_type) {
                 $query->where('exams.type', $exam_type);
             })
-            ->where('exams.is_deleted', 0)
-            ->groupBy('exam_users.user_id', 'users.first_name', 'users.last_name', 'users.profile_img', 'users.rankpro_id');
+            ->where('exams.is_deleted', 0);
+        \App\Support\StudentScope::constrainOfficialAttempts($examListQuery);
+        $examListQuery->groupBy('exam_users.user_id', 'users.first_name', 'users.last_name', 'users.profile_img', 'users.rankpro_id');
 
         if ($data['exam_types']) {
             if ($data['exam_types'] == 1) {

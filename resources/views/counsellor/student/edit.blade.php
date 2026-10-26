@@ -68,8 +68,8 @@
                             <input class="form-control" id="school_name" type="text" name="school_name" placeholder=""  value="{{$details->school_name}}" />
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="class_name">Class Name </label>
-                            <input class="form-control" id="class_name" type="text" name="class_name" placeholder=""  value="{{$details->class_name}}" />
+                            <label class="form-label" for="class_name">Class</label>
+                            @include('include._student_class_select', ['selected' => $details->class_name])
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="section_name">Section Name </label>

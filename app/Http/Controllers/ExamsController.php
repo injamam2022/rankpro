@@ -278,8 +278,7 @@ class ExamsController extends Controller
                             ->orderBy('id','ASC')->get();
         // dd($question_paper_details);
 
-        $marks_per_question = ($question_paper_details->marks_per_question)?$question_paper_details->marks_per_question:1;
-        $totals_marks_for_exam = ($question_paper_details->totals_marks_for_exam)?$question_paper_details->totals_marks_for_exam:1;
+        [$marks_per_question, $totals_marks_for_exam] = $this->examScoringMarks($exam_details, $question_paper_details, $user_exam_detail);
         $negative_marking_applicable = ($question_paper_details->negative_marking_applicable)?$question_paper_details->negative_marking_applicable:0;
         $negative_marking_per_question = ($question_paper_details->negative_marking_per_question)?$question_paper_details->negative_marking_per_question:1;
         
@@ -399,8 +398,7 @@ class ExamsController extends Controller
                             ->where('question_paper_id',$exam_details->question_paper_id)
                             ->orderBy('id','ASC')->get();
 
-        $marks_per_question = ($question_paper_details->marks_per_question)?$question_paper_details->marks_per_question:1;
-        $totals_marks_for_exam = ($question_paper_details->totals_marks_for_exam)?$question_paper_details->totals_marks_for_exam:1;
+        [$marks_per_question, $totals_marks_for_exam] = $this->examScoringMarks($exam_details, $question_paper_details, $user_exam_detail);
         $negative_marking_applicable = ($question_paper_details->negative_marking_applicable)?$question_paper_details->negative_marking_applicable:0;
         $negative_marking_per_question = ($question_paper_details->negative_marking_per_question)?$question_paper_details->negative_marking_per_question:1;
 
@@ -536,6 +534,30 @@ class ExamsController extends Controller
         ]);
 
         return response()->json(['ok' => 1]);
+    }
+
+    private function examScoringMarks($exam, $paper, $examUser): array
+    {
+        $isCustom = $examUser && (string) ($examUser->exam_type ?? '') === 'CUSTOM';
+        $defaultPer = $isCustom ? custom_test_marks_per_question() : 1;
+        $per = (float) (optional($paper)->marks_per_question ?? 0);
+        if ($per <= 0) {
+            $per = (float) (optional($exam)->marks_per_question ?? 0);
+        }
+        if ($per <= 0) {
+            $per = $defaultPer;
+        }
+
+        $total = (float) (optional($paper)->totals_marks_for_exam ?? 0);
+        if ($total <= 0) {
+            $total = (float) (optional($exam)->totals_marks_for_exam ?? 0);
+        }
+        if ($total <= 0) {
+            $questionCount = (int) (optional($paper)->no_of_question ?? optional($exam)->no_of_question ?? 0);
+            $total = max(1, $questionCount * $per);
+        }
+
+        return [$per, $total];
     }
 
     private function attemptIsFinished($examUser, int $durationSeconds = 0): bool

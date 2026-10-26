@@ -55,6 +55,10 @@
                             <input class="form-control" id="address" type="text" name="address" placeholder=""  value="{{$details->address}}" />
                         </div>
                         <div class="col-sm-6">
+                            <label class="form-label" for="class_name">Class</label>
+                            @include('include._student_class_select', ['selected' => $details->class_name])
+                        </div>
+                        <div class="col-sm-6">
                             <label class="form-label" for="father_full_name">Father's Full Name <span class="text-danger">*</span></label>
                             <input class="form-control" id="father_full_name" type="text" name="father_full_name" placeholder=""  value="{{$details->father_full_name}}" />
                         </div>
