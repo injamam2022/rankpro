@@ -3334,6 +3334,22 @@ footer.rp-ft {
     line-height: 1.6;
     margin: 0;
 }
+.rp-blog-post__keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+.rp-blog-post__keywords span {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #345ff4;
+    font-size: 12px;
+    font-weight: 600;
+}
 .rp-blog-post__hero {
     margin: 24px 0;
     border-radius: 16px;

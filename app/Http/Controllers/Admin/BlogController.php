@@ -7,6 +7,7 @@ use App\Models\Blog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
 class BlogController extends Controller
@@ -28,22 +29,27 @@ class BlogController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'excerpt' => 'nullable|string|max:1000',
+            'slug' => 'nullable|string|max:255',
+            'excerpt' => 'nullable|string|max:2000',
             'content' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'keywords' => 'nullable|string|max:1000',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'status' => 'required|in:0,1',
             'published_at' => 'nullable|date',
         ]);
 
+        $slugSource = filled($request->slug) ? $request->slug : $request->title;
+
         $insertData = [
             'title' => $request->title,
-            'slug' => Blog::uniqueSlug($request->title),
+            'slug' => Blog::uniqueSlug($slugSource),
             'excerpt' => $request->excerpt,
             'content' => $request->content,
+            'keywords' => $this->normalizeKeywords($request->keywords),
             'meta_title' => $request->meta_title,
-            'meta_description' => $request->meta_description,
+            'meta_description' => $request->meta_description ?: Str::limit(strip_tags((string) $request->excerpt), 160, ''),
             'status' => (int) $request->status,
             'published_at' => $this->resolvePublishedAt($request->published_at),
         ];
@@ -71,9 +77,11 @@ class BlogController extends Controller
         $request->validate([
             'id' => 'required|exists:blogs,id',
             'title' => 'required|string|max:255',
-            'excerpt' => 'nullable|string|max:1000',
+            'slug' => 'nullable|string|max:255',
+            'excerpt' => 'nullable|string|max:2000',
             'content' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'keywords' => 'nullable|string|max:1000',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'status' => 'required|in:0,1',
@@ -81,14 +89,16 @@ class BlogController extends Controller
         ]);
 
         $blog = Blog::findOrFail($request->id);
+        $slugSource = filled($request->slug) ? $request->slug : $request->title;
 
         $updateData = [
             'title' => $request->title,
-            'slug' => Blog::uniqueSlug($request->title, $blog->id),
+            'slug' => Blog::uniqueSlug($slugSource, $blog->id),
             'excerpt' => $request->excerpt,
             'content' => $request->content,
+            'keywords' => $this->normalizeKeywords($request->keywords),
             'meta_title' => $request->meta_title,
-            'meta_description' => $request->meta_description,
+            'meta_description' => $request->meta_description ?: Str::limit(strip_tags((string) $request->excerpt), 160, ''),
             'status' => (int) $request->status,
             'published_at' => $this->resolvePublishedAt(
                 $request->published_at,
@@ -132,6 +142,18 @@ class BlogController extends Controller
         }
 
         return redirect()->route('admin.blog');
+    }
+
+    private function normalizeKeywords(?string $keywords): ?string
+    {
+        if ($keywords === null) {
+            return null;
+        }
+
+        $parts = preg_split('/\s*,\s*/', trim($keywords)) ?: [];
+        $parts = array_values(array_filter(array_map('trim', $parts)));
+
+        return $parts ? implode(', ', $parts) : null;
     }
 
     private function resolvePublishedAt($value, $fallback = null)

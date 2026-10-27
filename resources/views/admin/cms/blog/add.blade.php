@@ -19,18 +19,33 @@
                         </div>
 
                         <div class="col-sm-12 mb-3">
-                            <label class="form-label" for="excerpt">Short Excerpt</label>
-                            <textarea class="form-control" id="excerpt" name="excerpt" rows="3" maxlength="1000">{{ old('excerpt') }}</textarea>
+                            <label class="form-label" for="slug">URL / Slug</label>
+                            <div class="input-group">
+                                <span class="input-group-text">/blog/</span>
+                                <input class="form-control" id="slug" type="text" name="slug" value="{{ old('slug') }}" placeholder="auto-from-title" />
+                            </div>
+                            <small class="text-muted">Leave blank to generate from the title. Example: neet-revision-tips</small>
                         </div>
 
                         <div class="col-sm-12 mb-3">
-                            <label class="form-label" for="editor">Content</label>
+                            <label class="form-label" for="excerpt">Description</label>
+                            <textarea class="form-control" id="excerpt" name="excerpt" rows="4" maxlength="2000" placeholder="Short description shown on the blog card and post summary">{{ old('excerpt') }}</textarea>
+                        </div>
+
+                        <div class="col-sm-12 mb-3">
+                            <label class="form-label" for="editor">Full Content</label>
                             <textarea id="editor" name="content" class="form-control" rows="8">{{ old('content') }}</textarea>
                         </div>
 
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="image">Featured Image (PNG, JPG, WEBP)</label>
+                            <label class="form-label" for="image">Image (PNG, JPG, WEBP)</label>
                             <input class="form-control" id="image" type="file" name="image" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" />
+                        </div>
+
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label" for="keywords">Keywords</label>
+                            <input class="form-control" id="keywords" type="text" name="keywords" value="{{ old('keywords') }}" placeholder="NEET tips, revision, mock test" maxlength="1000" />
+                            <small class="text-muted">Comma-separated keywords for SEO</small>
                         </div>
 
                         <div class="col-sm-6 mb-3">
@@ -39,12 +54,12 @@
                         </div>
 
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="meta_title">SEO Title</label>
+                            <label class="form-label" for="meta_title">SEO Title (optional)</label>
                             <input class="form-control" id="meta_title" type="text" name="meta_title" value="{{ old('meta_title') }}" />
                         </div>
 
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="meta_description">SEO Description</label>
+                        <div class="col-sm-12 mb-3">
+                            <label class="form-label" for="meta_description">SEO Description (optional)</label>
                             <input class="form-control" id="meta_description" type="text" name="meta_description" value="{{ old('meta_description') }}" maxlength="500" />
                         </div>
 
@@ -80,5 +95,25 @@
         .catch(error => {
             console.error('Error initializing CKEditor:', error);
         });
+
+    (function () {
+        var title = document.getElementById('title');
+        var slug = document.getElementById('slug');
+        var slugTouched = false;
+
+        slug.addEventListener('input', function () {
+            slugTouched = slug.value.trim() !== '';
+        });
+
+        title.addEventListener('input', function () {
+            if (slugTouched) return;
+            slug.value = title.value
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
+        });
+    })();
 </script>
 @endsection

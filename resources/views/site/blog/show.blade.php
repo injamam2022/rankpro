@@ -5,7 +5,8 @@
     @include('site.include.seo', ['seo' => [
         'name' => $post->title,
         'title' => $title ?? null,
-        'description' => $meta_description ?? null,
+        'description' => $meta_description ?? ($post->excerpt ?: null),
+        'keywords' => $post->keywords ?: null,
         'image' => $post->image_url ?: null,
     ]])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -35,6 +36,15 @@
                 <h1>{{ $post->title }}</h1>
                 @if($post->excerpt)
                     <p class="rp-blog-post__excerpt">{{ $post->excerpt }}</p>
+                @endif
+                @if($post->keywords)
+                    <div class="rp-blog-post__keywords">
+                        @foreach(preg_split('/\s*,\s*/', $post->keywords) as $keyword)
+                            @if(trim($keyword) !== '')
+                                <span>{{ trim($keyword) }}</span>
+                            @endif
+                        @endforeach
+                    </div>
                 @endif
             </header>
 

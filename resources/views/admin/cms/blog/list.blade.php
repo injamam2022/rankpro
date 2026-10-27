@@ -20,7 +20,9 @@
             <thead>
                 <tr>
                     <th>Image</th>
-                    <th>Title</th>
+                    <th>Title / URL</th>
+                    <th>Description</th>
+                    <th>Keywords</th>
                     <th>Published</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -40,6 +42,12 @@
                             <td>
                                 <strong>{{ $row->title }}</strong>
                                 <div style="font-size:12px;color:#6b7280;">/blog/{{ $row->slug }}</div>
+                            </td>
+                            <td style="max-width:240px;">
+                                {{ \Illuminate\Support\Str::limit(strip_tags((string) $row->excerpt), 90) ?: '—' }}
+                            </td>
+                            <td style="max-width:180px;">
+                                {{ \Illuminate\Support\Str::limit((string) $row->keywords, 60) ?: '—' }}
                             </td>
                             <td>
                                 {{ $row->published_at ? $row->published_at->format('d M Y') : '—' }}

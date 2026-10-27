@@ -20,17 +20,26 @@
                         </div>
 
                         <div class="col-sm-12 mb-3">
-                            <label class="form-label" for="excerpt">Short Excerpt</label>
-                            <textarea class="form-control" id="excerpt" name="excerpt" rows="3" maxlength="1000">{{ old('excerpt', $details->excerpt) }}</textarea>
+                            <label class="form-label" for="slug">URL / Slug</label>
+                            <div class="input-group">
+                                <span class="input-group-text">/blog/</span>
+                                <input class="form-control" id="slug" type="text" name="slug" value="{{ old('slug', $details->slug) }}" />
+                            </div>
+                            <small class="text-muted">Public URL: {{ url('/blog') }}/{{ old('slug', $details->slug) }}</small>
                         </div>
 
                         <div class="col-sm-12 mb-3">
-                            <label class="form-label" for="editor">Content</label>
+                            <label class="form-label" for="excerpt">Description</label>
+                            <textarea class="form-control" id="excerpt" name="excerpt" rows="4" maxlength="2000">{{ old('excerpt', $details->excerpt) }}</textarea>
+                        </div>
+
+                        <div class="col-sm-12 mb-3">
+                            <label class="form-label" for="editor">Full Content</label>
                             <textarea id="editor" name="content" class="form-control" rows="8">{{ old('content', $details->content) }}</textarea>
                         </div>
 
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="image">Featured Image (PNG, JPG, WEBP)</label>
+                            <label class="form-label" for="image">Image (PNG, JPG, WEBP)</label>
                             <div class="d-flex align-items-center gap-3">
                                 <input class="form-control" id="image" type="file" name="image" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" />
                                 @if($details->image)
@@ -40,18 +49,24 @@
                         </div>
 
                         <div class="col-sm-6 mb-3">
+                            <label class="form-label" for="keywords">Keywords</label>
+                            <input class="form-control" id="keywords" type="text" name="keywords" value="{{ old('keywords', $details->keywords) }}" placeholder="NEET tips, revision, mock test" maxlength="1000" />
+                            <small class="text-muted">Comma-separated keywords for SEO</small>
+                        </div>
+
+                        <div class="col-sm-6 mb-3">
                             <label class="form-label" for="published_at">Publish Date</label>
                             <input class="form-control" id="published_at" type="datetime-local" name="published_at"
                                 value="{{ old('published_at', $details->published_at ? $details->published_at->format('Y-m-d\TH:i') : '') }}" />
                         </div>
 
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="meta_title">SEO Title</label>
+                            <label class="form-label" for="meta_title">SEO Title (optional)</label>
                             <input class="form-control" id="meta_title" type="text" name="meta_title" value="{{ old('meta_title', $details->meta_title) }}" />
                         </div>
 
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="meta_description">SEO Description</label>
+                        <div class="col-sm-12 mb-3">
+                            <label class="form-label" for="meta_description">SEO Description (optional)</label>
                             <input class="form-control" id="meta_description" type="text" name="meta_description" value="{{ old('meta_description', $details->meta_description) }}" maxlength="500" />
                         </div>
 
