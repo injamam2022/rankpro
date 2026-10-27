@@ -574,6 +574,65 @@
     <!--</div>-->
     <!-- leftfixt2 -->
 
+    <!-- Home blog -->
+    @if(isset($blog_posts) && $blog_posts->isNotEmpty())
+    <section class="hb" id="blog">
+        <div class="hb__inner">
+            <div class="hb__head">
+                <div class="hb__head-copy">
+                    <span class="hb__eyebrow"><i></i>From the RankPro desk</span>
+                    <h2 class="hb__title">NEET notes, strategy<br><span class="hb__grad">&amp; product updates</span></h2>
+                    <p class="hb__sub">Short reads that help you revise smarter and stay ahead of the paper.</p>
+                </div>
+                <a href="{{ route('blog') }}" class="hb__all">
+                    View all posts
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+            </div>
+
+            <div class="hb__grid">
+                @foreach($blog_posts as $post)
+                    <article class="hb__card">
+                        <a href="{{ route('blog.show', $post->slug) }}" class="hb__card-media" aria-label="{{ $post->title }}">
+                            @if($post->image_url)
+                                <img src="{{ $post->image_url }}" alt="{{ $post->title }}" loading="lazy">
+                            @else
+                                <div class="hb__card-placeholder">
+                                    <span>RankPro</span>
+                                </div>
+                            @endif
+                        </a>
+                        <div class="hb__card-body">
+                            <div class="hb__card-meta">
+                                <time datetime="{{ optional($post->published_at)->toDateString() }}">
+                                    {{ optional($post->published_at)->format('d M Y') ?: $post->created_at->format('d M Y') }}
+                                </time>
+                                @if($post->keywords)
+                                    @php $firstKeyword = trim(explode(',', $post->keywords)[0] ?? ''); @endphp
+                                    @if($firstKeyword !== '')
+                                        <span class="hb__card-tag">{{ \Illuminate\Support\Str::limit($firstKeyword, 22) }}</span>
+                                    @endif
+                                @endif
+                            </div>
+                            <h3 class="hb__card-title">
+                                <a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a>
+                            </h3>
+                            @if($post->excerpt)
+                                <p class="hb__card-desc">{{ \Illuminate\Support\Str::limit(strip_tags($post->excerpt), 110) }}</p>
+                            @endif
+                            <a class="hb__card-link" href="{{ route('blog.show', $post->slug) }}">
+                                Read article
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </a>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
+    <!-- Home blog end -->
+
    <!-- FAQ (redesigned) -->
     <section class="fq" id="faq">
         <div class="fq__inner">
@@ -1195,6 +1254,19 @@
                 gsap.from(".gl__head > *", { scrollTrigger:{ trigger:".gl", start:"top 78%" }, y:24, opacity:0, duration:.6, stagger:.1, ease:"power3.out" });
                 gsap.from(".gl__item", { scrollTrigger:{ trigger:".gl__grid", start:"top 82%" }, y:40, opacity:0, duration:.7, stagger:.06, ease:"power3.out" });
                 gsap.from(".mn__logo", { scrollTrigger:{ trigger:".mn", start:"top 85%" }, y:20, opacity:0, duration:.5, stagger:.08, ease:"power3.out" });
+            }
+
+            // ===== Home blog reveal =====
+            if (window.gsap && window.ScrollTrigger && document.querySelector(".hb")) {
+                gsap.registerPlugin(ScrollTrigger);
+                gsap.from(".hb__head-copy > *, .hb__all", {
+                    scrollTrigger: { trigger: ".hb", start: "top 78%" },
+                    y: 24, opacity: 0, duration: .6, stagger: .1, ease: "power3.out"
+                });
+                gsap.from(".hb__card", {
+                    scrollTrigger: { trigger: ".hb__grid", start: "top 82%" },
+                    y: 40, opacity: 0, duration: .7, stagger: .12, ease: "power3.out"
+                });
             }
 
             // ===== CTA reveal + magnetic button =====
