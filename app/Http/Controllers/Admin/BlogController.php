@@ -177,15 +177,45 @@ class BlogController extends Controller
     {
         $this->ensureUploadDirs();
 
-        $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+        $extension = strtolower($image->getClientOriginalExtension() ?: 'jpg');
+        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+            $extension = 'jpg';
+        }
 
-        $thumbPath = public_path('uploads/blog/thumbnail');
-        $img = Image::make($image->getRealPath());
-        $img->resize(400, null, function ($constraint) {
-            $constraint->aspectRatio();
-        })->save($thumbPath . '/' . $filename);
+        $filename = time() . '_' . uniqid() . '.' . $extension;
+        $fullPath = public_path('uploads/blog/' . $filename);
+        $thumbPath = public_path('uploads/blog/thumbnail/' . $filename);
 
-        $image->move(public_path('uploads/blog'), $filename);
+        // Save full + thumbnail with Intervention (avoid UploadedFile::move after
+        // Image::make, which often fails on Windows when the temp file is locked).
+        try {
+            $full = Image::make($image->getRealPath());
+            $full->orientate();
+            $full->save($fullPath, 90);
+
+            $thumb = Image::make($fullPath);
+            $thumb->resize(800, null, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            })->save($thumbPath, 85);
+        } catch (\Throwable $e) {
+            // Fallback without Intervention if GD/Imagick has issues.
+            if (!is_file($fullPath)) {
+                $image->move(public_path('uploads/blog'), $filename);
+            }
+            if (!is_file($thumbPath) && is_file($fullPath)) {
+                @copy($fullPath, $thumbPath);
+            }
+        }
+
+        if (!is_file($fullPath) && !is_file($thumbPath)) {
+            throw new \RuntimeException('Blog image upload failed. Please try another image.');
+        }
+
+        // Prefer having the full image; if only thumb exists, copy it up.
+        if (!is_file($fullPath) && is_file($thumbPath)) {
+            @copy($thumbPath, $fullPath);
+        }
 
         return $filename;
     }
