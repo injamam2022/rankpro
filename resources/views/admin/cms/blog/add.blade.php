@@ -43,24 +43,29 @@
                         </div>
 
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="keywords">Keywords</label>
-                            <input class="form-control" id="keywords" type="text" name="keywords" value="{{ old('keywords') }}" placeholder="NEET tips, revision, mock test" maxlength="1000" />
-                            <small class="text-muted">Comma-separated keywords for SEO</small>
-                        </div>
-
-                        <div class="col-sm-6 mb-3">
                             <label class="form-label" for="published_at">Publish Date</label>
                             <input class="form-control" id="published_at" type="datetime-local" name="published_at" value="{{ old('published_at') }}" />
                         </div>
 
+                        <div class="col-sm-12 mb-2 mt-2">
+                            <h5 class="mb-1">SEO tags (not shown on the page)</h5>
+                            <p class="text-muted mb-0" style="font-size:13px;">These only go into HTML &lt;title&gt; / &lt;meta&gt; tags for search engines.</p>
+                        </div>
+
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label" for="meta_title">SEO Title (optional)</label>
-                            <input class="form-control" id="meta_title" type="text" name="meta_title" value="{{ old('meta_title') }}" />
+                            <label class="form-label" for="meta_title">Meta Title</label>
+                            <input class="form-control" id="meta_title" type="text" name="meta_title" value="{{ old('meta_title') }}" placeholder="Defaults to the post title" />
+                        </div>
+
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label" for="meta_description">Meta Description</label>
+                            <input class="form-control" id="meta_description" type="text" name="meta_description" value="{{ old('meta_description') }}" maxlength="500" placeholder="Defaults to the Description field" />
                         </div>
 
                         <div class="col-sm-12 mb-3">
-                            <label class="form-label" for="meta_description">SEO Description (optional)</label>
-                            <input class="form-control" id="meta_description" type="text" name="meta_description" value="{{ old('meta_description') }}" maxlength="500" />
+                            <label class="form-label" for="keywords">Meta Keywords</label>
+                            <input class="form-control" id="keywords" type="text" name="keywords" value="{{ old('keywords') }}" placeholder="NEET tips, revision, mock test" maxlength="1000" />
+                            <small class="text-muted">Comma-separated. Used only in &lt;meta name="keywords"&gt; — not shown on the page.</small>
                         </div>
 
                         <div class="col-sm-6 mb-3">

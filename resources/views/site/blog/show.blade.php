@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    {{-- Meta title / meta description / keywords are SEO-only (head tags), not page content --}}
     @include('site.include.seo', ['seo' => [
         'name' => $post->title,
-        'title' => $title ?? null,
-        'description' => $meta_description ?? ($post->excerpt ?: null),
+        'title' => $post->meta_title ?: $post->title,
+        'description' => $post->meta_description ?: ($post->excerpt ?: null),
         'keywords' => $post->keywords ?: null,
         'image' => $post->image_url ?: null,
     ]])
@@ -36,15 +37,6 @@
                 <h1>{{ $post->title }}</h1>
                 @if($post->excerpt)
                     <p class="rp-blog-post__excerpt">{{ $post->excerpt }}</p>
-                @endif
-                @if($post->keywords)
-                    <div class="rp-blog-post__keywords">
-                        @foreach(preg_split('/\s*,\s*/', $post->keywords) as $keyword)
-                            @if(trim($keyword) !== '')
-                                <span>{{ trim($keyword) }}</span>
-                            @endif
-                        @endforeach
-                    </div>
                 @endif
             </header>
 

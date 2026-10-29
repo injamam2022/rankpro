@@ -171,39 +171,153 @@
                 <p class="pr__sub">Choose the plan that fits your NEET preparation journey. First 3 custom tests are completely free.</p>
             </div>
 
-            <div class="pr__grid">
-                @php
-                    $plans = [
-                        ['name'=>'Starter','tag'=>'Best value','featured'=>true,'desc'=>'For focused CBT practice','price'=>'1,999','period'=>'until 3 May 2027','cta'=>'Get this deal','features'=>['Real CBT-based practice platform','Chapter-wise practice (P/C/B)','Complete test series access','15 years NEET PYQs','Performance analytics']],
-                        ['name'=>'Pro','tag'=>'Popular','featured'=>false,'desc'=>'CBT + live classes','price'=>'2,999','period'=>'until 3 May 2027','cta'=>'Get this deal','features'=>['Everything in Starter','Live classes','Live poll-based sessions','Recorded lectures','Notes PDF (annotated)']],
-                        ['name'=>'Pro Plus','tag'=>'Popular','featured'=>false,'desc'=>'Full live + doubt solving','price'=>'4,999','period'=>'until 3 May 2027','cta'=>'Get this deal','features'=>['Everything in Pro','Live doubt-solving sessions','Extra AI credits','Theory lectures','Priority support']],
-                        ['name'=>'Elite','tag'=>'All access','featured'=>false,'desc'=>'Everything, all-in','price'=>'6,999','period'=>'until 3 May 2027','cta'=>'Get this deal','features'=>['Everything in Pro Plus','1-on-1 mentorship','Offline test centres','Rank prediction','Dedicated mentor']],
-                    ];
-                @endphp
+            @php
+                $ctaUrl = Auth::check() ? route('plans') : route('signup');
+                $freeUrl = Auth::check() ? route('custom_test') : route('signup');
+                $checkSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                $plans = [
+                    [
+                        'type' => 'standard',
+                        'theme' => 'sky',
+                        'name' => 'Free Custom Test Builder',
+                        'price' => null,
+                        'free' => true,
+                        'features' => [
+                            'Subject, chapter, topic and difficulty selection',
+                            '45 practice questions',
+                            'Instant results and answer key',
+                            'Kota faculty-designed questions',
+                        ],
+                        'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+                    ],
+                    [
+                        'type' => 'standard',
+                        'theme' => 'pink',
+                        'name' => 'Rank Chapter Master',
+                        'price' => '49',
+                        'free' => false,
+                        'features' => [
+                            '85 chapters across PCB',
+                            '45 questions per chapter',
+                            'Separate Botany and Zoology tests',
+                            'Chapter-wise performance analysis',
+                            'Topic-level strengths and weaknesses',
+                            'NEET-aligned practice',
+                        ],
+                        'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+                    ],
+                    [
+                        'type' => 'standard',
+                        'theme' => 'blue',
+                        'name' => 'Rank Builder',
+                        'price' => '2,499',
+                        'free' => false,
+                        'features' => [
+                            '18 tests: 12 unit, 4 review, 2 semi-major',
+                            'Online and OMR testing',
+                            'Subject, chapter and topic analysis',
+                            '8 custom tests included',
+                            'Individual and combined progress reports',
+                            'Weekly performance review',
+                        ],
+                        'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>',
+                    ],
+                    [
+                        'type' => 'standard',
+                        'theme' => 'violet',
+                        'name' => 'Rank Champion',
+                        'price' => '3,499',
+                        'free' => false,
+                        'features' => [
+                            '12 part-syllabus mock tests',
+                            'Online and OMR testing',
+                            'Accuracy and performance tracking',
+                            '15 custom tests included',
+                            'Individual and combined progress reports',
+                            'Weekly performance review',
+                            '1:1 faculty doubt-solving',
+                        ],
+                        'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 7"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>',
+                    ],
+                ];
+            @endphp
+
+            <div class="pr__slider" id="prSlider">
                 @foreach($plans as $p)
-                    <article class="pr__card {{ $p['featured'] ? 'is-featured' : '' }}">
-                        @if($p['featured'])<span class="pr__badge">Recommended</span>@endif
-                        <div class="pr__card-top">
-                            <span class="pr__tag">{{ $p['tag'] }}</span>
+                    <div class="pr__slide">
+                        <article class="pr__card pr__card--{{ $p['theme'] }}">
+                            <div class="pr__icon" aria-hidden="true">{!! $p['icon'] !!}</div>
                             <h3 class="pr__name">{{ $p['name'] }}</h3>
-                            <p class="pr__desc">{{ $p['desc'] }}</p>
-                        </div>
-                        <div class="pr__price">
-                            <span class="pr__currency">&#8377;</span><span class="pr__amount">{{ $p['price'] }}</span>
-                            <span class="pr__period">/ {{ $p['period'] }}</span>
-                        </div>
-                        <a href="{{ Auth::check() ? route('plans') : route('signup') }}" class="pr__cta {{ $p['featured'] ? 'pr__cta--solid' : '' }}">{{ $p['cta'] }}</a>
-                        <ul class="pr__features">
-                            @foreach($p['features'] as $f)
-                                <li>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    {{ $f }}
-                                </li>
-                            @endforeach
-                        </ul>
-                        <span class="pr__note">First 3 custom tests are free.</span>
-                    </article>
+                            @unless($p['free'])
+                                <a href="{{ $ctaUrl }}" class="pr__pill">&#8377;{{ $p['price'] }}</a>
+                            @endunless
+                            <ul class="pr__features">
+                                @foreach($p['features'] as $f)
+                                    <li>{!! $checkSvg !!}<span>{{ $f }}</span></li>
+                                @endforeach
+                            </ul>
+                            @if($p['free'])
+                                <a href="{{ $freeUrl }}" class="pr__pill pr__pill--free">Free</a>
+                            @endif
+                        </article>
+                    </div>
                 @endforeach
+
+                {{-- OMR Master (Centre / Home) --}}
+                <div class="pr__slide">
+                    <article class="pr__card pr__card--omr" id="prOmrCard">
+                        <div class="pr__omr-head">
+                            <div class="pr__omr-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="3" width="12" height="18" rx="1.5"/>
+                                    <line x1="7" y1="7" x2="13" y2="7"/>
+                                    <line x1="7" y1="11" x2="13" y2="11"/>
+                                    <line x1="7" y1="15" x2="10" y2="15"/>
+                                    <circle cx="16.5" cy="16.5" r="3.5"/>
+                                    <path d="M18.2 15.3l1.8-2.2"/>
+                                </svg>
+                            </div>
+                            <h3 class="pr__name">OMR Master</h3>
+                        </div>
+
+                        <div class="pr__omr-opts" role="tablist" aria-label="OMR Master delivery option">
+                            <button type="button" class="pr__omr-opt is-active" data-omr-opt="centre" role="tab" aria-selected="true">
+                                <span class="pr__omr-opt-label">Centre</span>
+                                <span class="pr__omr-opt-price">&#8377;4,999</span>
+                            </button>
+                            <button type="button" class="pr__omr-opt" data-omr-opt="home" role="tab" aria-selected="false">
+                                <span class="pr__omr-opt-label">Home</span>
+                                <span class="pr__omr-opt-price">&#8377;5,999</span>
+                            </button>
+                        </div>
+
+                        <div class="pr__omr-banner">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+                            <strong>30 Physical OMR Tests</strong>
+                        </div>
+
+                        <ul class="pr__features">
+                            <li>{!! $checkSvg !!}<span>18 part-syllabus + 12 full-syllabus tests</span></li>
+                            <li>{!! $checkSvg !!}<span>Kota faculty-designed questions with detailed solutions</span></li>
+                            <li>{!! $checkSvg !!}<span>Performance analysis and Mistake Monitor</span></li>
+                            <li>{!! $checkSvg !!}<span>15 custom tests + weekly and monthly reviews</span></li>
+                            <li>{!! $checkSvg !!}<span>1:1 faculty guidance and study planning</span></li>
+                        </ul>
+
+                        <div class="pr__omr-foot">
+                            <div class="pr__omr-foot-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <p><strong>Centre</strong> — Tests at the exam centre</p>
+                            </div>
+                            <div class="pr__omr-foot-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+                                <p><strong>Home</strong> — Physical test papers delivered to your home</p>
+                            </div>
+                        </div>
+
+                        <a href="{{ $ctaUrl }}" class="pr__omr-cta" id="prOmrCta">Get Centre — &#8377;4,999</a>
+                    </article>
+                </div>
             </div>
         </div>
     </section>
@@ -607,12 +721,6 @@
                                 <time datetime="{{ optional($post->published_at)->toDateString() }}">
                                     {{ optional($post->published_at)->format('d M Y') ?: $post->created_at->format('d M Y') }}
                                 </time>
-                                @if($post->keywords)
-                                    @php $firstKeyword = trim(explode(',', $post->keywords)[0] ?? ''); @endphp
-                                    @if($firstKeyword !== '')
-                                        <span class="hb__card-tag">{{ \Illuminate\Support\Str::limit($firstKeyword, 22) }}</span>
-                                    @endif
-                                @endif
                             </div>
                             <h3 class="hb__card-title">
                                 <a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a>
@@ -1076,18 +1184,60 @@
                 }
             })();
 
-            // ===== Pricing reveal =====
-            if (window.gsap && window.ScrollTrigger) {
-                gsap.registerPlugin(ScrollTrigger);
-                gsap.from(".pr__head > *", {
-                    scrollTrigger:{ trigger:".pr", start:"top 76%" },
-                    y:26, opacity:0, duration:.6, stagger:.1, ease:"power3.out"
-                });
-                gsap.from(".pr__card", {
-                    scrollTrigger:{ trigger:".pr__grid", start:"top 82%" },
-                    y:50, opacity:0, duration:.7, stagger:.1, ease:"power3.out"
-                });
-            }
+            // ===== Pricing slider + OMR toggle =====
+            (function(){
+                var $slider = $("#prSlider");
+                if ($slider.length && $.fn.slick) {
+                    $slider.slick({
+                        slidesToShow: 4,
+                        slidesToScroll: 1,
+                        infinite: false,
+                        dots: true,
+                        arrows: true,
+                        speed: 420,
+                        cssEase: "cubic-bezier(.22,.61,.36,1)",
+                        prevArrow: '<button type="button" class="slick-prev" aria-label="Previous plans"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>',
+                        nextArrow: '<button type="button" class="slick-next" aria-label="Next plans"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>',
+                        responsive: [
+                            { breakpoint: 1200, settings: { slidesToShow: 3 } },
+                            { breakpoint: 900, settings: { slidesToShow: 2 } },
+                            { breakpoint: 600, settings: { slidesToShow: 1, arrows: false } }
+                        ]
+                    });
+                }
+
+                var card = document.getElementById("prOmrCard");
+                var cta = document.getElementById("prOmrCta");
+                if (card && cta) {
+                    var labels = {
+                        centre: "Get Centre — ₹4,999",
+                        home: "Get Home — ₹5,999"
+                    };
+                    card.querySelectorAll("[data-omr-opt]").forEach(function(btn){
+                        btn.addEventListener("click", function(){
+                            card.querySelectorAll("[data-omr-opt]").forEach(function(b){
+                                b.classList.remove("is-active");
+                                b.setAttribute("aria-selected", "false");
+                            });
+                            btn.classList.add("is-active");
+                            btn.setAttribute("aria-selected", "true");
+                            cta.textContent = labels[btn.getAttribute("data-omr-opt")] || labels.centre;
+                        });
+                    });
+                }
+
+                if (window.gsap && window.ScrollTrigger) {
+                    gsap.registerPlugin(ScrollTrigger);
+                    gsap.from(".pr__head > *", {
+                        scrollTrigger:{ trigger:".pr", start:"top 76%" },
+                        y:26, opacity:0, duration:.6, stagger:.1, ease:"power3.out"
+                    });
+                    gsap.from(".pr__slider .slick-slide", {
+                        scrollTrigger:{ trigger:".pr__slider", start:"top 82%" },
+                        y:40, opacity:0, duration:.65, stagger:.08, ease:"power3.out"
+                    });
+                }
+            })();
 
             // ===== Benefits flow (draw line on scroll) =====
             (function(){

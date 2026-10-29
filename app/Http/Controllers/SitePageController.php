@@ -80,8 +80,6 @@ class SitePageController extends Controller
         $post = Blog::published()->where('slug', $slug)->firstOrFail();
 
         return view('site.blog.show', [
-            'title' => $post->meta_title ?: $post->title,
-            'meta_description' => $post->meta_description ?: $post->excerpt,
             'post' => $post,
         ]);
     }
