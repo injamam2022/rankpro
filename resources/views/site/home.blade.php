@@ -1188,21 +1188,40 @@
             (function(){
                 var $slider = $("#prSlider");
                 if ($slider.length && $.fn.slick) {
+                    function equalizePrSlides(){
+                        var $slides = $slider.find(".slick-slide");
+                        $slides.css("height", "auto");
+                        var max = 0;
+                        $slides.each(function(){
+                            max = Math.max(max, $(this).outerHeight());
+                        });
+                        if (max > 0) $slides.css("height", max);
+                    }
+
+                    $slider.on("init reInit setPosition", function(){
+                        equalizePrSlides();
+                    });
+
                     $slider.slick({
-                        slidesToShow: 4,
+                        slidesToShow: 3,
                         slidesToScroll: 1,
                         infinite: false,
                         dots: true,
                         arrows: true,
                         speed: 420,
+                        adaptiveHeight: false,
                         cssEase: "cubic-bezier(.22,.61,.36,1)",
                         prevArrow: '<button type="button" class="slick-prev" aria-label="Previous plans"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>',
                         nextArrow: '<button type="button" class="slick-next" aria-label="Next plans"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>',
                         responsive: [
-                            { breakpoint: 1200, settings: { slidesToShow: 3 } },
-                            { breakpoint: 900, settings: { slidesToShow: 2 } },
-                            { breakpoint: 600, settings: { slidesToShow: 1, arrows: false } }
+                            { breakpoint: 1100, settings: { slidesToShow: 2 } },
+                            { breakpoint: 700, settings: { slidesToShow: 1, arrows: false } }
                         ]
+                    });
+
+                    $(window).on("resize", function(){
+                        clearTimeout(window.__prEqT);
+                        window.__prEqT = setTimeout(equalizePrSlides, 120);
                     });
                 }
 
@@ -1231,10 +1250,6 @@
                     gsap.from(".pr__head > *", {
                         scrollTrigger:{ trigger:".pr", start:"top 76%" },
                         y:26, opacity:0, duration:.6, stagger:.1, ease:"power3.out"
-                    });
-                    gsap.from(".pr__slider .slick-slide", {
-                        scrollTrigger:{ trigger:".pr__slider", start:"top 82%" },
-                        y:40, opacity:0, duration:.65, stagger:.08, ease:"power3.out"
                     });
                 }
             })();
