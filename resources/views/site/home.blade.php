@@ -1188,18 +1188,30 @@
             (function(){
                 var $slider = $("#prSlider");
                 if ($slider.length && $.fn.slick) {
-                    function equalizePrSlides(){
+                    function equalizePrCards(){
+                        var $cards = $slider.find(".pr__card");
                         var $slides = $slider.find(".slick-slide");
-                        $slides.css("height", "auto");
+
+                        $cards.css({ height: "auto", minHeight: 0 });
+                        $slides.css({ height: "auto", minHeight: 0 });
+
                         var max = 0;
-                        $slides.each(function(){
-                            max = Math.max(max, $(this).outerHeight());
+                        $cards.each(function(){
+                            max = Math.max(max, Math.ceil($(this).outerHeight()));
                         });
-                        if (max > 0) $slides.css("height", max);
+                        if (max < 1) return;
+
+                        $cards.css({ height: max, minHeight: max });
+                        $slides.each(function(){
+                            $(this).css({ height: max, minHeight: max });
+                        });
                     }
 
-                    $slider.on("init reInit setPosition", function(){
-                        equalizePrSlides();
+                    $slider.on("init reInit afterChange", function(){
+                        requestAnimationFrame(function(){
+                            equalizePrCards();
+                            setTimeout(equalizePrCards, 80);
+                        });
                     });
 
                     $slider.slick({
@@ -1219,9 +1231,9 @@
                         ]
                     });
 
-                    $(window).on("resize", function(){
+                    $(window).on("load resize", function(){
                         clearTimeout(window.__prEqT);
-                        window.__prEqT = setTimeout(equalizePrSlides, 120);
+                        window.__prEqT = setTimeout(equalizePrCards, 120);
                     });
                 }
 
