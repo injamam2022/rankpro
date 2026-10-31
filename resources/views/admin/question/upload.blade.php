@@ -66,7 +66,7 @@
 
         <div class="rp-upload-steps">
             <div class="rp-upload-step"><strong>Step 1</strong> Download the sample (mixed normal MCQs + 2 image question/answer examples).</div>
-            <div class="rp-upload-step"><strong>Step 2</strong> Fill new rows. Use Chapter / Topic / Sub Topic IDs from the admin lists.</div>
+            <div class="rp-upload-step"><strong>Step 2</strong> Fill new rows. Use Chapter / Topic / Sub Topic IDs from the admin lists. Set <strong>Premium = 1</strong> for Course Packages / Chapter Master, or <strong>0</strong> for Custom Test.</div>
             <div class="rp-upload-step"><strong>Step 3</strong> For images: put the file name in the cell, set Is OptionN Image = 1, and include those files in a Zip.</div>
             <div class="rp-upload-step"><strong>Step 4</strong> Select Subject, choose XLSX (+ Image Zip if needed), then Submit.</div>
         </div>

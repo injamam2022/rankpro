@@ -126,6 +126,9 @@
         <li class="{{ request()->is('custom-test') || request()->is('custom-test/*') ? 'active' : '' }}">
             <a href="{{ route('custom_test', $scopeQ) }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Custom Test</span></a>
         </li>
+        <li class="{{ request()->is('chapter-master') || request()->is('chapter-master/*') ? 'active' : '' }}">
+            <a href="{{ route('chapter_master') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Chapter Master</span></a>
+        </li>
 
         <li class="menuHasSub {{ ($examSubOpen || request()->is('exam-given') || request()->is('exam-given/*')) ? 'active' : '' }} {{ $examSubOpen ? 'open' : '' }}">
             <div class="menuItemRow">
@@ -206,6 +209,9 @@
             <a href="{{ route('report_problem') }}"><img src="{{ asset('') }}web/images/d_headset_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Report a problem</span></a>
         </li>
 
+        <li class="{{ request()->is('my-orders') || request()->is('my-orders/*') ? 'active' : '' }}">
+            <a href="{{ route('my_orders') }}"><img src="{{ asset('') }}web/images/d_planning_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>My Orders</span></a>
+        </li>
         <li class="{{ request()->is('plans') || request()->is('plans/*') ? 'active' : '' }}">
             <a href="{{ route('plans') }}"><img src="{{ asset('') }}web/images/d_upgrade_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Upgrade</span></a>
         </li>

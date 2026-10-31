@@ -375,6 +375,23 @@
                                 </div>
                             @endif
 
+                            {{-- Course Packages: always visible top-level menu --}}
+                            <a class="nav-link collapsed
+                                {{ request()->is('admin/course-package*') || request()->is('admin/course-schedule*') ? ' active' : '' }}
+                                " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseCoursePackages" aria-expanded="{{ request()->is('admin/course-package*') || request()->is('admin/course-schedule*') ? 'true' : 'false' }}" aria-controls="collapseCoursePackages">
+                                    <div class="nav-link-icon"><i class="material-icons">school</i></div>
+                                    Course Packages
+                                    <div class="drawer-collapse-arrow"><i class="material-icons">expand_more</i></div>
+                            </a>
+                            <div class="collapse {{ request()->is('admin/course-package*') || request()->is('admin/course-schedule*') ? 'show' : '' }}" id="collapseCoursePackages" aria-labelledby="headingCoursePackages" data-bs-parent="#drawerAccordion">
+                                <nav class="drawer-menu-nested nav">
+                                    <a class="nav-link {{ request()->is('admin/course-package') && !request()->is('admin/course-package/orders*') && !request()->is('admin/course-package/order*') ? ' active' : '' }} {{ request()->is('admin/course-package/add') || request()->is('admin/course-package/edit') ? ' active' : '' }}" href="{{ route('admin.course_package') }}">Packages</a>
+                                    <a class="nav-link {{ request()->is('admin/course-package/orders') || request()->is('admin/course-package/order-detail') ? ' active' : '' }}" href="{{ route('admin.course_package.orders') }}">Package Orders</a>
+                                    <a class="nav-link {{ request()->is('admin/course-schedule') || request()->is('admin/course-schedule/*') ? ' active' : '' }}" href="{{ route('admin.course_schedule') }}">Test Schedule</a>
+                                    <a class="nav-link {{ request()->is('admin/premium-bank') ? ' active' : '' }}" href="{{ route('admin.premium_bank') }}">Premium Bank</a>
+                                </nav>
+                            </div>
+
                             @if(isUserPermitted('student', 'menu'))
                                 <a class="nav-link collapsed
                                     {{ request()->is('admin/student') ? ' active' : '' }} {{ request()->is('admin/student/*') ? ' active' : '' }}
@@ -438,6 +455,7 @@
 
                                 <a class="nav-link collapsed
                                     {{ request()->is('admin/payment') ? ' active' : '' }} {{ request()->is('admin/payment/*') ? ' active' : '' }}
+                                    {{ request()->is('admin/course-package/orders') || request()->is('admin/course-package/order-detail') ? ' active' : '' }}
 
                                     " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapsePayment" aria-expanded="false" aria-controls="collapsePayment">
                                         <div class="nav-link-icon"><i class="material-icons">menu_book</i></div>
@@ -453,6 +471,7 @@
                                         @if(isUserPermitted('payment-ranker-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/payment/ranker') ? ' active' : '' }} {{ request()->is('admin/payment/ranker_detail') ? ' active' : '' }}" href="{{route('admin.payment.ranker')}}">Ranker</a>
                                         @endif
+                                        <a class="nav-link {{ request()->is('admin/course-package/orders') || request()->is('admin/course-package/order-detail') ? ' active' : '' }}" href="{{ route('admin.course_package.orders') }}">Course Package Orders</a>
                                         @if(false && isUserPermitted('payment-new-light-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/payment/new_light') ? ' active' : '' }} {{ request()->is('admin/payment/new_light_detail') ? ' active' : '' }}" href="{{route('admin.payment.new_light')}}">New Light</a>
                                         @endif
@@ -476,6 +495,7 @@
                                 <div class="collapse" id="collapseQuestion" aria-labelledby="headingOne" data-bs-parent="#drawerAccordion">
                                     <nav class="drawer-menu-nested nav">
                                         <a class="nav-link {{ request()->is('admin/question') ? ' active' : '' }} {{ request()->is('admin/question/*') ? ' active' : '' }}" href="{{route('admin.question')}}">Question</a>
+                                        <a class="nav-link {{ request()->is('admin/premium-bank') ? ' active' : '' }}" href="{{ route('admin.premium_bank') }}">Premium Bank</a>
                                         <a class="nav-link {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}" href="{{route('admin.question.upload')}}">Question Upload</a>
                                         <a class="nav-link {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}" href="{{route('admin.question_paper')}}">Question Bank</a>
                                         <a class="nav-link {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}" href="{{ route('admin.custom_test_bank') }}">Custom Test Bank</a>
@@ -524,6 +544,7 @@
                                         @endif
                                         @if(isUserPermitted('question-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/question') ? ' active' : '' }} {{ request()->is('admin/question/*') ? ' active' : '' }}" href="{{route('admin.question')}}">Question</a>
+                                            <a class="nav-link {{ request()->is('admin/premium-bank') ? ' active' : '' }}" href="{{ route('admin.premium_bank') }}">Premium Bank</a>
                                         @endif
                                         @if(isUserPermitted('question-upload-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}" href="{{route('admin.question.upload')}}">Question Upload</a>

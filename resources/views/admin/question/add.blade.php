@@ -294,17 +294,18 @@
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Premium</label>
-                            <div class="form-control" style="display:flex;">
+                            <label class="form-label">Question segment (Premium)</label>
+                            <div class="form-control" style="display:flex;flex-wrap:wrap;gap:8px;">
                                 <div class="form-check">
                                     <input class="form-check-input" id="is_premium_no" type="radio" name="is_premium" checked value="0" />
-                                    <label class="form-check-label" for="is_premium_no">No</label>
+                                    <label class="form-check-label" for="is_premium_no">Non-premium (Custom Test)</label>
                                 </div>
                                 <div class="form-check" style="margin-left: 15px;">
                                     <input class="form-check-input" id="is_premium_yes" type="radio" name="is_premium" value="1" />
-                                    <label class="form-check-label" for="is_premium_yes">Yes</label>
+                                    <label class="form-check-label" for="is_premium_yes">Premium (Course Packages / Chapter Master)</label>
                                 </div>
                             </div>
+                            <small class="text-muted">Custom Test uses non-premium only. Paid course packages use premium only.</small>
                         </div>
 
                         

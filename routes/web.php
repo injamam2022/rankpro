@@ -9,6 +9,8 @@
     use App\Http\Controllers\StudentsController;
     use App\Http\Controllers\ExamsController;
     use App\Http\Controllers\CustomTestController;
+    use App\Http\Controllers\CoursePackageController;
+    use App\Http\Controllers\ChapterMasterController;
 
     //Sourav Start
     use App\Http\Controllers\AdmissionController;
@@ -62,6 +64,9 @@
 
     use App\Http\Controllers\Admin\CouponController;
     use App\Http\Controllers\Admin\CourseController;
+    use App\Http\Controllers\Admin\CoursePackageController as AdminCoursePackageController;
+    use App\Http\Controllers\Admin\CoursePackageOrderController as AdminCoursePackageOrderController;
+    use App\Http\Controllers\Admin\CourseScheduleController as AdminCourseScheduleController;
 
     use App\Http\Controllers\Admin\Admin_userController;
     use App\Http\Controllers\Admin\TeacherController;
@@ -216,10 +221,21 @@
     Route::get('/profile', [StudentsController::class, 'profile'])->name('profile')->middleware(['verifyMembership']);
     Route::post('/update-profile', [StudentsController::class, 'update_profile'])->name('update_profile')->middleware(['verifyMembership']);
     Route::get('/my-courses', [StudentsController::class, 'my_courses'])->name('my_courses')->middleware(['verifyMembership']);
+    Route::get('/my-orders', [CoursePackageController::class, 'myOrders'])->name('my_orders')->middleware(['verifyMembership']);
     Route::get('/schedule', [StudentsController::class, 'schedule'])->name('schedule')->middleware(['verifyMembership']);
     Route::get('/result', [StudentsController::class, 'result'])->name('result')->middleware(['verifyMembership']);
     Route::get('/rankers-for-rankers', [StudentsController::class, 'rankers_for_rankers'])->name('rankers_for_rankers')->middleware(['verifyMembership']);
     Route::get('/plans', [StudentsController::class, 'plans'])->name('plans')->middleware(['verifyMembership']);
+
+    Route::get('/course-packages', [CoursePackageController::class, 'index'])->name('course_packages');
+    Route::get('/course-packages/{slug}', [CoursePackageController::class, 'show'])->name('course_packages.show');
+    Route::get('/course-packages/{slug}/checkout', [CoursePackageController::class, 'checkout'])->name('course_packages.checkout')->middleware(['verifyMembership']);
+    Route::post('/course-packages/{slug}/place-order', [CoursePackageController::class, 'placeOrder'])->name('course_packages.place_order')->middleware(['verifyMembership']);
+
+    Route::get('/chapter-master', [ChapterMasterController::class, 'index'])->name('chapter_master')->middleware(['verifyMembership']);
+    Route::get('/chapter-master/subject/{subjectId}', [ChapterMasterController::class, 'subject'])->name('chapter_master.subject')->middleware(['verifyMembership']);
+    Route::get('/chapter-master/subject/{subjectId}/data', [ChapterMasterController::class, 'chaptersData'])->name('chapter_master.chapters_data')->middleware(['verifyMembership']);
+    Route::post('/chapter-master/start', [ChapterMasterController::class, 'start'])->name('chapter_master.start')->middleware(['verifyMembership']);
     Route::get('/terms-and-condition', [StudentsController::class, 'terms_and_condition'])->name('terms_and_condition')->middleware(['verifyMembership']);
     Route::get('/report-problem', [StudentsController::class, 'report_problem'])->name('report_problem')->middleware(['verifyMembership']);
     Route::post('/report-problem-save', [StudentsController::class, 'report_problem_save'])->name('report_problem_save')->middleware(['verifyMembership']);
@@ -418,6 +434,19 @@
         Route::get('/course/delete', [CourseController::class, 'delete'])->name('course.delete');
         Route::get('/course/change', [CourseController::class, 'change'])->name('course.change');
 
+        Route::get('/course-package', [AdminCoursePackageController::class, 'list'])->name('course_package');
+        Route::get('/course-package/add', [AdminCoursePackageController::class, 'add'])->name('course_package.add');
+        Route::post('/course-package/save', [AdminCoursePackageController::class, 'save'])->name('course_package.save');
+        Route::get('/course-package/edit', [AdminCoursePackageController::class, 'edit'])->name('course_package.edit');
+        Route::post('/course-package/update', [AdminCoursePackageController::class, 'update'])->name('course_package.update');
+        Route::get('/course-package/delete', [AdminCoursePackageController::class, 'delete'])->name('course_package.delete');
+        Route::get('/course-package/change', [AdminCoursePackageController::class, 'change'])->name('course_package.change');
+        Route::get('/course-package/orders', [AdminCoursePackageOrderController::class, 'list'])->name('course_package.orders');
+        Route::get('/course-package/order-detail', [AdminCoursePackageOrderController::class, 'detail'])->name('course_package.order_detail');
+        Route::post('/course-package/order-fulfillment', [AdminCoursePackageOrderController::class, 'updateFulfillment'])->name('course_package.order_fulfillment');
+        Route::get('/course-schedule', [AdminCourseScheduleController::class, 'list'])->name('course_schedule');
+        Route::get('/course-schedule/change', [AdminCourseScheduleController::class, 'change'])->name('course_schedule.change');
+
         Route::get('/student', [StudentController::class, 'list'])->name('student');
         Route::get('/student/add', [StudentController::class, 'add'])->name('student.add');
         Route::post('/student/save', [StudentController::class, 'save'])->name('student.save');
@@ -435,7 +464,10 @@
         Route::post('/question/update', [QuestionController::class, 'update'])->name('question.update');
         Route::get('/question/delete', [QuestionController::class, 'delete'])->name('question.delete');
         Route::post('/question/bulk-delete-duplicates', [QuestionController::class, 'bulkDeleteDuplicates'])->name('question.bulk_delete_duplicates');
+        Route::post('/question/bulk-segment', [QuestionController::class, 'bulkSegment'])->name('question.bulk_segment');
         Route::get('/question/change', [QuestionController::class, 'change'])->name('question.change');
+        Route::get('/question/change-segment', [QuestionController::class, 'changeSegment'])->name('question.change_segment');
+        Route::get('/premium-bank', [QuestionController::class, 'premiumBank'])->name('premium_bank');
 
         Route::get('/question-upload', [QuestionController::class, 'upload'])->name('question.upload');
         Route::get('/question-upload/sample', [QuestionController::class, 'upload_sample'])->name('question.upload_sample');

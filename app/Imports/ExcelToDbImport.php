@@ -145,7 +145,7 @@ class ExcelToDbImport implements ToCollection, WithHeadingRow
                         'topic_id' => $topicId,
                         'sub_topic_id' => $subTopicId,
                         'difficulty_level' => $difficulty,
-                        'is_premium' => 0,
+                        'is_premium' => $this->premiumFlag($val),
                         'question_type_id' => (int) ($val['question_type'] ?? 0),
                         'question_source_id' => $sourceIds[0] ?? 0,
                         'solution_video_link' => trim((string) ($val['solution_video_link'] ?? '')),
@@ -205,6 +205,12 @@ class ExcelToDbImport implements ToCollection, WithHeadingRow
         if (!isset($map['sub_topic']) && isset($map['subtopic'])) {
             $map['sub_topic'] = $map['subtopic'];
         }
+        if (!isset($map['is_premium']) && isset($map['premium'])) {
+            $map['is_premium'] = $map['premium'];
+        }
+        if (!isset($map['is_premium']) && isset($map['question_segment'])) {
+            $map['is_premium'] = $map['question_segment'];
+        }
 
         return $map;
     }
@@ -233,6 +239,25 @@ class ExcelToDbImport implements ToCollection, WithHeadingRow
         }
         $value = strtolower(trim((string) $value));
         return in_array($value, ['1', 'yes', 'y', 'true'], true) ? 1 : 0;
+    }
+
+    /** 1 = Course Packages premium bank; 0 = Custom Test (default). */
+    protected function premiumFlag(array $val): int
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('questions', 'is_premium')) {
+            return 0;
+        }
+
+        $raw = $val['is_premium'] ?? $val['premium'] ?? 0;
+        if (is_bool($raw)) {
+            return $raw ? 1 : 0;
+        }
+        $value = strtolower(trim((string) $raw));
+        if (in_array($value, ['1', 'yes', 'y', 'true', 'premium', 'course_package', 'course packages', 'chapter_master'], true)) {
+            return 1;
+        }
+
+        return 0;
     }
 
     protected function taxonomyBelongsToSubject(int $chapterId, int $topicId, int $subTopicId): bool

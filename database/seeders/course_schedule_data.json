@@ -1,0 +1,680 @@
+[
+  {
+    "section": "part",
+    "seq": 1.0,
+    "test_date": "2026-10-24",
+    "test_type": "Unit Test - 01",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Basic Maths, Unit and Dimension, Error Analysis, Vector, Kinematics"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Atomic Structure, Periodic Table"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Animal Kingdom"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Cell - The Unit of Life, Cell Cycle and Cell Division"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 2.0,
+    "test_date": "2026-10-31",
+    "test_type": "Unit Test \u2013 02",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "NLM, Friction, Work Power Energy,Circular Motion"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Redox reaction, Some basic concept of Chemistry (Mole concept)"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Breathing and exchange of Gases, Body fluid and Circulation"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : The Living World, Biological Classification"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 3.0,
+    "test_date": "2026-11-07",
+    "test_type": "Unit Test - 03",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Centre of Mass, Rotation, Gravitation"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Chemical Bonding and Molecular str , D & F block elements"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Excretory products and their Elimination , Locomotion and Movement"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Plant Kingdom, Cell - The Unit of Life"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 4.0,
+    "test_date": "2026-11-14",
+    "test_type": "Review test-1",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Based on the syllabus of Unit test 1, 2, 3"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 5.0,
+    "test_date": "2026-11-21",
+    "test_type": "Unit Test - 04",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Elasticity, Fluid Mechanics"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Chemical Equilibrium, Co-ordination Compounds"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Neural control and co-ordination, Chemical control and co-ordination"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Morphology of flowering plants, Microbes in Human Welfare"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 6.0,
+    "test_date": "2026-11-28",
+    "test_type": "Unit Test \u2013 05",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Thermal Physics, KTG, Thermodynamic"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Thermodynamics, P-block elements (group 13 to 18)"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Human Reproduction, Reproductive Health"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Anatomy in Flowering Plant, Biological Classification"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 7.0,
+    "test_date": "2026-12-05",
+    "test_type": "Unit Test - 06",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Oscillation and Waves"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Ionic Equilibrium, Electro chemistry"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Evolution, Biomolecules (Except Enzyme)"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Sexual reproduction in flowering plants, Plant Kingdom"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 8.0,
+    "test_date": "2026-12-12",
+    "test_type": "Review Test-2",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Based on the syllabus of Unit test \u2013 4, 5, 6"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 9.0,
+    "test_date": "2026-12-19",
+    "test_type": "Semi Major Test - 01",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Based on the complete syllabus of Unit Test 1 to 6"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 10.0,
+    "test_date": "2026-12-26",
+    "test_type": "Unit Test \u2013 07",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Electrostatics, Capacitor, Current Electricity"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Chemical Kinetics, Classification & Nomenclature (IUPAC)"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Biotechnology and it\u2019s principal & application, Enzyme"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Principle of Inheritance, Cell - The Unit of Life"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 11.0,
+    "test_date": "2027-01-02",
+    "test_type": "Unit Test \u2013 08",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Electromagnetism, Natural Magnetism and Matter"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Solution, Lyophilic and Lyophobic sol. Isomerism"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Human Health and Disease, Reproductive Health"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Biological Classification, Molecular basis of Inheritance."
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 12.0,
+    "test_date": "2027-01-09",
+    "test_type": "Unit Test \u2013 09",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Electromagnetic Induction, Alternating Current, Electromagnetic Waves"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "General Organic Chemistry (GOC-1), Purification and Characterisation of Organic compounds, Hydrocarbon"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Complete Human Physiology, Biotechnology and it\u2019s principal & application"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Plant Growth and Development, Photosynthesis"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 13.0,
+    "test_date": "2027-01-16",
+    "test_type": "Review Test-3",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Based on the complete syllabus of Unit Test 7 to 9"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 14.0,
+    "test_date": "2027-01-23",
+    "test_type": "Unit Test \u2013 10",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Ray and wave Optics, Optical Instruments"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Organic compound containing halogens (Halo alkane and Haloarenes), Alcohols, Phenols & Ether"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Fundamentals of Animal Tissue, Frog, Cockroach"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Respiration, Organism and Population"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 15.0,
+    "test_date": "2027-01-30",
+    "test_type": "Unit Test \u2013 11",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Dual nature of Radiation and Matter, Atomic Physics"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Carbonyl comp (Aldehydes, ketones), Carboxylic Acid & it\u2019s derivatives"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Evolution, Cell and its division , Bio molecules"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Animal Kingdom, Evolution, Biomolecules"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 16.0,
+    "test_date": "2027-02-06",
+    "test_type": "Unit Test \u2013 12",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Nuclear Physics, Semiconductor Electronics"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": "Amines , Biomolecules, Principal related to practical chemistry, Salt Analysis"
+      },
+      {
+        "subject": "Biology",
+        "topics": "Zoology : Human Reproduction, Reproductive Health, Neural control and co-ordination, Chemical control and co-ordination"
+      },
+      {
+        "subject": "",
+        "topics": "Botany : Molecular Basis of Inheritance, Biodiversity and its Conservation"
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 17.0,
+    "test_date": "2027-02-13",
+    "test_type": "Review Test-4",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Based on the syllabus of Unit Test 10, 11, 12"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "part",
+    "seq": 18.0,
+    "test_date": "2027-02-20",
+    "test_type": "Semi Major Test \u2013 02",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Based on the syllabus of Unit Test 7 to 12"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 1.0,
+    "test_date": "2027-02-27",
+    "test_type": "Full Syllabus Test \u2013 01",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 2.0,
+    "test_date": "2027-03-03",
+    "test_type": "Full Syllabus Test \u2013 02",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 3.0,
+    "test_date": "2027-03-06",
+    "test_type": "Full Syllabus Test \u2013 03",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 4.0,
+    "test_date": "2027-03-13",
+    "test_type": "Full Syllabus Test \u2013 04",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 5.0,
+    "test_date": "2027-03-20",
+    "test_type": "Full Syllabus Test \u2013 05",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 6.0,
+    "test_date": "2027-03-24",
+    "test_type": "Full Syllabus Test \u2013 06",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 7.0,
+    "test_date": "2027-03-27",
+    "test_type": "Full Syllabus Test \u2013 07",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 8.0,
+    "test_date": "2027-04-03",
+    "test_type": "Full Syllabus Test \u2013 08",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 9.0,
+    "test_date": "2027-04-10",
+    "test_type": "Full Syllabus Test \u2013 09",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 10.0,
+    "test_date": "2027-04-17",
+    "test_type": "Full Syllabus Test \u2013 10",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 11.0,
+    "test_date": "2027-04-24",
+    "test_type": "Full Syllabus Test \u2013 11",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  },
+  {
+    "section": "full",
+    "seq": 12.0,
+    "test_date": "2027-04-28",
+    "test_type": "Full Syllabus Test \u2013 12",
+    "timing": "2 PM - 5 PM",
+    "subjects": [
+      {
+        "subject": "Physics",
+        "topics": "Full Syllabus"
+      },
+      {
+        "subject": "Chemistry",
+        "topics": ""
+      },
+      {
+        "subject": "Biology",
+        "topics": ""
+      }
+    ]
+  }
+]

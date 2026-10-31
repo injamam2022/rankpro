@@ -95,10 +95,14 @@
 @section('content')
     <div class="container-xl px-5">
         <div class="d-flex mt-10 mb-4" style="display:flex;">
-            <div class="" style="width: calc(100% - 50px);">
+            <div class="" style="width: calc(100% - 220px);">
                 <h1 class="page-header mb-0">Question</h1>
+                <div class="text-muted small mt-1">Non-premium → Custom Test · Premium → Course Packages / Chapter Master</div>
             </div>
-            <div>
+            <div class="rp-actions">
+                <a href="{{ route('admin.premium_bank') }}" class="rp-act rp-act-view rp-act-label" title="Premium coverage">
+                    <i class="material-icons">workspace_premium</i> Premium bank
+                </a>
                 <a href="{{route('admin.question.add')}}" class="rp-act rp-act-add">
                     <i class="material-icons">add</i>
                     Add
@@ -144,11 +148,11 @@
                 </select>
             </div>
             <div class="admin-list-field">
-                <label for="is_premium">Premium</label>
+                <label for="is_premium">Question segment</label>
                 <select class="form-control" id="is_premium" name="is_premium">
                     <option value="">All</option>
-                    <option value="0" @if((string)($is_premium ?? '') === '0') selected @endif>Non-premium</option>
-                    <option value="1" @if((string)($is_premium ?? '') === '1') selected @endif>Premium</option>
+                    <option value="0" @if((string)($is_premium ?? '') === '0') selected @endif>Non-premium (Custom Test)</option>
+                    <option value="1" @if((string)($is_premium ?? '') === '1') selected @endif>Premium (Course Packages)</option>
                 </select>
             </div>
             @include('admin.include.list_toolbar', ['search_placeholder' => 'Search question, subject, chapter...'])
@@ -188,13 +192,24 @@
                 <input type="hidden" name="q" value="{{ $q ?? '' }}">
             </form>
         @endif
+        <form id="bulkSegmentForm" method="post" action="{{ route('admin.question.bulk_segment') }}">
+            @csrf
+            <input type="hidden" name="segment" id="bulkSegmentValue" value="1">
+            <div class="d-flex align-items-center flex-wrap mb-2" style="gap:8px;">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllQuestions(true)">Select page</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAllQuestions(false)">Clear</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="submitBulkSegment(1)">Mark Premium (Course Packages)</button>
+                <button type="button" class="btn btn-sm btn-outline-dark" onclick="submitBulkSegment(0)">Mark Non-premium (Custom Test)</button>
+            </div>
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th style="width:36px;"><input type="checkbox" id="qSelectAll" onclick="toggleAllQuestions(this.checked)"></th>
                     <th>Subject</th>
                     <th>Chapter</th>
                     <th>Source</th>
                     <th>Question</th>
+                    <th>Segment</th>
                     <th>Added</th>
                     <th>Updated</th>
                     <th>Status</th>
@@ -205,6 +220,7 @@
                 @if(count($list)>0)
                     @foreach ($list as $key=>$row)
                         <tr class="{{ !empty($row->is_duplicate) ? 'question-duplicate' : '' }}">
+                            <td><input type="checkbox" class="q-row-check" name="ids[]" value="{{ $row->id }}" form="bulkSegmentForm"></td>
                             <td>{{$row->subject_name}}</td>
                             <td>{{$row->chapter_name}}</td>
                             <td>{{$row->source_name}}</td>
@@ -274,6 +290,20 @@
                                 </div>
                                 </div>
                             </td>
+                            <td>
+                                @if(!empty($row->is_premium))
+                                    <span class="badge" style="background:#7c3aed;">Premium</span>
+                                @else
+                                    <span class="badge bg-secondary">Custom Test</span>
+                                @endif
+                                <div class="mt-1">
+                                    <a href="{{ route('admin.question.change_segment', ['id' => $row->id]) }}"
+                                       class="small"
+                                       onclick="return confirm('Move this question to {{ !empty($row->is_premium) ? 'Non-premium (Custom Test)' : 'Premium (Course Packages)' }}?');">
+                                        Switch segment
+                                    </a>
+                                </div>
+                            </td>
                             <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>
                             <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->updated_at) }}</td>
                             <td>
@@ -306,11 +336,12 @@
                     @endforeach
                 @else
                     <tr>
-                        <td colspan="8" class="text-center text-muted">No records found.</td>
+                        <td colspan="10" class="text-center text-muted">No records found.</td>
                     </tr>
                 @endif
             </tbody>
         </table>
+        </form>
         @include('admin.include.list_pager')
     </div>
 
@@ -319,7 +350,22 @@
 
 @section('js_after')
     <script>
-        
+        function toggleAllQuestions(checked) {
+            document.querySelectorAll('.q-row-check').forEach(function (el) { el.checked = !!checked; });
+            var master = document.getElementById('qSelectAll');
+            if (master) master.checked = !!checked;
+        }
+        function submitBulkSegment(segment) {
+            var checked = document.querySelectorAll('.q-row-check:checked');
+            if (!checked.length) {
+                alert('Select at least one question on this page.');
+                return;
+            }
+            var label = segment == 1 ? 'Premium (Course Packages)' : 'Non-premium (Custom Test)';
+            if (!confirm('Set ' + checked.length + ' question(s) as ' + label + '?')) return;
+            document.getElementById('bulkSegmentValue').value = segment;
+            document.getElementById('bulkSegmentForm').submit();
+        }
 
         function changeSubject() {
             var data = {};

@@ -24,6 +24,7 @@
                 <h3 class="rp-ft__title">Menu</h3>
                 <ul class="rp-ft__links rp-ft__links--split">
                     <li><a href="{{ route('about') }}">About Us</a></li>
+                    <li><a href="{{ route('course_packages') }}">Course Packages</a></li>
                     <li><a href="{{ route('testseries') }}">Upcoming Test</a></li>
                     <li><a href="{{ route('index') }}#pricing">Product pricing</a></li>
                     <li><a href="{{ Auth::check() ? route('custom_test') : route('signup') }}">Practice Test</a></li>

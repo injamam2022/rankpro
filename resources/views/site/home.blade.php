@@ -172,14 +172,15 @@
             </div>
 
             @php
-                $ctaUrl = Auth::check() ? route('plans') : route('signup');
-                $freeUrl = Auth::check() ? route('custom_test') : route('signup');
+                $ctaUrl = route('course_packages');
+                $freeUrl = Auth::check() ? route('course_packages.show', 'free-custom-test-builder') : route('signup');
                 $checkSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                 $plans = [
                     [
                         'type' => 'standard',
                         'theme' => 'sky',
                         'name' => 'Free Custom Test Builder',
+                        'slug' => 'free-custom-test-builder',
                         'price' => null,
                         'free' => true,
                         'features' => [
@@ -194,6 +195,7 @@
                         'type' => 'standard',
                         'theme' => 'pink',
                         'name' => 'Rank Chapter Master',
+                        'slug' => 'rank-chapter-master',
                         'price' => '49',
                         'free' => false,
                         'features' => [
@@ -210,6 +212,7 @@
                         'type' => 'standard',
                         'theme' => 'blue',
                         'name' => 'Rank Builder',
+                        'slug' => 'rank-builder',
                         'price' => '2,499',
                         'free' => false,
                         'features' => [
@@ -226,6 +229,7 @@
                         'type' => 'standard',
                         'theme' => 'violet',
                         'name' => 'Rank Champion',
+                        'slug' => 'rank-champion',
                         'price' => '3,499',
                         'free' => false,
                         'features' => [
@@ -244,12 +248,13 @@
 
             <div class="pr__slider" id="prSlider">
                 @foreach($plans as $p)
+                    @php $planUrl = route('course_packages.show', $p['slug']); @endphp
                     <div class="pr__slide">
                         <article class="pr__card pr__card--{{ $p['theme'] }}">
                             <div class="pr__icon" aria-hidden="true">{!! $p['icon'] !!}</div>
                             <h3 class="pr__name">{{ $p['name'] }}</h3>
                             @unless($p['free'])
-                                <a href="{{ $ctaUrl }}" class="pr__pill">&#8377;{{ $p['price'] }}</a>
+                                <a href="{{ $planUrl }}" class="pr__pill">&#8377;{{ $p['price'] }} · Buy</a>
                             @endunless
                             <ul class="pr__features">
                                 @foreach($p['features'] as $f)
@@ -257,7 +262,9 @@
                                 @endforeach
                             </ul>
                             @if($p['free'])
-                                <a href="{{ $freeUrl }}" class="pr__pill pr__pill--free">Free</a>
+                                <a href="{{ $freeUrl }}" class="pr__pill pr__pill--free">Get Free</a>
+                            @else
+                                <a href="{{ $planUrl }}" class="pr__pill" style="margin-top:.5rem;">View details &amp; pay</a>
                             @endif
                         </article>
                     </div>
@@ -315,7 +322,7 @@
                             </div>
                         </div>
 
-                        <a href="{{ $ctaUrl }}" class="pr__omr-cta" id="prOmrCta">Get Centre — &#8377;4,999</a>
+                        <a href="{{ route('course_packages.show', ['slug' => 'omr-master', 'mode' => 'centre']) }}" class="pr__omr-cta" id="prOmrCta" data-centre-url="{{ route('course_packages.show', ['slug' => 'omr-master', 'mode' => 'centre']) }}" data-home-url="{{ route('course_packages.show', ['slug' => 'omr-master', 'mode' => 'home']) }}">Get Centre — &#8377;4,999</a>
                     </article>
                 </div>
             </div>
@@ -1252,7 +1259,9 @@
                             });
                             btn.classList.add("is-active");
                             btn.setAttribute("aria-selected", "true");
-                            cta.textContent = labels[btn.getAttribute("data-omr-opt")] || labels.centre;
+                            var opt = btn.getAttribute("data-omr-opt") || "centre";
+                            cta.textContent = labels[opt] || labels.centre;
+                            cta.setAttribute("href", opt === "home" ? (cta.getAttribute("data-home-url") || cta.href) : (cta.getAttribute("data-centre-url") || cta.href));
                         });
                     });
                 }

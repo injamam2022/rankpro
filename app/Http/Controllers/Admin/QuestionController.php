@@ -799,6 +799,163 @@ class QuestionController extends Controller
         return redirect()->route('admin.question');
     }
 
+    /** Toggle single question between Custom Test (0) and Course Packages premium (1). */
+    public function changeSegment(Request $request)
+    {
+        if (!Schema::hasColumn('questions', 'is_premium')) {
+            toastr()->error('Premium column is missing. Run migrations first.');
+            return back();
+        }
+
+        $question = Question::where('id', $request->id)->where('is_deleted', 0)->first();
+        if (!$question) {
+            toastr()->error('Question not found.');
+            return back();
+        }
+
+        $next = (int) $question->is_premium === 1 ? 0 : 1;
+        $question->update(['is_premium' => $next]);
+
+        toastr()->success($next
+            ? 'Moved to Premium (Course Packages / Chapter Master).'
+            : 'Moved to Non-premium (Custom Test).'
+        );
+
+        return redirect()->back();
+    }
+
+    /** Bulk mark selected questions as premium or non-premium. */
+    public function bulkSegment(Request $request)
+    {
+        if (!Schema::hasColumn('questions', 'is_premium')) {
+            toastr()->error('Premium column is missing. Run migrations first.');
+            return back();
+        }
+
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+            'segment' => ['required', 'in:0,1'],
+        ]);
+
+        $ids = array_values(array_unique(array_map('intval', $data['ids'])));
+        $segment = (int) $data['segment'];
+
+        $query = Question::whereIn('id', $ids)->where('is_deleted', 0);
+        if (session()->get('admmin_is_super') == 'T') {
+            $query->where('subject_id', session()->get('admmin_subject_id'));
+        }
+
+        $updated = $query->update(['is_premium' => $segment]);
+
+        toastr()->success($updated.' question(s) set as '.($segment === 1
+            ? 'Premium (Course Packages)'
+            : 'Non-premium (Custom Test)'
+        ).'.');
+
+        return redirect()->back();
+    }
+
+    /**
+     * Coverage board: which chapters/topics already have premium questions
+     * (Chapter Master shows Coming soon where count is 0).
+     */
+    public function premiumBank(Request $request)
+    {
+        if (!Schema::hasColumn('questions', 'is_premium')) {
+            toastr()->warning('Run the is_premium migration first.');
+            return redirect()->route('admin.question');
+        }
+
+        $subjectId = $request->input('subject_id');
+        $subjectsQuery = Subject::where('status', 1)->where(function ($q) {
+            $q->where('is_deleted', 0)->orWhereNull('is_deleted');
+        });
+        if (session()->get('admmin_is_super') == 'T') {
+            $subjectsQuery->where('id', session()->get('admmin_subject_id'));
+        }
+        $subjects = $subjectsQuery->orderBy('name')->get();
+
+        if (!$subjectId && $subjects->count()) {
+            $subjectId = $subjects->first()->id;
+        }
+
+        $chapters = collect();
+        $stats = [
+            'premium_total' => 0,
+            'chapters_ready' => 0,
+            'chapters_soon' => 0,
+            'topics_ready' => 0,
+            'topics_soon' => 0,
+        ];
+
+        if ($subjectId) {
+            $chapterRows = Chapter::where('subject_id', $subjectId)->where('status', 1)->orderBy('name')->get();
+            $chapterCounts = Question::query()
+                ->select('chapter_id', DB::raw('COUNT(*) as total'))
+                ->where('subject_id', $subjectId)
+                ->where('is_deleted', 0)
+                ->where('status', 1)
+                ->where('is_premium', 1)
+                ->whereNotNull('chapter_id')
+                ->groupBy('chapter_id')
+                ->pluck('total', 'chapter_id');
+
+            $topicCounts = Question::query()
+                ->select('topic_id', DB::raw('COUNT(*) as total'))
+                ->where('subject_id', $subjectId)
+                ->where('is_deleted', 0)
+                ->where('status', 1)
+                ->where('is_premium', 1)
+                ->whereNotNull('topic_id')
+                ->groupBy('topic_id')
+                ->pluck('total', 'topic_id');
+
+            $topics = Topic::where('subject_id', $subjectId)->where('status', 1)->orderBy('name')->get(['id', 'chapter_id', 'name']);
+            $topicsByChapter = $topics->groupBy('chapter_id');
+
+            $chapters = $chapterRows->map(function ($ch) use ($chapterCounts, $topicCounts, $topicsByChapter, &$stats) {
+                $qCount = (int) ($chapterCounts[$ch->id] ?? 0);
+                $topicList = ($topicsByChapter->get($ch->id) ?? collect())->map(function ($t) use ($topicCounts, &$stats) {
+                    $tq = (int) ($topicCounts[$t->id] ?? 0);
+                    if ($tq > 0) {
+                        $stats['topics_ready']++;
+                    } else {
+                        $stats['topics_soon']++;
+                    }
+                    return [
+                        'id' => $t->id,
+                        'name' => $t->name,
+                        'questions' => $tq,
+                        'coming_soon' => $tq < 1,
+                    ];
+                })->values();
+
+                if ($qCount > 0) {
+                    $stats['chapters_ready']++;
+                    $stats['premium_total'] += $qCount;
+                } else {
+                    $stats['chapters_soon']++;
+                }
+
+                return [
+                    'id' => $ch->id,
+                    'name' => $ch->name,
+                    'questions' => $qCount,
+                    'coming_soon' => $qCount < 1,
+                    'topics' => $topicList,
+                ];
+            })->values();
+        }
+
+        return view('admin.question.premium_bank', [
+            'subjects' => $subjects,
+            'subject_id' => $subjectId,
+            'chapters' => $chapters,
+            'stats' => $stats,
+        ]);
+    }
+
     public function upload(){
         $data = [];
         if(session()->get('admmin_is_super') == 'T'){
@@ -840,6 +997,7 @@ class QuestionController extends Controller
             'Answer',
             'Solution Video Link',
             'Solution',
+            'Premium',
             'Status',
         ];
 
@@ -897,21 +1055,22 @@ class QuestionController extends Controller
                 (int) $row->answer,
                 (string) $row->solution_video_link,
                 $this->plainSampleText($row->solution),
+                (int) ($row->is_premium ?? 0),
                 (int) $row->status,
             ];
         }
 
         if (empty($excelRows)) {
-            $excelRows[] = [1, 1, 1, 1, 1, 1, 1, 'Sample question text?', '', 'Option A', 0, 1, 'Option B', 0, 2, 'Option C', 0, 3, 'Option D', 0, 4, 1, '', 'Brief solution', 1];
+            $excelRows[] = [1, 1, 1, 1, 1, 1, 1, 'Sample question text?', '', 'Option A', 0, 1, 'Option B', 0, 2, 'Option C', 0, 3, 'Option D', 0, 4, 1, '', 'Brief solution', 0, 1];
         }
 
         $sheet->fromArray($excelRows, null, 'A2');
-        foreach (range('A', 'Y') as $col) {
+        foreach (range('A', 'Z') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
-        $sheet->getStyle('A1:Y1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:Z1')->getFont()->setBold(true);
         $sheet->freezePane('A2');
-        $sheet->getStyle('A1:Y1')->getFill()
+        $sheet->getStyle('A1:Z1')->getFill()
             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()->setRGB('E8EEF7');
 

@@ -167,7 +167,14 @@
                 <div class="dashboardRightBody">
                     <div class="ct-wrap">
                         <div class="ct-title">Custom Practice</div>
-                        <div class="ct-sub">One subject or multiple — choose chapters, set question counts, then start.</div>
+                        <div class="ct-sub">Free segment — uses the standard (non-premium) question bank. Choose chapters, set counts, then start.</div>
+
+                        <div class="ct-hint" style="margin-bottom:1rem;">
+                            <strong>Two question segments:</strong>
+                            Custom Test (this page) = free / non-premium.
+                            Paid <a href="{{ route('course_packages') }}">Course Packages</a> like
+                            <a href="{{ route('chapter_master') }}">Chapter Master</a> = premium questions only.
+                        </div>
 
                         @if(session('error'))
                             <div class="ct-alert ct-alert-err">{{ session('error') }}</div>

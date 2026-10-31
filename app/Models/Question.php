@@ -33,6 +33,11 @@ class Question extends Model
         return self::applyNonPremium($query);
     }
 
+    public function scopePremiumOnly(Builder $query): Builder
+    {
+        return self::applyPremiumOnly($query);
+    }
+
     public static function applyNonPremium(Builder $query, string $column = 'is_premium'): Builder
     {
         if (! Schema::hasColumn('questions', 'is_premium')) {
@@ -42,6 +47,16 @@ class Question extends Model
         return $query->where(function (Builder $q) use ($column) {
             $q->where($column, 0)->orWhereNull($column);
         });
+    }
+
+    public static function applyPremiumOnly(Builder $query, string $column = 'is_premium'): Builder
+    {
+        if (! Schema::hasColumn('questions', 'is_premium')) {
+            // Column missing — no premium bank available yet.
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where($column, 1);
     }
 
     public function questionSources()
