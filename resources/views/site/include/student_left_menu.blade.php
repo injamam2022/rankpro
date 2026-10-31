@@ -39,7 +39,7 @@
 
     <div class="logo dashboardMenuPL">
       <a href="{{ route('index') }}">
-        <img src="{{ asset('') }}web/images/logo-dashboard.png" class="img-fluid dashboardLogo_dx" alt="">
+        <img src="{{ asset('web/images/logo.png') }}" class="img-fluid dashboardLogo_dx" alt="RankPro">
       </a>
     </div>
     <div class="dashboardAvatarBlockAll dashboardMenuPL">

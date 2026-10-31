@@ -64,6 +64,14 @@ body.rp-dash-body .dashboardRightBody > .row > .col-xl-12:has(.dashboardTitleCou
   flex-shrink: 0;
 }
 
+.rp-topbar__logo {
+  display: block;
+  height: 40px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+}
+
 .rp-topbar__mark {
   width: 32px;
   height: 32px;
@@ -1992,6 +2000,11 @@ body.rp-dash-body .calltoaction {
 }
 
 @media (max-width: 680px) {
+  .rp-topbar__logo {
+    height: 32px;
+    max-width: 120px;
+  }
+
   .rp-topbar__name {
     display: none;
   }

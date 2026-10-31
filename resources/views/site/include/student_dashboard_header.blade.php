@@ -22,8 +22,7 @@
 <header class="rp-topbar">
     <div class="rp-topbar__inner">
         <a href="{{ route('dashboard') }}" class="rp-topbar__brand">
-            <span class="rp-topbar__mark">R</span>
-            <span class="rp-topbar__name">Rank<span>Pro</span></span>
+            <img src="{{ asset('web/images/logo.png') }}" alt="RankPro" class="rp-topbar__logo">
         </a>
 
         <div class="rp-topbar__actions">
