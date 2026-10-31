@@ -150,6 +150,8 @@ class CoursePackageController extends Controller
         $redirect = route('my_orders');
         if ($package->code === 'chapter_master') {
             $redirect = route('chapter_master');
+        } elseif (in_array($package->code, \App\Support\CoursePackageAccess::seriesPackageCodes(), true)) {
+            $redirect = route('package_series.show', $package->slug);
         } elseif ($package->code === 'free_custom') {
             $redirect = route('custom_test');
         }

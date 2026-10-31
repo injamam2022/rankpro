@@ -62,6 +62,8 @@
                                 <a href="{{ route('custom_test') }}" class="btn btn-sm btn-primary mt-2">Open Custom Test</a>
                             @elseif($order->package && $order->package->code === 'chapter_master' && $order->isPaid())
                                 <a href="{{ route('chapter_master') }}" class="btn btn-sm btn-primary mt-2">Start Chapter Master exams</a>
+                            @elseif($order->package && $order->isPaid() && in_array($order->package->code, \App\Support\CoursePackageAccess::seriesPackageCodes(), true))
+                                <a href="{{ route('package_series.show', $order->package->slug) }}" class="btn btn-sm btn-primary mt-2">Open series tests</a>
                             @elseif($order->package)
                                 <a href="{{ route('course_packages.show', $order->package->slug) }}" class="btn btn-sm btn-outline-primary mt-2">View package</a>
                             @endif

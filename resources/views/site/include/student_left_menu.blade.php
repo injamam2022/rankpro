@@ -129,6 +129,9 @@
         <li class="{{ request()->is('chapter-master') || request()->is('chapter-master/*') ? 'active' : '' }}">
             <a href="{{ route('chapter_master') }}"><img src="{{ asset('') }}web/images/d_ex_given_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Chapter Master</span></a>
         </li>
+        <li class="{{ request()->is('series-tests') || request()->is('series-tests/*') ? 'active' : '' }}">
+            <a href="{{ route('package_series') }}"><img src="{{ asset('') }}web/images/d_upcoming_ex_ic.png" class="img-fluid dashboardMenu_ic" alt=""> <span>Series Tests</span></a>
+        </li>
 
         <li class="menuHasSub {{ ($examSubOpen || request()->is('exam-given') || request()->is('exam-given/*')) ? 'active' : '' }} {{ $examSubOpen ? 'open' : '' }}">
             <div class="menuItemRow">

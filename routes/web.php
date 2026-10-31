@@ -236,6 +236,10 @@
     Route::get('/chapter-master/subject/{subjectId}', [ChapterMasterController::class, 'subject'])->name('chapter_master.subject')->middleware(['verifyMembership']);
     Route::get('/chapter-master/subject/{subjectId}/data', [ChapterMasterController::class, 'chaptersData'])->name('chapter_master.chapters_data')->middleware(['verifyMembership']);
     Route::post('/chapter-master/start', [ChapterMasterController::class, 'start'])->name('chapter_master.start')->middleware(['verifyMembership']);
+
+    Route::get('/series-tests', [\App\Http\Controllers\PackageSeriesController::class, 'index'])->name('package_series')->middleware(['verifyMembership']);
+    Route::get('/series-tests/{slug}', [\App\Http\Controllers\PackageSeriesController::class, 'show'])->name('package_series.show')->middleware(['verifyMembership']);
+    Route::post('/series-tests/{slug}/start', [\App\Http\Controllers\PackageSeriesController::class, 'start'])->name('package_series.start')->middleware(['verifyMembership']);
     Route::get('/terms-and-condition', [StudentsController::class, 'terms_and_condition'])->name('terms_and_condition')->middleware(['verifyMembership']);
     Route::get('/report-problem', [StudentsController::class, 'report_problem'])->name('report_problem')->middleware(['verifyMembership']);
     Route::post('/report-problem-save', [StudentsController::class, 'report_problem_save'])->name('report_problem_save')->middleware(['verifyMembership']);

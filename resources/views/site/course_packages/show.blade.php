@@ -145,10 +145,12 @@
 
                     @if(Auth::check())
                         @if($package->code === 'chapter_master' && \App\Support\CoursePackageAccess::hasChapterMaster())
-                            <a href="{{ route('chapter_master') }}" class="cpg-btn cpg-btn--soft">Open Chapter Master exams</a>
+                            <a href="{{ route('chapter_master') }}" class="cpg-btn">Open Chapter Master exams</a>
                             <p class="small text-muted text-center mb-2">You already own this package.</p>
-                        @endif
-                        @if($package->is_free)
+                        @elseif(in_array($package->code, \App\Support\CoursePackageAccess::seriesPackageCodes(), true) && \App\Support\CoursePackageAccess::hasSeriesPackage($package->code))
+                            <a href="{{ route('package_series.show', $package->slug) }}" class="cpg-btn">Open series tests</a>
+                            <p class="small text-muted text-center mb-2">You already own this package — start online exams from your schedule.</p>
+                        @elseif($package->is_free)
                             <a href="{{ route('custom_test') }}" class="cpg-btn">Give exam</a>
                         @else
                             <button type="submit" class="cpg-btn">Proceed to payment</button>
