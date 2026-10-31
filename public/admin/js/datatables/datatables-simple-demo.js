@@ -52,7 +52,8 @@ window.addEventListener('DOMContentLoaded', event => {
         columns: columns,
         labels: {
             placeholder: 'Search...',
-            perPage: '{select} entries per page',
+            // simple-datatables v7 renders the <select> separately; do not use {select}
+            perPage: 'entries per page',
             noRows: 'No matching records',
             info: 'Showing {start} to {end} of {rows} entries',
         },
