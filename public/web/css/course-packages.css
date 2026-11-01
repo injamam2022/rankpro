@@ -337,7 +337,13 @@
     background-clip: text;
     color: transparent;
 }
-.cpg-buy__note { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+.cpg-buy__note { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.cpg-powered-by {
+    font-size: 13px;
+    line-height: 1.45;
+    color: #1f2540;
+    margin: 0 0 18px;
+}
 .cpg-mode {
     display: block;
     border: 1.5px solid #e5e7ef;

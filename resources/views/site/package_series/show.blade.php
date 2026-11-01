@@ -45,7 +45,7 @@
           @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
           <div class="dashboardTitle mb-1">{{ $package->name }} <span>Tests</span></div>
-          <p class="text-muted mb-2">{{ $package->tagline }} · Premium questions only. Empty syllabus shows Coming soon until Premium Bank is filled.</p>
+          <p class="text-muted mb-2">{{ $package->tagline }} · Premium questions only. Tests with an admin-assigned paper are ready to start; others use the schedule syllabus when the bank is filled.</p>
 
           <div class="ps-meta">
             @if($package->includes_online)<span class="ps-chip ps-chip--on"><i class="fas fa-laptop mr-1"></i> Online CBT unlocked</span>@endif
@@ -81,6 +81,9 @@
                   <div class="small text-muted mt-1">
                     {{ optional($s->test_date)->format('d M Y') }} · {{ $s->timing }}
                     @if($s->section)<span>· {{ ucfirst($s->section) }} syllabus</span>@endif
+                    @if(!empty($row['has_assigned_paper']))
+                      <span class="ps-chip ps-chip--on ms-1">Paper ready</span>
+                    @endif
                   </div>
                   @if(!empty($row['coverage']))
                     <div class="ps-cov">

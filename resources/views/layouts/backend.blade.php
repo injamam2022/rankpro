@@ -385,9 +385,10 @@
                             </a>
                             <div class="collapse {{ request()->is('admin/course-package*') || request()->is('admin/course-schedule*') ? 'show' : '' }}" id="collapseCoursePackages" aria-labelledby="headingCoursePackages" data-bs-parent="#drawerAccordion">
                                 <nav class="drawer-menu-nested nav">
-                                    <a class="nav-link {{ request()->is('admin/course-package') && !request()->is('admin/course-package/orders*') && !request()->is('admin/course-package/order*') ? ' active' : '' }} {{ request()->is('admin/course-package/add') || request()->is('admin/course-package/edit') ? ' active' : '' }}" href="{{ route('admin.course_package') }}">Packages</a>
+                                    <a class="nav-link {{ request()->is('admin/course-package') && !request()->is('admin/course-package/orders*') && !request()->is('admin/course-package/order*') && !request()->is('admin/course-package/exam-assignments*') ? ' active' : '' }} {{ request()->is('admin/course-package/add') || request()->is('admin/course-package/edit') ? ' active' : '' }}" href="{{ route('admin.course_package') }}">Packages</a>
                                     <a class="nav-link {{ request()->is('admin/course-package/orders') || request()->is('admin/course-package/order-detail') ? ' active' : '' }}" href="{{ route('admin.course_package.orders') }}">Package Orders</a>
                                     <a class="nav-link {{ request()->is('admin/course-schedule') || request()->is('admin/course-schedule/*') ? ' active' : '' }}" href="{{ route('admin.course_schedule') }}">Test Schedule</a>
+                                    <a class="nav-link {{ request()->is('admin/course-package/exam-assignments*') ? ' active' : '' }}" href="{{ route('admin.course_package.exam_assignments') }}">Assign Series Papers</a>
                                     <a class="nav-link {{ request()->is('admin/premium-bank') ? ' active' : '' }}" href="{{ route('admin.premium_bank') }}">Premium Bank</a>
                                 </nav>
                             </div>

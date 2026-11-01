@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Chapter;
 use App\Models\CoursePackage;
+use App\Models\CoursePackageExamAssignment;
 use App\Models\CourseSchedule;
 use App\Models\CustomTest;
 use App\Models\Exam;
@@ -67,6 +68,13 @@ class PackageSeriesController extends Controller
 
         $schedules = CoursePackageAccess::schedulesQueryForPackage($package)->get();
 
+        $assignments = CoursePackageExamAssignment::active()
+            ->with('questionPaper')
+            ->where('course_package_id', $package->id)
+            ->whereIn('course_schedule_id', $schedules->pluck('id'))
+            ->get()
+            ->keyBy('course_schedule_id');
+
         $attempts = CustomTest::with('examUser')
             ->where('user_id', Auth::id())
             ->where('name', 'like', $package->name.'%')
@@ -76,12 +84,14 @@ class PackageSeriesController extends Controller
                 return (string) data_get($t->selection, 'schedule_id', '');
             });
 
-        $rows = $schedules->map(function (CourseSchedule $s) use ($attempts, $package) {
+        $rows = $schedules->map(function (CourseSchedule $s) use ($attempts, $package, $assignments) {
             $key = (string) $s->id;
             $attemptList = $attempts->get($key, collect());
             $latest = $attemptList->first();
             $today = now()->startOfDay();
             $testDay = optional($s->test_date)->copy()?->startOfDay();
+            $assignment = $assignments->get($s->id);
+            $assignedPaper = $assignment?->questionPaper;
 
             $status = 'available';
             if ($latest && in_array($latest->status, ['completed', 'submitted', 'finished'], true)) {
@@ -116,6 +126,8 @@ class PackageSeriesController extends Controller
                 'coverage' => $coverage,
                 'status' => $status,
                 'attempt' => $latest,
+                'assigned_paper' => $assignedPaper,
+                'has_assigned_paper' => (bool) $assignedPaper,
                 'can_start_online' => (bool) $package->includes_online
                     && in_array($status, ['available', 'upcoming'], true),
                 'can_resume' => $latest && in_array($status, ['ready', 'in_progress'], true),
@@ -169,16 +181,44 @@ class PackageSeriesController extends Controller
                 ->with('success', 'Your test is already ready. Start when you are prepared.');
         }
 
+        $testName = $package->name.' — '.$schedule->test_type;
+
+        // Prefer admin-assigned paper for this package + schedule.
+        $assignment = CoursePackageExamAssignment::active()
+            ->where('course_package_id', $package->id)
+            ->where('course_schedule_id', $schedule->id)
+            ->first();
+
+        if ($assignment) {
+            $paper = Question_paper::where('id', $assignment->question_paper_id)
+                ->where('is_deleted', 0)
+                ->where('status', 1)
+                ->first();
+
+            $questionCount = $paper
+                ? (int) Question_paper_question::where('question_paper_id', $paper->id)->where('status', 1)->count()
+                : 0;
+
+            if (!$paper || $questionCount < 1) {
+                return redirect()->route('package_series.show', $slug)
+                    ->with('error', 'Assigned paper is not ready yet. Please contact RankPro support.');
+            }
+
+            $custom = $this->createSeriesAttemptFromPaper($package, $schedule, $paper, $testName, true);
+
+            return redirect()->route('custom_test.ready', $custom->id)
+                ->with('success', 'Online series test ready. Start when you are prepared.');
+        }
+
         $picked = $this->pickQuestionsForSchedule($schedule);
         $questionPlan = $picked['plan'];
         $allIds = $picked['question_ids'];
 
         if (count($allIds) < self::MIN_QUESTIONS_TO_START) {
             return redirect()->route('package_series.show', $slug)
-                ->with('error', 'Coming soon — premium questions for this test syllabus are not ready yet. Please check back after the admin fills the Premium Bank.');
+                ->with('error', 'Coming soon — this test paper is not assigned yet, and premium questions for the syllabus are not ready. Please check back later.');
         }
 
-        $testName = $package->name.' — '.$schedule->test_type;
         $duration = max(30, (int) ceil(count($allIds) * 1.0));
         $marksPerQ = function_exists('custom_test_marks_per_question')
             ? custom_test_marks_per_question()
@@ -233,61 +273,149 @@ class PackageSeriesController extends Controller
                 ];
             }
 
-            $exam = Exam::create([
-                'name' => $testName,
-                'type' => 1,
-                'exam_code' => 'PS-'.Auth::id().'-'.strtoupper(substr(uniqid(), -6)),
-                'question_paper_id' => $paper->id,
-                'no_of_question' => $totalCount,
-                'totals_marks_for_exam' => $totalCount * $marksPerQ,
-                'total_time_for_exam' => $duration,
-                'marks_per_question' => $marksPerQ,
-                'time_per_question' => max(1, (int) floor(($duration * 60) / max(1, $totalCount))),
-                'negative_marking_applicable' => 1,
-                'negative_marking_per_question' => 1,
-                'exam_date' => optional($schedule->test_date)->toDateString() ?: now()->toDateString(),
-                'exam_time' => now()->format('H:i:s'),
-                'status' => 1,
-                'is_deleted' => 0,
-                'is_proctored' => 0,
-            ]);
-
-            DB::table('exam_assignments')->insert([
-                'exam_id' => $exam->id,
-                'user_id' => Auth::id(),
-            ]);
-
-            $primarySubjectId = (int) array_key_first($planMeta);
-
-            return CustomTest::create([
-                'user_id' => Auth::id(),
-                'subject_id' => $primarySubjectId ?: null,
-                'name' => $testName,
-                'question_count' => $totalCount,
-                'duration_minutes' => $duration,
-                'marks_per_question' => $marksPerQ,
-                'negative_marking' => true,
-                'negative_marks' => 1,
-                'difficulty' => null,
-                'question_paper_id' => $paper->id,
-                'exam_id' => $exam->id,
-                'exam_user_id' => null,
-                'status' => 'ready',
-                'selection' => [
-                    'source' => 'package_series',
-                    'premium_only' => true,
-                    'package_code' => $package->code,
-                    'package_id' => $package->id,
-                    'schedule_id' => $schedule->id,
-                    'test_type' => $schedule->test_type,
-                    'plan' => $planMeta,
-                    'subject_names' => array_values(array_map(fn ($p) => $p['name'], $planMeta)),
-                ],
-            ]);
+            return $this->persistSeriesCustomTest(
+                $package,
+                $schedule,
+                $paper,
+                $testName,
+                $totalCount,
+                $duration,
+                $marksPerQ,
+                $planMeta,
+                false
+            );
         });
 
         return redirect()->route('custom_test.ready', $custom->id)
             ->with('success', 'Online series test ready. Start when you are prepared.');
+    }
+
+    /**
+     * Start a series attempt using an admin-made assigned question paper.
+     */
+    private function createSeriesAttemptFromPaper(
+        CoursePackage $package,
+        CourseSchedule $schedule,
+        Question_paper $paper,
+        string $testName,
+        bool $fromAssignment
+    ): CustomTest {
+        $subjects = Question_paper_subject::query()
+            ->leftJoin('subjects', 'subjects.id', '=', 'question_paper_subjects.subject_id')
+            ->where('question_paper_subjects.question_paper_id', $paper->id)
+            ->where('question_paper_subjects.status', 1)
+            ->get([
+                'question_paper_subjects.id',
+                'question_paper_subjects.subject_id',
+                'question_paper_subjects.total_no_of_question',
+                'subjects.name as subject_name',
+            ]);
+
+        $planMeta = [];
+        foreach ($subjects as $row) {
+            $sid = (int) $row->subject_id;
+            if ($sid < 1) {
+                continue;
+            }
+            $planMeta[$sid] = [
+                'question_count' => (int) $row->total_no_of_question,
+                'name' => $row->subject_name ?: ('Subject '.$sid),
+                'selection' => ['source' => 'assigned_paper'],
+            ];
+        }
+
+        $totalCount = (int) Question_paper_question::where('question_paper_id', $paper->id)
+            ->where('status', 1)
+            ->count();
+        if ($totalCount < 1) {
+            $totalCount = (int) ($paper->no_of_question ?: 0);
+        }
+
+        $duration = (int) ($paper->total_time_for_exam ?: max(30, (int) ceil($totalCount * 1.0)));
+        $marksPerQ = (float) ($paper->marks_per_question ?: (function_exists('custom_test_marks_per_question')
+            ? custom_test_marks_per_question()
+            : 4));
+
+        return DB::transaction(function () use (
+            $package, $schedule, $paper, $testName, $totalCount, $duration, $marksPerQ, $planMeta, $fromAssignment
+        ) {
+            return $this->persistSeriesCustomTest(
+                $package,
+                $schedule,
+                $paper,
+                $testName,
+                $totalCount,
+                $duration,
+                $marksPerQ,
+                $planMeta,
+                $fromAssignment
+            );
+        });
+    }
+
+    private function persistSeriesCustomTest(
+        CoursePackage $package,
+        CourseSchedule $schedule,
+        Question_paper $paper,
+        string $testName,
+        int $totalCount,
+        int $duration,
+        float $marksPerQ,
+        array $planMeta,
+        bool $fromAssignment
+    ): CustomTest {
+        $exam = Exam::create([
+            'name' => $testName,
+            'type' => 1,
+            'exam_code' => 'PS-'.Auth::id().'-'.strtoupper(substr(uniqid(), -6)),
+            'question_paper_id' => $paper->id,
+            'no_of_question' => $totalCount,
+            'totals_marks_for_exam' => $paper->totals_marks_for_exam ?: ($totalCount * $marksPerQ),
+            'total_time_for_exam' => $duration,
+            'marks_per_question' => $marksPerQ,
+            'time_per_question' => $paper->time_per_question ?: max(1, (int) floor(($duration * 60) / max(1, $totalCount))),
+            'negative_marking_applicable' => (int) ($paper->negative_marking_applicable ?? 1),
+            'negative_marking_per_question' => (float) ($paper->negative_marking_per_question ?? 1),
+            'exam_date' => optional($schedule->test_date)->toDateString() ?: now()->toDateString(),
+            'exam_time' => now()->format('H:i:s'),
+            'status' => 1,
+            'is_deleted' => 0,
+            'is_proctored' => 0,
+        ]);
+
+        DB::table('exam_assignments')->insert([
+            'exam_id' => $exam->id,
+            'user_id' => Auth::id(),
+        ]);
+
+        $primarySubjectId = (int) array_key_first($planMeta);
+
+        return CustomTest::create([
+            'user_id' => Auth::id(),
+            'subject_id' => $primarySubjectId ?: null,
+            'name' => $testName,
+            'question_count' => $totalCount,
+            'duration_minutes' => $duration,
+            'marks_per_question' => $marksPerQ,
+            'negative_marking' => (bool) ($paper->negative_marking_applicable ?? 1),
+            'negative_marks' => (float) ($paper->negative_marking_per_question ?? 1),
+            'difficulty' => null,
+            'question_paper_id' => $paper->id,
+            'exam_id' => $exam->id,
+            'exam_user_id' => null,
+            'status' => 'ready',
+            'selection' => [
+                'source' => 'package_series',
+                'premium_only' => true,
+                'assigned_paper' => $fromAssignment,
+                'package_code' => $package->code,
+                'package_id' => $package->id,
+                'schedule_id' => $schedule->id,
+                'test_type' => $schedule->test_type,
+                'plan' => $planMeta,
+                'subject_names' => array_values(array_map(fn ($p) => $p['name'], $planMeta)),
+            ],
+        ]);
     }
 
     /**

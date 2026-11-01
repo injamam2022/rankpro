@@ -67,6 +67,7 @@
     use App\Http\Controllers\Admin\CoursePackageController as AdminCoursePackageController;
     use App\Http\Controllers\Admin\CoursePackageOrderController as AdminCoursePackageOrderController;
     use App\Http\Controllers\Admin\CourseScheduleController as AdminCourseScheduleController;
+    use App\Http\Controllers\Admin\CoursePackageExamAssignmentController as AdminCoursePackageExamAssignmentController;
 
     use App\Http\Controllers\Admin\Admin_userController;
     use App\Http\Controllers\Admin\TeacherController;
@@ -450,6 +451,11 @@
         Route::post('/course-package/order-fulfillment', [AdminCoursePackageOrderController::class, 'updateFulfillment'])->name('course_package.order_fulfillment');
         Route::get('/course-schedule', [AdminCourseScheduleController::class, 'list'])->name('course_schedule');
         Route::get('/course-schedule/change', [AdminCourseScheduleController::class, 'change'])->name('course_schedule.change');
+        Route::get('/course-package/exam-assignments', [AdminCoursePackageExamAssignmentController::class, 'list'])->name('course_package.exam_assignments');
+        Route::get('/course-package/exam-assignments/schedules', [AdminCoursePackageExamAssignmentController::class, 'schedules'])->name('course_package.exam_assignments.schedules');
+        Route::post('/course-package/exam-assignments/save', [AdminCoursePackageExamAssignmentController::class, 'save'])->name('course_package.exam_assignments.save');
+        Route::get('/course-package/exam-assignments/remove', [AdminCoursePackageExamAssignmentController::class, 'remove'])->name('course_package.exam_assignments.remove');
+        Route::get('/course-package/exam-assignments/change', [AdminCoursePackageExamAssignmentController::class, 'change'])->name('course_package.exam_assignments.change');
 
         Route::get('/student', [StudentController::class, 'list'])->name('student');
         Route::get('/student/add', [StudentController::class, 'add'])->name('student.add');

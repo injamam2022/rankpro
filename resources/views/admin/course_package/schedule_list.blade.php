@@ -2,9 +2,11 @@
 
 @section('content')
 <div class="container-xl px-5">
-    <div class="d-flex mt-10 mb-4">
+    <div class="d-flex mt-10 mb-4 align-items-center justify-content-between flex-wrap gap-2">
         <h1 class="page-header mb-0">Course Test Schedule (2026–27)</h1>
+        <a href="{{ route('admin.course_package.exam_assignments') }}" class="btn btn-primary btn-sm">Assign Series Papers</a>
     </div>
+    <p class="text-muted small mb-3">Activate schedule rows here. To attach a made question paper to Rank Builder / Champion / Mission 720, use <strong>Assign Series Papers</strong>.</p>
     <table id="datatablesSimple">
         <thead>
             <tr>

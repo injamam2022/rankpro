@@ -25,4 +25,9 @@ class CourseSchedule extends Model
     {
         return $query->where('status', 1);
     }
+
+    public function examAssignments()
+    {
+        return $this->hasMany(CoursePackageExamAssignment::class, 'course_schedule_id');
+    }
 }

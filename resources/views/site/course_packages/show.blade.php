@@ -106,6 +106,7 @@
                         Premium segment · secure Razorpay checkout
                     @endif
                 </div>
+                <p class="cpg-powered-by"><strong>Rank Pro Powered by<br>Shikkha Educational Advisory Solutions LLP</strong></p>
 
                 <form action="{{ route('course_packages.checkout', $package->slug) }}" method="get" id="cpBuyForm">
                     @if($package->mode_selection === 'choose_one')

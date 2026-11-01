@@ -12,6 +12,10 @@
                 <h1 class="page-header mb-0">Question Bank</h1>
             </div>
             <div>
+                <a href="{{ route('admin.course_package.exam_assignments') }}" class="rp-act rp-act-ghost me-2" title="Assign papers to Rank Builder / Champion / Mission 720">
+                    <i class="material-icons">assignment</i>
+                    Assign Series
+                </a>
                 <a href="{{route('admin.question_paper.add')}}" class="rp-act rp-act-add">
                     <i class="material-icons">add</i>
                     Add

@@ -190,6 +190,63 @@
                         </div>
                     </div>
                 </form>
+
+                @if(!empty($series_packages))
+                <div class="card mt-2 mb-5 border-primary">
+                    <div class="card-body">
+                        <h5 class="mb-1">Assign to Series Exam</h5>
+                        <p class="text-muted small mb-3">
+                            Assign this paper to Rank Builder / Rank Champion / Mission 720 via dropdown.
+                            Purchasers of that package will get this exam in Series Tests.
+                        </p>
+                        <form action="{{ route('admin.course_package.exam_assignments.save') }}" method="post" id="paperSeriesAssignForm">
+                            @csrf
+                            <input type="hidden" name="question_paper_id" value="{{ $details->id }}">
+                            <input type="hidden" name="redirect_to_paper" value="1">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="form-label">Package <span class="text-danger">*</span></label>
+                                    <select name="course_package_id" id="paper_assign_package_id" class="form-control" required>
+                                        <option value="">Select package</option>
+                                        @foreach($series_packages as $pkg)
+                                            <option value="{{ $pkg->id }}">{{ $pkg->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Scheduled test <span class="text-danger">*</span></label>
+                                    <select name="course_schedule_id" id="paper_assign_schedule_id" class="form-control" required>
+                                        <option value="">Select package first</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">Assign</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        @if(!empty($series_assignments) && $series_assignments->count())
+                            <hr>
+                            <h6 class="mb-2">Already assigned</h6>
+                            <ul class="mb-0 ps-3">
+                                @foreach($series_assignments as $asg)
+                                    <li class="mb-1">
+                                        <strong>{{ $asg->package->name ?? '—' }}</strong>
+                                        → {{ $asg->schedule->test_type ?? '—' }}
+                                        ({{ optional($asg->schedule->test_date ?? null)->format('d M Y') ?: 'no date' }})
+                                        @if(!$asg->status)
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        @endif
+                                        <a href="{{ route('admin.course_package.exam_assignments.remove', ['id' => $asg->id]) }}"
+                                           class="small text-danger ms-1"
+                                           onclick="return confirm('Remove this assignment?');">Remove</a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -198,5 +255,47 @@
 
 
 @section('js_after')
+@if(!empty($series_packages))
+<script>
+(function () {
+    var packageEl = document.getElementById('paper_assign_package_id');
+    var scheduleEl = document.getElementById('paper_assign_schedule_id');
+    if (!packageEl || !scheduleEl) return;
+    var schedulesUrl = @json(route('admin.course_package.exam_assignments.schedules'));
 
+    function loadSchedules(packageId) {
+        scheduleEl.innerHTML = '<option value="">Loading…</option>';
+        if (!packageId) {
+            scheduleEl.innerHTML = '<option value="">Select package first</option>';
+            return;
+        }
+        fetch(schedulesUrl + '?package_id=' + encodeURIComponent(packageId), {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var rows = data.schedules || [];
+                if (!rows.length) {
+                    scheduleEl.innerHTML = '<option value="">No schedules for this package</option>';
+                    return;
+                }
+                scheduleEl.innerHTML = '<option value="">Select scheduled test</option>';
+                rows.forEach(function (row) {
+                    var opt = document.createElement('option');
+                    opt.value = row.id;
+                    opt.textContent = row.label;
+                    scheduleEl.appendChild(opt);
+                });
+            })
+            .catch(function () {
+                scheduleEl.innerHTML = '<option value="">Failed to load schedules</option>';
+            });
+    }
+
+    packageEl.addEventListener('change', function () {
+        loadSchedules(this.value);
+    });
+})();
+</script>
+@endif
 @endsection

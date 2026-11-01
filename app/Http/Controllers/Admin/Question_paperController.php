@@ -23,11 +23,14 @@ use App\Models\Topic;
 use App\Models\Sub_topic;
 use App\Models\Exam;
 use App\Models\Question_source;
+use App\Models\CoursePackage;
+use App\Models\CoursePackageExamAssignment;
 use App\Services\QuestionPaperMixService;
 use App\Services\QuestionPaperPdfService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Support\AdminListQuery;
+use App\Support\CoursePackageAccess;
 
 class Question_paperController extends Controller
 {
@@ -516,7 +519,17 @@ class Question_paperController extends Controller
                 ->where('question_paper_question_types.question_paper_id',$data['details']->id)
                 ->get();
 
-        // dd($data['question_paper_subject']);
+        $data['series_packages'] = CoursePackage::query()
+            ->whereIn('code', CoursePackageAccess::seriesPackageCodes())
+            ->where('status', 1)
+            ->orderBy('sort_order')
+            ->get();
+
+        $data['series_assignments'] = CoursePackageExamAssignment::with(['package', 'schedule'])
+            ->where('question_paper_id', $data['details']->id)
+            ->orderByDesc('id')
+            ->get();
+
         return view('admin.question_paper.view',$data);
     }
 
