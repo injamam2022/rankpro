@@ -149,6 +149,21 @@
                                                                         </div>
                                                             
                             {{-- Tab: Convenience --}}
+                            @php
+                                $hasSeriesPackage = (bool) ($has_series_package ?? false);
+                                $seriesOffers = $series_offer_packages ?? collect();
+                                $seriesAssigned = $series_assigned_exams ?? collect();
+                                $packIcons = [
+                                    'rank_builder' => 'fas fa-chart-line',
+                                    'rank_champion' => 'fas fa-trophy',
+                                    'mission_720' => 'fas fa-rocket',
+                                ];
+                                $firstReady = $upcoming_exam_list->firstWhere('portal_status', 'available');
+                                if (!$firstReady) {
+                                    $firstReady = $scheduleList->firstWhere('portal_status', 'available');
+                                }
+                                $firstSeriesReady = $seriesAssigned->firstWhere('can_start', true);
+                            @endphp
                             <div class="ge-card ge-panel ge-panel-section" data-ge-panel="convenience">
                                 <div class="ge-panel__head">
                                     <div>
@@ -156,8 +171,10 @@
                                             Available Mocks for NEET 2027
                                             <span class="ge-badge-blue">On Demand</span>
                                         </h2>
-                                        <p class="ge-panel__sub">Start eligible mocks instantly, or wait for scheduled windows.</p>
-                                                                        </div>
+                                        <p class="ge-panel__sub">
+                                            Exams assigned to you from admin appear here. Buy a course package to unlock Rank Builder / Champion / Mission 720 series mocks.
+                                        </p>
+                                    </div>
                                     <div class="ge-panel__tools">
                                         <button type="button"
                                                 class="ge-search-toggle {{ $searchOpen ? 'is-active' : '' }}"
@@ -168,26 +185,28 @@
                                             <i class="fas fa-search"></i>
                                             <span>Search</span>
                                         </button>
-                                        @php
-                                            $firstReady = $upcoming_exam_list->firstWhere('portal_status', 'available');
-                                            if (!$firstReady) {
-                                                $firstReady = $scheduleList->firstWhere('portal_status', 'available');
-                                            }
-                                        @endphp
                                         @if($firstReady && (int) $firstReady->type !== 2 && method_exists($firstReady, 'canBeStarted') && $firstReady->canBeStarted())
                                             <a href="{{ route('start_exam', ['id' => $firstReady->id]) }}"
                                                class="ge-btn ge-btn--blue"
                                                onclick="openStartExamConfirm(this.href, @json($firstReady->name), {{ !empty($firstReady->is_proctored) ? 'true' : 'false' }}); return false;">
                                                 <i class="fas fa-bolt"></i> Quick Start Recommended Mock
                                             </a>
+                                        @elseif($firstSeriesReady && $firstSeriesReady->package)
+                                            <form method="post" action="{{ route('package_series.start', $firstSeriesReady->package->slug) }}" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="schedule_id" value="{{ $firstSeriesReady->schedule->id }}">
+                                                <button type="submit" class="ge-btn ge-btn--blue">
+                                                    <i class="fas fa-bolt"></i> Quick Start Recommended Mock
+                                                </button>
+                                            </form>
                                         @else
                                             <button type="button" class="ge-btn ge-btn--blue is-disabled" disabled>
                                                 <i class="fas fa-bolt"></i> Quick Start Recommended Mock
                                             </button>
                                         @endif
-                                                                    </div>
-                                                                </div>
-                                                        
+                                    </div>
+                                </div>
+
                                 <div class="ge-search-panel {{ $searchOpen ? 'is-open' : '' }}" id="geSearchPanel" @if(!$searchOpen) hidden @endif>
                                     <form class="ge-search-form" method="get" action="{{ route('upcoming_exam') }}" role="search">
                                         @if(!empty($exam_type))
@@ -195,7 +214,7 @@
                                         @endif
                                         @if(!empty($subject_id))
                                             <input type="hidden" name="subject_id" value="{{ $subject_id }}">
-                                                                        @endif
+                                        @endif
                                         <div class="ge-search-field">
                                             <i class="fas fa-search"></i>
                                             <input type="search"
@@ -204,15 +223,17 @@
                                                    value="{{ $searchQ }}"
                                                    placeholder="Search by mock name or exam ID…"
                                                    autocomplete="off">
-                                                                    </div>
+                                        </div>
                                         <button type="submit" class="ge-btn ge-btn--blue ge-btn--sm">Search</button>
                                         @if($searchQ !== '')
                                             <a class="ge-btn ge-btn--ghost ge-btn--sm"
                                                href="{{ route('upcoming_exam', array_filter(['exam_type' => $exam_type ?: null, 'subject_id' => $subject_id ?: null])) }}">Clear</a>
                                         @endif
                                     </form>
-                                                                </div>
-                                                        
+                                </div>
+
+                                {{-- 1) Backend-assigned exams (admin Test Assignments / batch) --}}
+                                <div class="ge-section-label">Assigned by RankPro</div>
                                 <div class="ge-mocks">
                                     @forelse($upcoming_exam_list as $value)
                                         @php
@@ -226,15 +247,15 @@
                                             <div class="ge-mock__top">
                                                 <div class="ge-mock__series">{{ $value->series_label ?? 'RANKPRO NEET ELITE SERIES 2027' }}</div>
                                                 <div class="ge-mock__duration"><i class="far fa-clock"></i> {{ $mins }} mins</div>
-                                                            </div>
+                                            </div>
                                             <h3 class="ge-mock__name">{{ $value->name }}</h3>
                                             <p class="ge-mock__desc">{{ $syllabus }}</p>
                                             <div class="ge-mock__meta">
                                                 <span>Questions: <strong>{{ $value->no_of_question ?? '—' }}</strong></span>
                                                 <span>Marks: <strong>{{ $value->totals_marks_for_exam ?? '—' }}</strong></span>
                                                 <span>Difficulty: <strong>{{ $value->difficulty_label ?? 'NTA Standard' }}</strong></span>
-                                                                    </div>
-                                                                
+                                            </div>
+
                                             @if($isOffline && $value->exam_status === null)
                                                 <div class="ge-accept-row">
                                                     <a href="{{ route('upcoming_exam.accept', ['id' => $value->id]) }}"
@@ -243,7 +264,7 @@
                                                     <a href="{{ route('upcoming_exam.reject', ['id' => $value->id]) }}"
                                                        class="ge-btn-reject"
                                                        onclick="return confirm('Do you really want to reject this exam?');">Reject</a>
-                                                                    </div>
+                                                </div>
                                             @endif
 
                                             <div class="ge-mock__foot">
@@ -278,12 +299,12 @@
                                             @if($searchQ !== '')
                                                 No mocks matched “{{ $searchQ }}”.
                                             @else
-                                                No mocks available right now. Check back soon.
+                                                No admin-assigned mocks right now.
                                             @endif
                                         </div>
                                     @endforelse
-                                                                        </div>
-                                                                
+                                </div>
+
                                 @if(method_exists($upcoming_exam_list, 'total') && $upcoming_exam_list->total() > 0)
                                     <div class="ge-pagination">
                                         <div class="ge-pagination__meta">
@@ -292,7 +313,119 @@
                                         {{ $upcoming_exam_list->onEachSide(1)->links('pagination::bootstrap-5') }}
                                     </div>
                                 @endif
-                                                                        </div>
+
+                                {{-- 2) Series package: purchase cards OR assigned series papers --}}
+                                @if(!$hasSeriesPackage)
+                                    <div class="ge-section-label mt-4">Unlock course series mocks</div>
+                                    <div class="ge-pack-grid">
+                                        @foreach($seriesOffers as $pkg)
+                                            @php
+                                                $theme = $pkg->theme ?: 'blue';
+                                                $icon = $packIcons[$pkg->code] ?? 'fas fa-graduation-cap';
+                                            @endphp
+                                            <article class="ge-pack ge-pack--{{ $theme }}">
+                                                <div class="ge-pack__top">
+                                                    <div class="ge-pack__icon"><i class="{{ $icon }}"></i></div>
+                                                    <div class="ge-pack__chips">
+                                                        @if($pkg->includes_online)<span class="ge-pack__chip">Online</span>@endif
+                                                        @if($pkg->includes_omr)<span class="ge-pack__chip ge-pack__chip--omr">OMR</span>@endif
+                                                    </div>
+                                                </div>
+                                                <h3 class="ge-pack__name">{{ $pkg->name }}</h3>
+                                                <p class="ge-pack__tag">{{ $pkg->tagline }}</p>
+                                                <div class="ge-pack__price">{{ $pkg->formattedPrice() }}</div>
+                                                <ul class="ge-pack__feats">
+                                                    @foreach(($pkg->features ?? collect())->take(4) as $feat)
+                                                        <li><i class="fas fa-check"></i><span>{{ $feat->text }}</span></li>
+                                                    @endforeach
+                                                </ul>
+                                                <a class="ge-pack__cta" href="{{ route('course_packages.show', $pkg->slug) }}">
+                                                    View details &amp; buy
+                                                </a>
+                                            </article>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="ge-section-label mt-4">
+                                        Your purchased series
+                                        <a href="{{ route('package_series') }}" class="ge-section-link">Full schedule</a>
+                                    </div>
+                                    <div class="ge-mocks">
+                                        @if($seriesAssigned->isEmpty())
+                                            <div class="ge-empty">
+                                                Your package is active. Series exam papers will appear here when RankPro assigns them.
+                                            </div>
+                                        @else
+                                            @foreach($seriesAssigned as $row)
+                                                @php
+                                                    $pkg = $row->package;
+                                                    $sch = $row->schedule;
+                                                    $paper = $row->paper;
+                                                    $mins = (int) ($paper->total_time_for_exam ?? 0);
+                                                    if ($mins <= 0) { $mins = 200; }
+                                                    $status = $row->status;
+                                                @endphp
+                                                <article class="ge-mock">
+                                                    <div class="ge-mock__top">
+                                                        <div class="ge-mock__series">{{ $pkg->name }}</div>
+                                                        <div class="ge-mock__duration"><i class="far fa-clock"></i> {{ $mins }} mins</div>
+                                                    </div>
+                                                    <h3 class="ge-mock__name">{{ $sch->test_type ?: $paper->name }}</h3>
+                                                    <p class="ge-mock__desc">
+                                                        {{ optional($sch->test_date)->format('d M Y') ?: 'Date TBA' }}
+                                                        @if($sch->timing)
+                                                            <span> · {{ $sch->timing }}</span>
+                                                        @endif
+                                                        @if($sch->section)
+                                                            <span> · {{ ucfirst($sch->section) }} syllabus</span>
+                                                        @endif
+                                                    </p>
+                                                    <div class="ge-mock__meta">
+                                                        <span>Paper: <strong>{{ $paper->name }}</strong></span>
+                                                        <span>Questions: <strong>{{ $paper->no_of_question ?? '—' }}</strong></span>
+                                                        <span>Marks: <strong>{{ $paper->totals_marks_for_exam ?? '—' }}</strong></span>
+                                                    </div>
+                                                    <div class="ge-mock__foot">
+                                                        @if($row->can_resume && $row->attempt)
+                                                            <span class="ge-status"><span class="ge-status__dot is-ready"></span> {{ $status === 'ready' ? 'Ready to start' : 'In progress' }}</span>
+                                                            <a href="{{ route('custom_test.resume', $row->attempt->id) }}" class="ge-btn ge-btn--pink ge-btn--sm">
+                                                                <i class="fas fa-play"></i> {{ $status === 'ready' ? 'Start Exam' : 'Resume' }}
+                                                            </a>
+                                                        @elseif($status === 'completed' && $row->attempt)
+                                                            <span class="ge-status"><span class="ge-status__dot is-done"></span> Completed</span>
+                                                            <div class="d-flex gap-2 flex-wrap">
+                                                                <a href="{{ route('custom_test.analysis', $row->attempt->id) }}" class="ge-btn ge-btn--ghost ge-btn--sm">View analysis</a>
+                                                                @if($pkg->includes_online)
+                                                                    <form method="post" action="{{ route('package_series.start', $pkg->slug) }}">
+                                                                        @csrf
+                                                                        <input type="hidden" name="schedule_id" value="{{ $sch->id }}">
+                                                                        <button type="submit" class="ge-btn ge-btn--pink ge-btn--sm">Retake</button>
+                                                                    </form>
+                                                                @endif
+                                                            </div>
+                                                        @elseif($row->can_start)
+                                                            <span class="ge-status">
+                                                                <span class="ge-status__dot {{ $status === 'upcoming' ? 'is-scheduled' : 'is-ready' }}"></span>
+                                                                {{ $status === 'upcoming' ? 'Upcoming - can start online' : 'Ready on Demand' }}
+                                                            </span>
+                                                            <form method="post" action="{{ route('package_series.start', $pkg->slug) }}">
+                                                                @csrf
+                                                                <input type="hidden" name="schedule_id" value="{{ $sch->id }}">
+                                                                <button type="submit" class="ge-btn ge-btn--pink ge-btn--sm">
+                                                                    <i class="fas fa-play"></i> Start Exam
+                                                                </button>
+                                                            </form>
+                                                        @else
+                                                            <span class="ge-status"><span class="ge-status__dot is-scheduled"></span> Waiting for paper / schedule</span>
+                                                            <a href="{{ route('package_series.show', $pkg->slug) }}" class="ge-btn ge-btn--ghost ge-btn--sm">Open series</a>
+                                                        @endif
+                                                    </div>
+                                                </article>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
                                                                 
                             {{-- Tab: Schedule --}}
                             <div class="ge-card ge-panel ge-panel-section" data-ge-panel="schedule" hidden>

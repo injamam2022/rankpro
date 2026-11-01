@@ -17,6 +17,10 @@ use App\Models\Subject;
 use App\Models\Exam_status;
 use App\Models\Question_paper_subject;
 use App\Models\Offline_exam_question;
+use App\Models\CoursePackage;
+use App\Models\CoursePackageExamAssignment;
+use App\Models\CustomTest;
+use App\Support\CoursePackageAccess;
 
 use DB;
 
@@ -220,6 +224,71 @@ class Upcoming_examController extends Controller
 
         $idPaginator->setCollection($pageExams);
         $data['upcoming_exam_list'] = $idPaginator;
+
+        // Series packages (Rank Builder / Champion / Mission 720) for Give Exam upsell + assigned papers.
+        $data['series_offer_packages'] = CoursePackage::active()
+            ->with('features')
+            ->whereIn('code', CoursePackageAccess::seriesPackageCodes())
+            ->orderBy('sort_order')
+            ->get();
+
+        $ownedSeries = CoursePackageAccess::ownedSeriesOrders();
+        $data['has_series_package'] = $ownedSeries->isNotEmpty();
+        $data['owned_series_orders'] = $ownedSeries;
+
+        $seriesAssigned = collect();
+        if ($ownedSeries->isNotEmpty()) {
+            $packageIds = $ownedSeries->pluck('course_package_id')->filter()->unique()->values();
+            $assignments = CoursePackageExamAssignment::active()
+                ->with(['package', 'schedule', 'questionPaper'])
+                ->whereIn('course_package_id', $packageIds)
+                ->orderByDesc('id')
+                ->get();
+
+            $attempts = CustomTest::query()
+                ->where('user_id', Auth::id())
+                ->orderByDesc('id')
+                ->get()
+                ->filter(fn (CustomTest $t) => data_get($t->selection, 'source') === 'package_series')
+                ->groupBy(function (CustomTest $t) {
+                    return data_get($t->selection, 'package_id').':'.data_get($t->selection, 'schedule_id');
+                });
+
+            $seriesAssigned = $assignments->map(function (CoursePackageExamAssignment $row) use ($attempts) {
+                $key = $row->course_package_id.':'.$row->course_schedule_id;
+                $latest = $attempts->get($key, collect())->first();
+                $paper = $row->questionPaper;
+                $schedule = $row->schedule;
+                $today = now()->startOfDay();
+                $testDay = optional($schedule?->test_date)->copy()?->startOfDay();
+
+                $status = 'available';
+                if ($latest && in_array($latest->status, ['completed', 'submitted', 'finished'], true)) {
+                    $status = 'completed';
+                } elseif ($latest && $latest->status === 'ready') {
+                    $status = 'ready';
+                } elseif ($latest && in_array($latest->status, ['in_progress', 'started'], true)) {
+                    $status = 'in_progress';
+                } elseif ($testDay && $testDay->gt($today)) {
+                    $status = 'upcoming';
+                }
+
+                return (object) [
+                    'assignment' => $row,
+                    'package' => $row->package,
+                    'schedule' => $schedule,
+                    'paper' => $paper,
+                    'attempt' => $latest,
+                    'status' => $status,
+                    'can_start' => (bool) ($row->package?->includes_online)
+                        && $paper
+                        && in_array($status, ['available', 'upcoming'], true),
+                    'can_resume' => $latest && in_array($status, ['ready', 'in_progress'], true),
+                ];
+            })->filter(fn ($row) => $row->package && $row->schedule && $row->paper)->values();
+        }
+
+        $data['series_assigned_exams'] = $seriesAssigned;
 
         return view('site.upcoming_exam',$data);
     }

@@ -113,7 +113,10 @@
     </div>
     <div class="rp-ft__bottom">
         <div class="rp-ft__bottom-inner">
-            <p>&copy; {{ date('Y') }} {{ $ws['copyright'] ?? 'RankPro. All Rights Reserved.' }}</p>
+            <div class="rp-ft__copy">
+                <p>&copy; {{ date('Y') }} {{ $ws['copyright'] ?? 'RankPro. All Rights Reserved.' }}</p>
+                <p class="rp-ft__powered"><strong>Rank Pro<br>Powered by Shikkha Educational Advisory Solutions LLP</strong></p>
+            </div>
             <div class="rp-ft__icons">
                 @if($wsWa)
                     <a href="{{ $wsWa }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
