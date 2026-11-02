@@ -64,7 +64,17 @@ class CoursePackageController extends Controller
 
         $locations = Location::where('status', 1)->where('is_deleted', 0)->orderBy('location_name')->get();
 
-        return view('site.course_packages.checkout', compact('package', 'mode', 'locations'));
+        // Prefer config (works with config:cache). Fall back to env for uncached local/dev.
+        $razorpayKey = config('services.razorpay.key') ?: env('RAZORPAY_KEY');
+        $razorpayName = config('services.razorpay.name') ?: env('RAZORPAY_NAME', 'RankPro');
+
+        return view('site.course_packages.checkout', compact(
+            'package',
+            'mode',
+            'locations',
+            'razorpayKey',
+            'razorpayName'
+        ));
     }
 
     public function placeOrder(Request $request, $slug)

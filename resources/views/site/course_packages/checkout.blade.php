@@ -156,9 +156,9 @@ function startPay() {
         return;
     }
 
-    const razorpayKey = @json(config('services.razorpay.key'));
+    const razorpayKey = @json($razorpayKey ?? '');
     if (!razorpayKey) {
-        alert('Payment gateway is not configured on this server (missing RAZORPAY_KEY). Please contact RankPro support.');
+        alert('Payment gateway is not configured on this server (missing RAZORPAY_KEY in .env). Ask admin to set RAZORPAY_KEY and run: php artisan config:clear');
         return;
     }
 
@@ -171,7 +171,7 @@ function startPay() {
         key: razorpayKey,
         amount: Math.round(finalPrice * 100),
         currency: "INR",
-        name: @json(config('services.razorpay.name')),
+        name: @json($razorpayName ?? 'RankPro'),
         description: @json($package->name),
         handler: function (response) {
             const data = collectForm();
