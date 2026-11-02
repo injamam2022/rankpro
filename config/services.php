@@ -36,4 +36,15 @@ return [
         'otp_template' => env('TWOFACTOR_OTP_TEMPLATE', 'OTPtemplate'),
     ],
 
+    /*
+    | Razorpay — use config('services.razorpay.*') in views/controllers.
+    | env() returns null on servers after `php artisan config:cache`.
+    */
+    'razorpay' => [
+        'key' => env('RAZORPAY_KEY'),
+        'secret' => env('RAZORPAY_SECRET'),
+        'name' => env('RAZORPAY_NAME', 'RankPro'),
+        'description' => env('RAZORPAY_DESCRIPTION', 'RankPro'),
+    ],
+
 ];

@@ -310,11 +310,11 @@
         function checkout(){
             console.log(finalPrice);
                 var options = {
-                  "key": "{{ env('RAZORPAY_KEY') }}",
+                  "key": "{{ config('services.razorpay.key') }}",
                   "amount": finalPrice*100,
                   "currency": "INR",
-                  "name": "{{ env('RAZORPAY_NAME') }}",
-                  "description": "{{ env('RAZORPAY_DESCRIPTION') }}",
+                  "name": "{{ config('services.razorpay.name') }}",
+                  "description": "{{ config('services.razorpay.description') }}",
                   "image": "{{asset('')}}img/logo.png",
                   "handler": (response) => {
                         g_data.razorpay_payment_id = response.razorpay_payment_id;

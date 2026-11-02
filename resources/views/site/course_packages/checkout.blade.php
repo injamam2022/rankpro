@@ -156,11 +156,22 @@ function startPay() {
         return;
     }
 
+    const razorpayKey = @json(config('services.razorpay.key'));
+    if (!razorpayKey) {
+        alert('Payment gateway is not configured on this server (missing RAZORPAY_KEY). Please contact RankPro support.');
+        return;
+    }
+
+    if (typeof Razorpay === 'undefined') {
+        alert('Unable to load Razorpay. Check your internet connection or ad blocker, then try again.');
+        return;
+    }
+
     const options = {
-        key: @json(env('RAZORPAY_KEY')),
+        key: razorpayKey,
         amount: Math.round(finalPrice * 100),
         currency: "INR",
-        name: @json(env('RAZORPAY_NAME')),
+        name: @json(config('services.razorpay.name')),
         description: @json($package->name),
         handler: function (response) {
             const data = collectForm();
