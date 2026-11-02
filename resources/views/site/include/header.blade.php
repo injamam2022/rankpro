@@ -14,7 +14,7 @@
                     <a class="nav-link" href="{{ route('index') }}#features">Features</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('course_packages*') ? 'active' : '' }}" href="{{ route('course_packages') }}">Course Packages</a>
+                    <a class="nav-link {{ request()->routeIs('course_packages*') ? 'active' : '' }}" href="{{ route('course_packages') }}">Courses</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('index') }}#pricing">Pricing</a>
