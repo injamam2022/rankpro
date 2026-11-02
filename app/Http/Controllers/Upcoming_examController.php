@@ -19,6 +19,7 @@ use App\Models\Question_paper_subject;
 use App\Models\Offline_exam_question;
 use App\Models\CoursePackage;
 use App\Models\CoursePackageExamAssignment;
+use App\Models\CourseSchedule;
 use App\Models\CustomTest;
 use App\Support\CoursePackageAccess;
 
@@ -289,6 +290,50 @@ class Upcoming_examController extends Controller
         }
 
         $data['series_assigned_exams'] = $seriesAssigned;
+
+        // Locked preview cards for unpaid users (tease the series schedule).
+        $data['locked_series_previews'] = collect();
+        $data['upgrade_featured_package'] = $data['series_offer_packages']->firstWhere('code', 'rank_builder')
+            ?: $data['series_offer_packages']->first();
+
+        if ($ownedSeries->isEmpty()) {
+            $data['locked_series_previews'] = CourseSchedule::active()
+                ->orderByDesc('test_date')
+                ->orderByDesc('seq')
+                ->limit(12)
+                ->get()
+                ->map(function (CourseSchedule $s, $idx) {
+                    $coverage = collect($s->subjects ?? [])
+                        ->map(function ($row) {
+                            $sub = trim((string) ($row['subject'] ?? ''));
+                            $topics = trim((string) ($row['topics'] ?? ''));
+                            if ($sub === '' && $topics !== '') {
+                                return $topics;
+                            }
+                            if ($topics === '') {
+                                return $sub;
+                            }
+
+                            return $sub.': '.$topics;
+                        })
+                        ->filter()
+                        ->values()
+                        ->all();
+
+                    return (object) [
+                        'id' => $s->id,
+                        'title' => $s->test_type ?: ('Test '.($s->seq ?: ($idx + 1))),
+                        'section' => $s->section,
+                        'date_label' => optional($s->test_date)->format('M j, g:i A')
+                            ?: (optional($s->test_date)->format('M j') ?: 'Schedule TBA'),
+                        'timing' => $s->timing,
+                        'questions' => 180,
+                        'duration' => '3 Hrs',
+                        'coverage' => $coverage,
+                    ];
+                })
+                ->values();
+        }
 
         return view('site.upcoming_exam',$data);
     }

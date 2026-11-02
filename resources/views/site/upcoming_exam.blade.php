@@ -314,36 +314,72 @@
                                     </div>
                                 @endif
 
-                                {{-- 2) Series package: purchase cards OR assigned series papers --}}
+                                {{-- 2) Series package: locked tease cards + upgrade modal OR assigned series papers --}}
                                 @if(!$hasSeriesPackage)
-                                    <div class="ge-section-label mt-4">Unlock course series mocks</div>
-                                    <div class="ge-pack-grid">
-                                        @foreach($seriesOffers as $pkg)
-                                            @php
-                                                $theme = $pkg->theme ?: 'blue';
-                                                $icon = $packIcons[$pkg->code] ?? 'fas fa-graduation-cap';
-                                            @endphp
-                                            <article class="ge-pack ge-pack--{{ $theme }}">
-                                                <div class="ge-pack__top">
-                                                    <div class="ge-pack__icon"><i class="{{ $icon }}"></i></div>
-                                                    <div class="ge-pack__chips">
-                                                        @if($pkg->includes_online)<span class="ge-pack__chip">Online</span>@endif
-                                                        @if($pkg->includes_omr)<span class="ge-pack__chip ge-pack__chip--omr">OMR</span>@endif
+                                    @php
+                                        $lockedPreviews = $locked_series_previews ?? collect();
+                                        $upgradeFeatured = $upgrade_featured_package ?? $seriesOffers->first();
+                                    @endphp
+                                    <div class="ge-section-label mt-4">
+                                        Available series mocks
+                                        <span class="ge-section-hint">Locked — upgrade to unlock</span>
+                                    </div>
+
+                                    <div class="ge-lock-rail-wrap">
+                                        <div class="ge-lock-rail" id="geLockRail">
+                                            @forelse($lockedPreviews as $preview)
+                                                <article class="ge-lock-card">
+                                                    <div class="ge-lock-card__head">
+                                                        <h3 class="ge-lock-card__title">{{ $preview->title }}</h3>
+                                                        <span class="ge-lock-badge">Locked</span>
                                                     </div>
-                                                </div>
-                                                <h3 class="ge-pack__name">{{ $pkg->name }}</h3>
-                                                <p class="ge-pack__tag">{{ $pkg->tagline }}</p>
-                                                <div class="ge-pack__price">{{ $pkg->formattedPrice() }}</div>
-                                                <ul class="ge-pack__feats">
-                                                    @foreach(($pkg->features ?? collect())->take(4) as $feat)
-                                                        <li><i class="fas fa-check"></i><span>{{ $feat->text }}</span></li>
-                                                    @endforeach
-                                                </ul>
-                                                <a class="ge-pack__cta" href="{{ route('course_packages.show', $pkg->slug) }}">
-                                                    View details &amp; buy
-                                                </a>
-                                            </article>
-                                        @endforeach
+                                                    <div class="ge-lock-card__meta">
+                                                        <span>{{ $preview->questions }} Q</span>
+                                                        <span>{{ $preview->duration }}</span>
+                                                        <span>{{ $preview->date_label }}</span>
+                                                    </div>
+                                                    <div class="ge-lock-card__links">
+                                                        <button type="button" class="ge-lock-link" data-ge-upgrade-open data-focus="syllabus">
+                                                            <i class="fas fa-list-ul"></i> View Syllabus
+                                                        </button>
+                                                        <button type="button" class="ge-lock-link is-muted" disabled title="Unlock to download">
+                                                            <i class="fas fa-file-download"></i> Question PDF
+                                                        </button>
+                                                    </div>
+                                                    <button type="button" class="ge-lock-cta" data-ge-upgrade-open>
+                                                        Upgrade now
+                                                    </button>
+                                                </article>
+                                            @empty
+                                                <article class="ge-lock-card">
+                                                    <div class="ge-lock-card__head">
+                                                        <h3 class="ge-lock-card__title">Rank Builder Series</h3>
+                                                        <span class="ge-lock-badge">Locked</span>
+                                                    </div>
+                                                    <div class="ge-lock-card__meta">
+                                                        <span>180 Q</span>
+                                                        <span>3 Hrs</span>
+                                                        <span>NEET pattern</span>
+                                                    </div>
+                                                    <div class="ge-lock-card__links">
+                                                        <button type="button" class="ge-lock-link" data-ge-upgrade-open>
+                                                            <i class="fas fa-list-ul"></i> View Syllabus
+                                                        </button>
+                                                        <button type="button" class="ge-lock-link is-muted" disabled>
+                                                            <i class="fas fa-file-download"></i> Question PDF
+                                                        </button>
+                                                    </div>
+                                                    <button type="button" class="ge-lock-cta" data-ge-upgrade-open>
+                                                        Upgrade now
+                                                    </button>
+                                                </article>
+                                            @endforelse
+                                        </div>
+                                        @if($lockedPreviews->count() > 3)
+                                            <button type="button" class="ge-lock-rail__next" id="geLockRailNext" aria-label="Scroll locked tests">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        @endif
                                     </div>
                                 @else
                                     <div class="ge-section-label mt-4">
@@ -892,6 +928,141 @@
         </script>
 
     @include('site.include.start_exam_confirm_modal')
+
+    @if(empty($has_series_package) && ($series_offer_packages ?? collect())->isNotEmpty())
+        @php
+            $upgradePkgs = $series_offer_packages;
+            $upgradeDefault = $upgrade_featured_package ?? $upgradePkgs->first();
+        @endphp
+        <div class="rp-upg" id="rpUpgradeModal" hidden aria-hidden="true">
+            <div class="rp-upg__backdrop" data-ge-upgrade-close></div>
+            <div class="rp-upg__dialog" role="dialog" aria-modal="true" aria-labelledby="rpUpgTitle">
+                <button type="button" class="rp-upg__close" data-ge-upgrade-close aria-label="Close">&times;</button>
+
+                <div class="rp-upg__head">
+                    <div class="rp-upg__crown"><i class="fas fa-crown"></i></div>
+                    <div>
+                        <h2 class="rp-upg__title" id="rpUpgTitle">RankPro Series Pass</h2>
+                        <p class="rp-upg__sub">Structured NEET mocks · Unlock online series tests instantly</p>
+                    </div>
+                </div>
+
+                <div class="rp-upg__tabs" id="rpUpgTabs">
+                    @foreach($upgradePkgs as $pkg)
+                        <button type="button"
+                                class="rp-upg__tab {{ $upgradeDefault && $upgradeDefault->id === $pkg->id ? 'is-active' : '' }}"
+                                data-pkg-id="{{ $pkg->id }}"
+                                data-pkg-slug="{{ $pkg->slug }}"
+                                data-pkg-name="{{ $pkg->name }}"
+                                data-pkg-price="{{ $pkg->formattedPrice() }}"
+                                data-pkg-tag="{{ $pkg->tagline }}"
+                                data-pkg-features='@json(($pkg->features ?? collect())->take(8)->pluck("text")->values())'>
+                            {{ $pkg->name }}
+                        </button>
+                    @endforeach
+                </div>
+
+                <div class="rp-upg__priceband">
+                    <div>
+                        <div class="rp-upg__price" id="rpUpgPrice">{{ $upgradeDefault?->formattedPrice() }}</div>
+                        <div class="rp-upg__once">one-time · instant access</div>
+                    </div>
+                    <div class="rp-upg__offer">
+                        <span class="rp-upg__offer-pill">🔥 RankPro offer</span>
+                        <div class="rp-upg__offer-note">Limited seats for NEET 2027 series</div>
+                    </div>
+                </div>
+
+                <p class="rp-upg__tagline" id="rpUpgTag">{{ $upgradeDefault?->tagline }}</p>
+
+                <ul class="rp-upg__feats" id="rpUpgFeats">
+                    @foreach(($upgradeDefault->features ?? collect())->take(8) as $feat)
+                        <li><i class="fas fa-check"></i><span>{{ $feat->text }}</span></li>
+                    @endforeach
+                </ul>
+
+                <div class="rp-upg__coupon">
+                    <i class="fas fa-tag"></i>
+                    <span>Coupons can be applied on the checkout page before payment.</span>
+                </div>
+
+                <a href="{{ $upgradeDefault ? route('course_packages.checkout', $upgradeDefault->slug) : route('course_packages') }}"
+                   class="rp-upg__pay"
+                   id="rpUpgPay">
+                    Pay <span id="rpUpgPayAmt">{{ $upgradeDefault?->formattedPrice() }}</span> &amp; unlock →
+                </a>
+                <div class="rp-upg__secure">
+                    <i class="fas fa-lock"></i> 100% secure payment · Instant access after successful payment
+                </div>
+                <a href="{{ route('course_packages') }}" class="rp-upg__more">Compare all packages</a>
+            </div>
+        </div>
+
+        <script>
+        (function () {
+            var modal = document.getElementById('rpUpgradeModal');
+            if (!modal) return;
+            var pay = document.getElementById('rpUpgPay');
+            var priceEl = document.getElementById('rpUpgPrice');
+            var payAmt = document.getElementById('rpUpgPayAmt');
+            var tagEl = document.getElementById('rpUpgTag');
+            var featsEl = document.getElementById('rpUpgFeats');
+            var checkoutBase = @json(url('/course-packages'));
+
+            function openUpgrade() {
+                modal.hidden = false;
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('rp-upg-open');
+            }
+            function closeUpgrade() {
+                modal.hidden = true;
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('rp-upg-open');
+            }
+
+            document.querySelectorAll('[data-ge-upgrade-open]').forEach(function (btn) {
+                btn.addEventListener('click', openUpgrade);
+            });
+            document.querySelectorAll('[data-ge-upgrade-close]').forEach(function (btn) {
+                btn.addEventListener('click', closeUpgrade);
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && !modal.hidden) closeUpgrade();
+            });
+
+            document.querySelectorAll('#rpUpgTabs .rp-upg__tab').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    document.querySelectorAll('#rpUpgTabs .rp-upg__tab').forEach(function (t) {
+                        t.classList.remove('is-active');
+                    });
+                    tab.classList.add('is-active');
+                    var price = tab.getAttribute('data-pkg-price') || '';
+                    var slug = tab.getAttribute('data-pkg-slug') || '';
+                    var tag = tab.getAttribute('data-pkg-tag') || '';
+                    var feats = [];
+                    try { feats = JSON.parse(tab.getAttribute('data-pkg-features') || '[]'); } catch (e) {}
+                    if (priceEl) priceEl.textContent = price;
+                    if (payAmt) payAmt.textContent = price;
+                    if (tagEl) tagEl.textContent = tag;
+                    if (pay) pay.href = checkoutBase + '/' + slug + '/checkout';
+                    if (featsEl) {
+                        featsEl.innerHTML = (feats || []).map(function (f) {
+                            return '<li><i class="fas fa-check"></i><span>' + f + '</span></li>';
+                        }).join('');
+                    }
+                });
+            });
+
+            var rail = document.getElementById('geLockRail');
+            var next = document.getElementById('geLockRailNext');
+            if (rail && next) {
+                next.addEventListener('click', function () {
+                    rail.scrollBy({ left: 280, behavior: 'smooth' });
+                });
+            }
+        })();
+        </script>
+    @endif
 </body>
 
 </html>
