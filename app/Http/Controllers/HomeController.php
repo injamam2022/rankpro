@@ -38,7 +38,6 @@ use App\Models\ExamDate;
 use App\Models\Footer;
 use App\Models\Contact;
 use App\Models\Cms_text;
-use App\Models\Blog;
 use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
@@ -90,12 +89,6 @@ class HomeController extends Controller
         $data['ranker_list'] = Ranker::with(['feedbacks' => function ($query) {
                                     $query->where('status', 1)->latest();
                                 }])->where('status', 1)->get();
-
-        $data['blog_posts'] = Blog::published()
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->limit(3)
-            ->get();
 
         // dd($data);
         return view('site.home',$data);

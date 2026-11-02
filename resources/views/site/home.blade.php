@@ -103,11 +103,11 @@
 
                 <div class="rh__lowerrow">
                     <!-- mini card -->
-                    <a href="{{ route('new_light') }}" class="rh__mini">
+                    <a href="{{ route('index') }}#pricing" class="rh__mini">
                         <div class="rh__mini-img" style="background-image:url('{{ asset('web/images/scolar_test.png') }}');"></div>
                         <div class="rh__mini-txt">
-                            <strong>NEET Pro Test Series</strong>
-                            <span>Real-exam simulation. Same-day results.</span>
+                            <strong>Rank Pro Mission 720</strong>
+                            <span>Real exam simulation &amp; same day result</span>
                         </div>
                     </a>
                 </div>
@@ -144,12 +144,12 @@
 
                     @if (Auth::check())
                         <a href="{{ route('custom_test') }}" class="rh__start-btn" id="rhStart">
-                            <span>Start Test</span>
+                            <span>Free Custom Test</span>
                             <span class="rh__start-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                         </a>
                     @else
                         <a href="{{ route('signup', ['next' => 'custom_test']) }}" class="rh__start-btn" id="rhStart">
-                            <span>Start Test</span>
+                            <span>Free Custom Test</span>
                             <span class="rh__start-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                         </a>
                     @endif
@@ -344,16 +344,16 @@
                 </div>
             </div>
 
-            <a href="https://www.youtube.com" target="_blank" rel="noopener" class="hw__video" id="hwVideo">
+            <div class="hw__video" id="hwVideo" role="button" tabindex="0" aria-label="Watch the RankPro walkthrough" data-yt-id="amNr6t3NiAA">
                 <div class="hw__video-photo hw__video-photo--local"></div>
                 <div class="hw__video-shade"></div>
                 <span class="hw__video-title">RankPro Walkthrough</span>
-                <span class="hw__play" id="hwPlay">
+                <span class="hw__play" id="hwPlay" aria-hidden="true">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </span>
                 <span class="hw__playlabel">Watch the walkthrough</span>
                 <span class="hw__meta"><span class="hw__meta-dot"></span>2:14 &middot; Full walkthrough</span>
-            </a>
+            </div>
         </div>
     </section>
     <!-- How it works end -->
@@ -695,59 +695,6 @@
     <!--</div>-->
     <!-- leftfixt2 -->
 
-    <!-- Home blog -->
-    @if(isset($blog_posts) && $blog_posts->isNotEmpty())
-    <section class="hb" id="blog">
-        <div class="hb__inner">
-            <div class="hb__head">
-                <div class="hb__head-copy">
-                    <span class="hb__eyebrow"><i></i>From the RankPro desk</span>
-                    <h2 class="hb__title">NEET notes, strategy<br><span class="hb__grad">&amp; product updates</span></h2>
-                    <p class="hb__sub">Short reads that help you revise smarter and stay ahead of the paper.</p>
-                </div>
-                <a href="{{ route('blog') }}" class="hb__all">
-                    View all posts
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </a>
-            </div>
-
-            <div class="hb__grid">
-                @foreach($blog_posts as $post)
-                    <article class="hb__card">
-                        <a href="{{ route('blog.show', $post->slug) }}" class="hb__card-media" aria-label="{{ $post->title }}">
-                            @if($post->image_url)
-                                <img src="{{ $post->image_url }}" alt="{{ $post->title }}" loading="lazy">
-                            @else
-                                <div class="hb__card-placeholder">
-                                    <span>RankPro</span>
-                                </div>
-                            @endif
-                        </a>
-                        <div class="hb__card-body">
-                            <div class="hb__card-meta">
-                                <time datetime="{{ optional($post->published_at)->toDateString() }}">
-                                    {{ optional($post->published_at)->format('d M Y') ?: $post->created_at->format('d M Y') }}
-                                </time>
-                            </div>
-                            <h3 class="hb__card-title">
-                                <a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a>
-                            </h3>
-                            @if($post->excerpt)
-                                <p class="hb__card-desc">{{ \Illuminate\Support\Str::limit(strip_tags($post->excerpt), 110) }}</p>
-                            @endif
-                            <a class="hb__card-link" href="{{ route('blog.show', $post->slug) }}">
-                                Read article
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </a>
-                        </div>
-                    </article>
-                @endforeach
-            </div>
-        </div>
-    </section>
-    @endif
-    <!-- Home blog end -->
-
    <!-- FAQ (redesigned) -->
     <section class="fq" id="faq">
         <div class="fq__inner">
@@ -1073,7 +1020,35 @@
                 var video = document.getElementById("hwVideo");
                 var headline = document.getElementById("hwHeadline");
                 var play = document.getElementById("hwPlay");
-                if(!video || !headline || !window.gsap) return;
+                if(!video) return;
+
+                function playWalkthrough(){
+                    var ytId = video.getAttribute("data-yt-id");
+                    if(!ytId || video.classList.contains("hw__video--playing")) return;
+                    video.classList.add("hw__video--playing");
+                    video.removeAttribute("role");
+                    video.removeAttribute("tabindex");
+                    var iframe = document.createElement("iframe");
+                    iframe.src = "https://www.youtube.com/embed/" + encodeURIComponent(ytId) + "?autoplay=1&rel=0&modestbranding=1";
+                    iframe.title = "RankPro Walkthrough";
+                    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+                    iframe.setAttribute("allowfullscreen", "");
+                    iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+                    video.appendChild(iframe);
+                }
+
+                video.addEventListener("click", function(e){
+                    e.preventDefault();
+                    playWalkthrough();
+                });
+                video.addEventListener("keydown", function(e){
+                    if(e.key === "Enter" || e.key === " "){
+                        e.preventDefault();
+                        playWalkthrough();
+                    }
+                });
+
+                if(!headline || !window.gsap) return;
                 gsap.registerPlugin(ScrollTrigger);
 
                 // split headline into per-character spans
@@ -1100,14 +1075,16 @@
 
                 if(window.matchMedia("(hover:hover)").matches){
                     video.addEventListener("mousemove", function(e){
+                        if(video.classList.contains("hw__video--playing")) return;
                         var r=video.getBoundingClientRect();
                         var px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
                         gsap.to(video,{ rotateY:px*5, rotateX:-py*5, duration:.6, ease:"power2.out" });
-                        gsap.to(play,{ x:px*36, y:py*36, duration:.5, ease:"power2.out" });
+                        if(play) gsap.to(play,{ x:px*36, y:py*36, duration:.5, ease:"power2.out" });
                     });
                     video.addEventListener("mouseleave", function(){
+                        if(video.classList.contains("hw__video--playing")) return;
                         gsap.to(video,{ rotateY:0, rotateX:0, duration:.8, ease:"power3.out" });
-                        gsap.to(play,{ x:0, y:0, duration:.6, ease:"elastic.out(1,.4)" });
+                        if(play) gsap.to(play,{ x:0, y:0, duration:.6, ease:"elastic.out(1,.4)" });
                     });
                 }
             })();
@@ -1440,19 +1417,6 @@
                 gsap.from(".gl__head > *", { scrollTrigger:{ trigger:".gl", start:"top 78%" }, y:24, opacity:0, duration:.6, stagger:.1, ease:"power3.out" });
                 gsap.from(".gl__item", { scrollTrigger:{ trigger:".gl__grid", start:"top 82%" }, y:40, opacity:0, duration:.7, stagger:.06, ease:"power3.out" });
                 gsap.from(".mn__logo", { scrollTrigger:{ trigger:".mn", start:"top 85%" }, y:20, opacity:0, duration:.5, stagger:.08, ease:"power3.out" });
-            }
-
-            // ===== Home blog reveal =====
-            if (window.gsap && window.ScrollTrigger && document.querySelector(".hb")) {
-                gsap.registerPlugin(ScrollTrigger);
-                gsap.from(".hb__head-copy > *, .hb__all", {
-                    scrollTrigger: { trigger: ".hb", start: "top 78%" },
-                    y: 24, opacity: 0, duration: .6, stagger: .1, ease: "power3.out"
-                });
-                gsap.from(".hb__card", {
-                    scrollTrigger: { trigger: ".hb__grid", start: "top 82%" },
-                    y: 40, opacity: 0, duration: .7, stagger: .12, ease: "power3.out"
-                });
             }
 
             // ===== CTA reveal + magnetic button =====

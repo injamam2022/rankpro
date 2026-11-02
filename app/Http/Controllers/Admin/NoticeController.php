@@ -24,14 +24,14 @@ class NoticeController extends Controller
 {
     public function list(){
         $data = [];
-        $data['list'] = Notice::get();
+        $data['list'] = Notice::withCount('noticeUsers')->orderByDesc('id')->get();
         return view('admin.notice.list',$data);
     }
 
 
     public function add(){
         $data = [];
-        $data['student_list'] = User::where('status',1)->get();
+        $data['student_list'] = User::where('status',1)->orderBy('first_name')->orderBy('last_name')->get();
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['exam_list'] = Exam::where('status',1)->get();
         return view('admin.notice.add',$data);
@@ -47,35 +47,21 @@ class NoticeController extends Controller
         $loginCheck = Notice::where('name',$request->name)->first();
 
         if (!$loginCheck){
+            $audience = $this->resolveRecipients($request);
+            $recipientIds = $audience['ids'];
+
             $insertData = [];
             $insertData['name'] = $request->name;
             $insertData['description'] = $request->description;
             $insertData['is_urgent'] = $request->is_urgent;
             $insertData['status'] = $request->status;
+            if (Schema::hasColumn('notices', 'is_for_all')) {
+                $insertData['is_for_all'] = $audience['is_for_all'] ? 1 : 0;
+            }
 
             $notice = Notice::create($insertData);
 
-            $class_id = $request->class_id;
-            $exam_type = $request->exam_type;
-            $exam_id = $request->exam_id;
-            $test_series = $request->test_series;
-            $user_id = $request->user_id;
-
-            $recipientIds = collect();
-            if(!empty($user_id)){
-                $recipientIds = collect([(int) $user_id]);
-            }else if(!empty($exam_id)){
-                $recipientIds = DB::table('exam_assignments')->where('exam_id', $exam_id)->pluck('user_id')
-                    ->merge(Exam_user::where('exam_id', $exam_id)->pluck('user_id'))
-                    ->unique()->values();
-            }
-
-            foreach ($recipientIds as $rid) {
-                Notice_user::create([
-                    'notice_id' => $notice->id,
-                    'user_id' => $rid,
-                ]);
-            }
+            $this->storeNoticeUsers($notice->id, $recipientIds);
 
             if (Schema::hasTable('student_notifications') && $recipientIds->isNotEmpty()) {
                 app(StudentNotificationService::class)->notify(
@@ -132,6 +118,7 @@ class NoticeController extends Controller
     
     public function delete(Request $request){
         $id = $request->id;
+        Notice_user::where('notice_id', $id)->delete();
         Notice::where('id',$id)->delete();
         toastr()->success('Notice deleted successfully.');
         return redirect()->route('admin.notice');
@@ -153,5 +140,90 @@ class NoticeController extends Controller
         toastr()->success('Notice status change successfully.');
         return redirect()->route('admin.notice');
     }
-    
+
+    /**
+     * @return array{ids:\Illuminate\Support\Collection,is_for_all:bool}
+     */
+    private function resolveRecipients(Request $request): array
+    {
+        $userId = $request->input('user_id');
+        $examId = $request->input('exam_id');
+        $classId = $request->input('class_id');
+        $specificUser = $userId !== null && $userId !== '' && $userId !== 'all' && $userId !== '0';
+
+        if ($specificUser) {
+            return [
+                'ids' => collect([(int) $userId])->filter()->unique()->values(),
+                'is_for_all' => false,
+            ];
+        }
+
+        $query = User::query()->where('status', 1);
+
+        if (!empty($classId) && (string) $classId !== '0') {
+            $classId = (string) $classId;
+            $query->where(function ($q) use ($classId) {
+                $q->where('class_name', $classId)
+                    ->orWhere('class_name', $classId.'th')
+                    ->orWhere('class_name', 'like', $classId.' %');
+            });
+        }
+
+        if (!empty($examId)) {
+            $examUserIds = collect();
+            if (Schema::hasTable('exam_assignments')) {
+                $examUserIds = $examUserIds->merge(
+                    DB::table('exam_assignments')->where('exam_id', $examId)->pluck('user_id')
+                );
+            }
+            $examUserIds = $examUserIds
+                ->merge(Exam_user::where('exam_id', $examId)->pluck('user_id'))
+                ->unique()
+                ->filter()
+                ->values();
+
+            $query->whereIn('id', $examUserIds);
+
+            return [
+                'ids' => $query->pluck('id'),
+                'is_for_all' => false,
+            ];
+        }
+
+        return [
+            'ids' => $query->pluck('id'),
+            'is_for_all' => empty($classId) || (string) $classId === '0',
+        ];
+    }
+
+    private function storeNoticeUsers(int $noticeId, $recipientIds): void
+    {
+        $ids = collect($recipientIds)->filter()->unique()->values();
+        if ($ids->isEmpty()) {
+            return;
+        }
+
+        $now = now();
+        $rows = [];
+        foreach ($ids as $rid) {
+            $rows[] = [
+                'notice_id' => $noticeId,
+                'user_id' => (int) $rid,
+                'is_favorite' => 0,
+                'is_archive' => 0,
+                'is_urgent' => 0,
+                'is_deleted' => 0,
+                'status' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+            if (count($rows) >= 500) {
+                Notice_user::insert($rows);
+                $rows = [];
+            }
+        }
+        if ($rows) {
+            Notice_user::insert($rows);
+        }
+    }
 }

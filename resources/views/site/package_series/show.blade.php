@@ -26,6 +26,7 @@
         .ps-badge--ready{background:#f5f3ff;color:#5b21b6}
         .ps-badge--in_progress{background:#fff7ed;color:#c2410c}
         .ps-badge--completed{background:#f1f5f9;color:#475569}
+        .ps-badge--expired{background:#fef2f2;color:#b91c1c}
         .ps-cov{font-size:.82rem;color:#64748b;margin-top:.35rem;line-height:1.45}
         .ps-actions{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
     </style>
@@ -85,6 +86,9 @@
                       <span class="ps-chip ps-chip--on ms-1">Paper ready</span>
                     @endif
                   </div>
+                  @if(!empty($row['availability_label']))
+                    <div class="small text-muted mt-1"><i class="far fa-calendar-alt"></i> Available: {{ $row['availability_label'] }}</div>
+                  @endif
                   @if(!empty($row['coverage']))
                     <div class="ps-cov">
                       @foreach($row['coverage'] as $line)
@@ -100,7 +104,7 @@
                     </a>
                   @elseif($row['status'] === 'completed' && $row['attempt'])
                     <a href="{{ route('custom_test.analysis', $row['attempt']->id) }}" class="btn btn-sm btn-outline-secondary">View analysis</a>
-                    @if($package->includes_online)
+                    @if($package->includes_online && $row['can_start_online'])
                       <form method="post" action="{{ route('package_series.start', $package->slug) }}" class="d-inline">
                         @csrf
                         <input type="hidden" name="schedule_id" value="{{ $s->id }}">
@@ -113,6 +117,10 @@
                       <input type="hidden" name="schedule_id" value="{{ $s->id }}">
                       <button type="submit" class="btn btn-sm btn-primary">Start online test</button>
                     </form>
+                  @elseif($row['status'] === 'upcoming')
+                    <span class="btn btn-sm btn-outline-secondary disabled">Opens on schedule</span>
+                  @elseif($row['status'] === 'expired')
+                    <span class="btn btn-sm btn-outline-secondary disabled">Window closed</span>
                   @endif
                   @if($package->includes_omr)
                     <span class="small text-muted">OMR on schedule</span>

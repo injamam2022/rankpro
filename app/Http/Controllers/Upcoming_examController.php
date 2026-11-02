@@ -260,8 +260,7 @@ class Upcoming_examController extends Controller
                 $latest = $attempts->get($key, collect())->first();
                 $paper = $row->questionPaper;
                 $schedule = $row->schedule;
-                $today = now()->startOfDay();
-                $testDay = optional($schedule?->test_date)->copy()?->startOfDay();
+                $window = $row->windowStatus();
 
                 $status = 'available';
                 if ($latest && in_array($latest->status, ['completed', 'submitted', 'finished'], true)) {
@@ -270,7 +269,9 @@ class Upcoming_examController extends Controller
                     $status = 'ready';
                 } elseif ($latest && in_array($latest->status, ['in_progress', 'started'], true)) {
                     $status = 'in_progress';
-                } elseif ($testDay && $testDay->gt($today)) {
+                } elseif ($window === 'expired') {
+                    $status = 'expired';
+                } elseif ($window === 'upcoming') {
                     $status = 'upcoming';
                 }
 
@@ -281,9 +282,11 @@ class Upcoming_examController extends Controller
                     'paper' => $paper,
                     'attempt' => $latest,
                     'status' => $status,
+                    'availability_label' => $row->availabilityLabel(),
                     'can_start' => (bool) ($row->package?->includes_online)
                         && $paper
-                        && in_array($status, ['available', 'upcoming'], true),
+                        && $status === 'available'
+                        && $row->isAvailableNow(),
                     'can_resume' => $latest && in_array($status, ['ready', 'in_progress'], true),
                 ];
             })->filter(fn ($row) => $row->package && $row->schedule && $row->paper)->values();

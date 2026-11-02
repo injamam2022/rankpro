@@ -6,8 +6,8 @@
         <div>
             <h1 class="page-header mb-0">Assign Series Exam Papers</h1>
             <p class="text-muted mb-0 mt-1" style="font-size:13px;">
-                Make a paper in Question Bank, then assign it here to Rank Builder / Rank Champion / Mission 720 schedule tests.
-                Students who purchased that package will see it under Series Tests.
+                Make a paper in Question Bank, assign it to Rank Builder / Rank Champion / Mission 720,
+                and set <strong>Available From / Until</strong> so purchasers can attempt only in that window.
             </p>
         </div>
         <a href="{{ route('admin.question_paper.add') }}" class="rp-act rp-act-add">
@@ -48,6 +48,18 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Available from <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="available_from" id="assign_available_from" class="form-control"
+                               value="{{ old('available_from') }}" required>
+                        <div class="form-text">Exam opens for purchasers at this date/time.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Available until <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="available_until" id="assign_available_until" class="form-control"
+                               value="{{ old('available_until') }}" required>
+                        <div class="form-text">After this, questions stay locked for new attempts.</div>
+                    </div>
                 </div>
                 <div class="mt-3">
                     <button type="submit" class="btn btn-primary">Assign paper</button>
@@ -61,7 +73,7 @@
             <tr>
                 <th>Package</th>
                 <th>Scheduled test</th>
-                <th>Date</th>
+                <th>Availability window</th>
                 <th>Paper</th>
                 <th>Questions</th>
                 <th>Status</th>
@@ -78,7 +90,17 @@
                             <div class="small text-muted">{{ ucfirst($row->schedule->section) }} syllabus</div>
                         @endif
                     </td>
-                    <td>{{ optional($row->schedule->test_date ?? null)->format('d M Y') ?: '—' }}</td>
+                    <td>
+                        <div class="small">{{ $row->availabilityLabel() }}</div>
+                        @php $win = $row->windowStatus(); @endphp
+                        @if($win === 'available')
+                            <span class="badge bg-success">Open now</span>
+                        @elseif($win === 'upcoming')
+                            <span class="badge bg-info text-dark">Upcoming</span>
+                        @else
+                            <span class="badge bg-secondary">Expired</span>
+                        @endif
+                    </td>
                     <td>
                         {{ $row->questionPaper->name ?? '—' }}
                         @if($row->question_paper_id)
@@ -118,11 +140,15 @@
 (function () {
     var packageEl = document.getElementById('assign_package_id');
     var scheduleEl = document.getElementById('assign_schedule_id');
+    var fromEl = document.getElementById('assign_available_from');
+    var untilEl = document.getElementById('assign_available_until');
     var schedulesUrl = @json(route('admin.course_package.exam_assignments.schedules'));
     var oldScheduleId = @json(old('course_schedule_id'));
+    var scheduleMeta = {};
 
     function loadSchedules(packageId, selectedId) {
         scheduleEl.innerHTML = '<option value="">Loading…</option>';
+        scheduleMeta = {};
         if (!packageId) {
             scheduleEl.innerHTML = '<option value="">Select package first</option>';
             return;
@@ -139,21 +165,46 @@
                 }
                 scheduleEl.innerHTML = '<option value="">Select scheduled test</option>';
                 rows.forEach(function (row) {
+                    scheduleMeta[String(row.id)] = row;
                     var opt = document.createElement('option');
                     opt.value = row.id;
                     opt.textContent = row.label;
                     if (String(selectedId) === String(row.id)) opt.selected = true;
                     scheduleEl.appendChild(opt);
                 });
+                if (selectedId) applySuggestedDates(selectedId);
             })
             .catch(function () {
                 scheduleEl.innerHTML = '<option value="">Failed to load schedules</option>';
             });
     }
 
+    function applySuggestedDates(scheduleId) {
+        var row = scheduleMeta[String(scheduleId)];
+        if (!row) return;
+        if (row.suggested_from && !fromEl.value) fromEl.value = row.suggested_from;
+        if (row.suggested_until && !untilEl.value) untilEl.value = row.suggested_until;
+        // Always refresh suggestions when schedule changes (unless old input already filled on first load)
+        if (fromEl.dataset.touched !== '1') fromEl.value = row.suggested_from || fromEl.value;
+        if (untilEl.dataset.touched !== '1') untilEl.value = row.suggested_until || untilEl.value;
+    }
+
     packageEl.addEventListener('change', function () {
+        fromEl.value = '';
+        untilEl.value = '';
+        fromEl.dataset.touched = '0';
+        untilEl.dataset.touched = '0';
         loadSchedules(this.value, null);
     });
+
+    scheduleEl.addEventListener('change', function () {
+        fromEl.dataset.touched = '0';
+        untilEl.dataset.touched = '0';
+        applySuggestedDates(this.value);
+    });
+
+    fromEl.addEventListener('input', function () { fromEl.dataset.touched = '1'; });
+    untilEl.addEventListener('input', function () { untilEl.dataset.touched = '1'; });
 
     if (packageEl.value) {
         loadSchedules(packageEl.value, oldScheduleId);

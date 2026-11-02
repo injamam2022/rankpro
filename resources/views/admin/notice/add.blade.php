@@ -65,11 +65,12 @@
                         <div class="col-sm-6">
                             <label class="form-label" for="user_id">Student </label>
                             <select class="form-control" id="user_id" name="user_id">
-                                <option value="">Select</option>
+                                <option value="all" selected>All Students</option>
                                 @foreach($student_list as $value)
                                     <option value="{{$value->id}}">{{$value->first_name}} {{$value->last_name}}</option>
                                 @endforeach
                             </select>
+                            <small class="text-muted">Leave as All Students to publish this notice to every student.</small>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label" for="name">Name <span class="text-danger">*</span></label>

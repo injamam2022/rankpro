@@ -204,7 +204,7 @@
                             <input type="hidden" name="question_paper_id" value="{{ $details->id }}">
                             <input type="hidden" name="redirect_to_paper" value="1">
                             <div class="row g-3">
-                                <div class="col-md-5">
+                                <div class="col-md-6">
                                     <label class="form-label">Package <span class="text-danger">*</span></label>
                                     <select name="course_package_id" id="paper_assign_package_id" class="form-control" required>
                                         <option value="">Select package</option>
@@ -213,11 +213,19 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-5">
+                                <div class="col-md-6">
                                     <label class="form-label">Scheduled test <span class="text-danger">*</span></label>
                                     <select name="course_schedule_id" id="paper_assign_schedule_id" class="form-control" required>
                                         <option value="">Select package first</option>
                                     </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Available from <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" name="available_from" id="paper_assign_available_from" class="form-control" required>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Available until <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" name="available_until" id="paper_assign_available_until" class="form-control" required>
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">Assign</button>
@@ -233,7 +241,7 @@
                                     <li class="mb-1">
                                         <strong>{{ $asg->package->name ?? '—' }}</strong>
                                         → {{ $asg->schedule->test_type ?? '—' }}
-                                        ({{ optional($asg->schedule->test_date ?? null)->format('d M Y') ?: 'no date' }})
+                                        <div class="small text-muted">{{ $asg->availabilityLabel() }}</div>
                                         @if(!$asg->status)
                                             <span class="badge bg-secondary">Inactive</span>
                                         @endif
@@ -260,11 +268,15 @@
 (function () {
     var packageEl = document.getElementById('paper_assign_package_id');
     var scheduleEl = document.getElementById('paper_assign_schedule_id');
+    var fromEl = document.getElementById('paper_assign_available_from');
+    var untilEl = document.getElementById('paper_assign_available_until');
     if (!packageEl || !scheduleEl) return;
     var schedulesUrl = @json(route('admin.course_package.exam_assignments.schedules'));
+    var scheduleMeta = {};
 
     function loadSchedules(packageId) {
         scheduleEl.innerHTML = '<option value="">Loading…</option>';
+        scheduleMeta = {};
         if (!packageId) {
             scheduleEl.innerHTML = '<option value="">Select package first</option>';
             return;
@@ -281,6 +293,7 @@
                 }
                 scheduleEl.innerHTML = '<option value="">Select scheduled test</option>';
                 rows.forEach(function (row) {
+                    scheduleMeta[String(row.id)] = row;
                     var opt = document.createElement('option');
                     opt.value = row.id;
                     opt.textContent = row.label;
@@ -292,7 +305,16 @@
             });
     }
 
+    scheduleEl.addEventListener('change', function () {
+        var row = scheduleMeta[String(this.value)];
+        if (!row || !fromEl || !untilEl) return;
+        if (row.suggested_from) fromEl.value = row.suggested_from;
+        if (row.suggested_until) untilEl.value = row.suggested_until;
+    });
+
     packageEl.addEventListener('change', function () {
+        if (fromEl) fromEl.value = '';
+        if (untilEl) untilEl.value = '';
         loadSchedules(this.value);
     });
 })();

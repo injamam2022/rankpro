@@ -421,6 +421,9 @@
                                                         <span>Questions: <strong>{{ $paper->no_of_question ?? '—' }}</strong></span>
                                                         <span>Marks: <strong>{{ $paper->totals_marks_for_exam ?? '—' }}</strong></span>
                                                     </div>
+                                                    @if(!empty($row->availability_label))
+                                                        <div class="small text-muted">Available: {{ $row->availability_label }}</div>
+                                                    @endif
                                                     <div class="ge-mock__foot">
                                                         @if($row->can_resume && $row->attempt)
                                                             <span class="ge-status"><span class="ge-status__dot is-ready"></span> {{ $status === 'ready' ? 'Ready to start' : 'In progress' }}</span>
@@ -431,7 +434,7 @@
                                                             <span class="ge-status"><span class="ge-status__dot is-done"></span> Completed</span>
                                                             <div class="d-flex gap-2 flex-wrap">
                                                                 <a href="{{ route('custom_test.analysis', $row->attempt->id) }}" class="ge-btn ge-btn--ghost ge-btn--sm">View analysis</a>
-                                                                @if($pkg->includes_online)
+                                                                @if($pkg->includes_online && $row->can_start)
                                                                     <form method="post" action="{{ route('package_series.start', $pkg->slug) }}">
                                                                         @csrf
                                                                         <input type="hidden" name="schedule_id" value="{{ $sch->id }}">
@@ -440,10 +443,7 @@
                                                                 @endif
                                                             </div>
                                                         @elseif($row->can_start)
-                                                            <span class="ge-status">
-                                                                <span class="ge-status__dot {{ $status === 'upcoming' ? 'is-scheduled' : 'is-ready' }}"></span>
-                                                                {{ $status === 'upcoming' ? 'Upcoming - can start online' : 'Ready on Demand' }}
-                                                            </span>
+                                                            <span class="ge-status"><span class="ge-status__dot is-ready"></span> Ready now</span>
                                                             <form method="post" action="{{ route('package_series.start', $pkg->slug) }}">
                                                                 @csrf
                                                                 <input type="hidden" name="schedule_id" value="{{ $sch->id }}">
@@ -451,6 +451,12 @@
                                                                     <i class="fas fa-play"></i> Start Exam
                                                                 </button>
                                                             </form>
+                                                        @elseif($status === 'upcoming')
+                                                            <span class="ge-status"><span class="ge-status__dot is-scheduled"></span> Opens later</span>
+                                                            <span class="ge-btn ge-btn--disabled ge-btn--sm">Not open yet</span>
+                                                        @elseif($status === 'expired')
+                                                            <span class="ge-status"><span class="ge-status__dot is-done"></span> Window closed</span>
+                                                            <span class="ge-btn ge-btn--disabled ge-btn--sm">Expired</span>
                                                         @else
                                                             <span class="ge-status"><span class="ge-status__dot is-scheduled"></span> Waiting for paper / schedule</span>
                                                             <a href="{{ route('package_series.show', $pkg->slug) }}" class="ge-btn ge-btn--ghost ge-btn--sm">Open series</a>

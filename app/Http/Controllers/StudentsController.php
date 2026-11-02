@@ -37,6 +37,7 @@ use App\Models\Chapter;
 use App\Models\Topic;
 use App\Models\Setting;
 use App\Models\Batch;
+use App\Models\Notice;
 use App\Models\Notice_user;
 use App\Support\ReportProblemCatalog;
 
@@ -309,6 +310,8 @@ class StudentsController extends Controller
             })
             ->listedForStudentPortal()
             ->count();
+
+        Notice::attachBroadcastForUser((int) Auth::id());
 
         $data['dashboard_notices'] = Notice_user::select([
                 'notice_users.*',

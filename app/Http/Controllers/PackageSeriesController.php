@@ -92,6 +92,7 @@ class PackageSeriesController extends Controller
             $testDay = optional($s->test_date)->copy()?->startOfDay();
             $assignment = $assignments->get($s->id);
             $assignedPaper = $assignment?->questionPaper;
+            $window = $assignment ? $assignment->windowStatus() : null;
 
             $status = 'available';
             if ($latest && in_array($latest->status, ['completed', 'submitted', 'finished'], true)) {
@@ -100,7 +101,9 @@ class PackageSeriesController extends Controller
                 $status = 'ready';
             } elseif ($latest && in_array($latest->status, ['in_progress', 'started'], true)) {
                 $status = 'in_progress';
-            } elseif ($testDay && $testDay->gt($today)) {
+            } elseif ($window === 'expired') {
+                $status = 'expired';
+            } elseif ($window === 'upcoming' || ($testDay && $testDay->gt($today))) {
                 $status = 'upcoming';
             }
 
@@ -121,6 +124,10 @@ class PackageSeriesController extends Controller
                 ->values()
                 ->all();
 
+            $canStart = (bool) $package->includes_online
+                && in_array($status, ['available'], true)
+                && (!$assignment || $assignment->isAvailableNow());
+
             return [
                 'schedule' => $s,
                 'coverage' => $coverage,
@@ -128,8 +135,8 @@ class PackageSeriesController extends Controller
                 'attempt' => $latest,
                 'assigned_paper' => $assignedPaper,
                 'has_assigned_paper' => (bool) $assignedPaper,
-                'can_start_online' => (bool) $package->includes_online
-                    && in_array($status, ['available', 'upcoming'], true),
+                'availability_label' => $assignment ? $assignment->availabilityLabel() : null,
+                'can_start_online' => $canStart,
                 'can_resume' => $latest && in_array($status, ['ready', 'in_progress'], true),
             ];
         });
@@ -190,6 +197,15 @@ class PackageSeriesController extends Controller
             ->first();
 
         if ($assignment) {
+            if (!$assignment->isAvailableNow()) {
+                $window = $assignment->windowStatus();
+                $msg = $window === 'upcoming'
+                    ? 'This exam opens on '.optional($assignment->available_from)->format('d M Y, h:i A').'.'
+                    : 'This exam window closed on '.optional($assignment->available_until)->format('d M Y, h:i A').'.';
+
+                return redirect()->route('package_series.show', $slug)->with('error', $msg);
+            }
+
             $paper = Question_paper::where('id', $assignment->question_paper_id)
                 ->where('is_deleted', 0)
                 ->where('status', 1)

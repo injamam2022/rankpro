@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Exam;
 use App\Models\Subject;
 use App\Models\Exam_user;
+use App\Models\Notice;
 use App\Models\Notice_user;
 use App\Models\StudentNotification;
 use App\Services\StudentNotificationService;
@@ -36,6 +37,7 @@ class NoticesController extends Controller
 
         $data = [];
         $data['user'] = Auth::user();
+        Notice::attachBroadcastForUser((int) Auth::id());
         $data['subject_list'] = Subject::where('status',1)->get();
         $data['exam_type'] = $request->exam_type;
         $data['subject_id'] = $request->subject_id;

@@ -24,6 +24,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
+                    <th>Audience</th>
                     <!-- <th>Per question time</th> -->
                     <!-- <th>Per exam no of question</th> -->
                     <th>Status</th>
@@ -36,6 +37,13 @@
                         <tr>
                             <td>{{$row->id}}</td>
                             <td>{{$row->name}}</td>
+                            <td>
+                                @if(!empty($row->is_for_all))
+                                    All students
+                                @else
+                                    {{ (int) ($row->notice_users_count ?? 0) }} student{{ (int) ($row->notice_users_count ?? 0) === 1 ? '' : 's' }}
+                                @endif
+                            </td>
                             <!-- <td>{{$row->per_question_time}}</td> -->
                             <!-- <td>{{$row->per_exam_no_of_question}}</td> -->
                             <td>
