@@ -3251,13 +3251,42 @@ footer.rp-ft {
     margin: 0 0 18px;
     color: #0c0a14;
 }
+.rp-page__inner h2 {
+    font-size: 22px;
+    margin: 32px 0 10px;
+    color: #0c0a14;
+}
+.rp-page__inner h3 {
+    font-size: 18px;
+    margin: 22px 0 8px;
+    color: #0c0a14;
+}
+.rp-page__meta {
+    margin: -6px 0 18px;
+    color: #6b7280;
+    font-size: 14px;
+}
 .rp-page__inner p,
 .rp-page__inner li {
     font-size: 16px;
     line-height: 1.7;
     color: #4b5565;
 }
+.rp-page__inner ul {
+    margin: 0 0 16px;
+    padding-left: 22px;
+}
 .rp-page__inner a { color: #345ff4; }
+.rp-legal dt {
+    margin-top: 14px;
+    font-weight: 700;
+    color: #0c0a14;
+}
+.rp-legal dd {
+    margin: 4px 0 0;
+    color: #4b5565;
+    line-height: 1.7;
+}
 
 .rp-blog__inner {
     max-width: 1100px;
