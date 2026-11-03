@@ -14,11 +14,11 @@
                     <a class="nav-link" href="{{ route('index') }}#features">Features</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('course_packages*') ? 'active' : '' }}" href="{{ route('course_packages') }}">Courses</a>
+                    <a class="nav-link {{ request()->routeIs('course_packages*') ? 'active' : '' }}" href="{{ route('course_packages') }}">Pricing</a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('index') }}#pricing">Pricing</a>
-                </li>
+                </li> -->
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('blog', 'blog.show') ? 'active' : '' }}" href="{{ route('blog') }}">Blog</a>
                 </li>
