@@ -221,9 +221,7 @@
         <a href="#"><img src="{{ asset('') }}web/images/icons/calender_calltoa.png" alt="" class="img-fluid"></a>
         <a href="#"><img src="{{ asset('') }}web/images/icons/whatsapa_calltoa.png" alt="" class="img-fluid"></a>
     </div>
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
-            class="bi bi-arrow-up"></i></a>
+    @include('site.include.back_to_top')
 
 
     <!-- popup -->

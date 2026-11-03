@@ -1,3 +1,4 @@
 <!-- Back to Top -->
-<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i
-        class="bi bi-arrow-up"></i></a>
+<a href="#" class="rp-back-top back-to-top" aria-label="Back to top">
+    <i class="bi bi-arrow-up" aria-hidden="true"></i>
+</a>

@@ -27,12 +27,12 @@
     });
     
     
-    // Back to top button
+    // Back to top button (keep compact circle — do not inherit Bootstrap btn-lg sizing)
     $(window).scroll(function () {
         if ($(this).scrollTop() > 300) {
-            $('.back-to-top').fadeIn('slow');
+            $('.back-to-top').stop(true, true).css('display', 'flex').hide().fadeIn('slow');
         } else {
-            $('.back-to-top').fadeOut('slow');
+            $('.back-to-top').stop(true, true).fadeOut('slow');
         }
     });
     $('.back-to-top').click(function () {
