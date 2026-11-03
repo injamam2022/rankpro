@@ -418,10 +418,11 @@
 
                 <div class="pp__subjects">
                     @php
+                        $proofBase = rtrim(request()->getBasePath(), '/').'/public/image/';
                         $proof = [
-                            ['s'=>'Physics','d'=>'Numericals & conceptual frames you already drilled.','pdf'=>asset('image/'.rawurlencode('Physics 2026 Re-NEET paper.pdf'))],
-                            ['s'=>'Chemistry','d'=>'Organic, inorganic & physical hits from your streaks.','pdf'=>asset('image/'.rawurlencode('Chemistry 2026 Re-NEET paper.pdf'))],
-                            ['s'=>'Biology','d'=>'Diagram- and NCERT-tight repeats straight from your bank.','pdf'=>asset('image/'.rawurlencode('Biology 2026 Re-NEET paper.pdf'))],
+                            ['s'=>'Physics','d'=>'Numericals & conceptual frames you already drilled.','pdf'=>$proofBase.rawurlencode('Physics 2026 Re-NEET paper.pdf')],
+                            ['s'=>'Chemistry','d'=>'Organic, inorganic & physical hits from your streaks.','pdf'=>$proofBase.rawurlencode('Chemistry 2026 Re-NEET paper.pdf')],
+                            ['s'=>'Biology','d'=>'Diagram- and NCERT-tight repeats straight from your bank.','pdf'=>$proofBase.rawurlencode('Biology 2026 Re-NEET paper.pdf')],
                         ];
                     @endphp
                     @foreach($proof as $i => $p)

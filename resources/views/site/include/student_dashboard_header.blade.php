@@ -105,7 +105,7 @@
             </a>
             <a href="{{ route('index') }}" class="rp-btn-ghost" target="_blank" rel="noopener">
                 <i class="fas fa-external-link-alt"></i>
-                Landing
+                Home
             </a>
             <a href="{{ route('profile') }}" class="rp-profile-pill" title="Profile settings">
                 <div class="rp-profile-pill__avatar">
