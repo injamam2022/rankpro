@@ -62,8 +62,8 @@ class ProgressReportStats
         $growth = $current - $baseline;
         $targetDelta = max(0, $currentMax - $current);
 
-        $percentile = self::percentileForAttempt($focus);
-        $air = self::projectAir($percentile, $focus->rank);
+        $air = NeetAirPredictor::project((float) $focus->score, (float) $focus->max_mark);
+        $percentile = $air['percentile'];
         $trendUp = $current >= $baseline;
         $trend = $attempts->count() < 2
             ? 'First mock logged'
@@ -76,7 +76,8 @@ class ProgressReportStats
         foreach ($attempts as $row) {
             $score = (int) round((float) $row->score);
             $maxMark = max(1, (int) round((float) $row->max_mark));
-            $pctile = self::percentileForAttempt($row);
+            $projected = NeetAirPredictor::project((float) $row->score, (float) $row->max_mark);
+            $pctile = $projected['percentile'];
             $width = $span > 0
                 ? (int) round((($score - ($scoreMin - 10)) / ($span + 20)) * 100)
                 : (int) round(($score / $maxMark) * 100);
@@ -108,6 +109,8 @@ class ProgressReportStats
             'air' => $air['mid'],
             'air_low' => $air['low'],
             'air_high' => $air['high'],
+            'air_equivalent' => (int) round($air['equivalent']),
+            'air_scaled' => $air['scaled'],
             'target_delta' => $targetDelta,
             'trend' => $trend,
             'trend_up' => $trendUp,
@@ -167,45 +170,6 @@ class ProgressReportStats
             ->orderBy('exam_users.created_at');
 
         return $query->get();
-    }
-
-    protected static function percentileForAttempt($row): float
-    {
-        $stored = (float) ($row->percentage ?? 0);
-        $examId = (int) ($row->exam_id ?? 0);
-        $score = (float) ($row->score ?? 0);
-        $max = max(1, (float) ($row->max_mark ?? 720));
-        $fullPaper = $max >= 600;
-
-        if ($fullPaper && $examId > 0) {
-            $total = Exam_user::where('exam_id', $examId)->count();
-            if ($total > 1) {
-                $better = Exam_user::where('exam_id', $examId)->where('total_number', '>', $score)->count();
-                return round((1 - ($better / $total)) * 100, 2);
-            }
-        }
-
-        if ($fullPaper && $stored > 0 && $stored <= 100) {
-            return round($stored, 2);
-        }
-
-        return round(($score / $max) * 100, 2);
-    }
-
-    protected static function projectAir(float $percentile, $storedRank): array
-    {
-        $mid = null;
-        if ($storedRank !== null && (int) $storedRank > 0) {
-            $mid = (int) $storedRank;
-        } else {
-            $mid = max(1, (int) round(((100 - min(99.99, max(0, $percentile))) / 100) * 2400000));
-        }
-
-        return [
-            'mid' => $mid,
-            'low' => max(1, (int) round($mid * 0.85)),
-            'high' => (int) round($mid * 1.25),
-        ];
     }
 
     protected static function govtLabel(float $percentile): string

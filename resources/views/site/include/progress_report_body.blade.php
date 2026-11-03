@@ -35,7 +35,13 @@
             <div class="pr-kpi pr-kpi--green">
                 <div class="pr-kpi__label">All-India Percentile</div>
                 <div class="pr-kpi__value">{{ number_format((float) ($pr['percentile'] ?? 0), 2) }}%</div>
-                <div class="pr-kpi__meta">AIR #{{ number_format((int) ($pr['air'] ?? 0)) }} Projected</div>
+                <div class="pr-kpi__meta">
+                    @if(!empty($pr['has_data']))
+                        AIR #{{ number_format((int) ($pr['air'] ?? 0)) }} Projected
+                    @else
+                        Attempt a test to project AIR
+                    @endif
+                </div>
             </div>
             <div class="pr-kpi pr-kpi--pink">
                 <div class="pr-kpi__label">Target Score Delta</div>
@@ -131,7 +137,14 @@
                 <div class="pr-air__banner">
                     <div>
                         <div class="pr-air__label">Projected All-India Rank Range</div>
-                        <div class="pr-air__range">AIR #{{ number_format((int) ($pr['air_low'] ?? 0)) }} – #{{ number_format((int) ($pr['air_high'] ?? 0)) }}</div>
+                        @if(!empty($pr['has_data']))
+                            <div class="pr-air__range">AIR #{{ number_format((int) ($pr['air_low'] ?? 0)) }} – #{{ number_format((int) ($pr['air_high'] ?? 0)) }}</div>
+                            @if(!empty($pr['air_scaled']))
+                                <div class="pr-air__label">Part-syllabus {{ (int) ($pr['current'] ?? 0) }}/{{ (int) ($pr['current_max'] ?? 0) }} mapped to {{ (int) ($pr['air_equivalent'] ?? 0) }}/720</div>
+                            @endif
+                        @else
+                            <div class="pr-air__range">Attempt a test to project AIR</div>
+                        @endif
                     </div>
                     <span class="pr-pill pr-pill--green">{{ $pr['govt_label'] ?? '' }}</span>
                 </div>

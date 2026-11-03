@@ -1358,7 +1358,9 @@ body.rp-dash-body .dashboardRightBody > .row > .col-12:has(> .dashboardBlock.das
   color: #9a3412;
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
+  max-width: 100%;
   padding: 5px 10px;
   border-radius: 999px;
   background: #fff7ed;
@@ -1720,6 +1722,10 @@ body.rp-dash-body .dashboardRightBody > .row > .col-12:has(> .dashboardBlock.das
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
+}
+
+.rp-eval-stat.is-rank strong {
+  font-size: 15px;
 }
 
 .rp-eval-stat.is-score strong { color: #1e3a8a; }

@@ -275,7 +275,9 @@
                                                 $scoreMax = $value->total_mark ?? ($value->totals_marks_for_exam ?? '—');
                                                 $examDateStr = \Carbon\Carbon::parse($value->exam_date)->format('Y-m-d');
                                                 $participants = (int) ($value->participant_count ?? 0);
-                                                $rankVal = $value->rank;
+                                                $scoreMaxNum = is_numeric($scoreMax) ? (float) $scoreMax : 720;
+                                                $predictedAir = \App\Support\NeetAirPredictor::project((float) $scoreGot, $scoreMaxNum);
+                                                $rankVal = \App\Support\NeetAirPredictor::rangeLabel($predictedAir);
                                                 $subjectScores = $value->subject_scores ?? [];
                                                 $resultUrl = route('exam_result_detail', ['id' => $value->user_exam_id]);
                                             @endphp
@@ -300,8 +302,8 @@
                                                     @if(!empty($rankVal))
                                                         <span class="rp-air">
                                                             <i class="fas fa-medal" style="color:#f59e0b;"></i>
-                                                            All-India Rank:
-                                                            <strong>AIR {{ $rankVal }}@if($participants > 0) of {{ number_format($participants) }}@endif</strong>
+                                                            Predicted All-India Rank:
+                                                            <strong>{{ $rankVal }}</strong>
                                                         </span>
                                                     @else
                                                         <span></span>
@@ -717,7 +719,6 @@
           var score = btn.getAttribute("data-score") || "0";
           var max = btn.getAttribute("data-max") || "—";
           var rank = btn.getAttribute("data-rank") || "";
-          var participants = parseInt(btn.getAttribute("data-participants") || "0", 10);
           var resultUrl = btn.getAttribute("data-result-url") || "#";
           var subjects = [];
           try { subjects = JSON.parse(btn.getAttribute("data-subjects") || "[]"); } catch (e) { subjects = []; }
@@ -726,9 +727,7 @@
           document.getElementById("rpEvalMode").textContent = "Mode: " + mode;
           document.getElementById("rpEvalDate").textContent = "Date: " + date;
           document.getElementById("rpEvalScore").textContent = score + " / " + max;
-          document.getElementById("rpEvalRank").textContent = rank
-            ? ("AIR " + rank + (participants > 0 ? (" of " + participants.toLocaleString()) : ""))
-            : "Not ranked yet";
+          document.getElementById("rpEvalRank").textContent = rank || "Not ranked yet";
           document.getElementById("rpEvalReviewBtn").setAttribute("href", resultUrl);
 
           var list = document.getElementById("rpEvalSubjects");

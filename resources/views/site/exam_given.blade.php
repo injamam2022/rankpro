@@ -127,10 +127,8 @@
                                         @php
                                             $score = $value->total_number ?? 0;
                                             $max = $value->total_mark ?? 0;
-                                            $rankRaw = trim((string) ($value->rank ?? ''));
-                                            $rankLabel = $rankRaw !== ''
-                                                ? (preg_match('/^AIR/i', $rankRaw) ? $rankRaw : ('AIR ' . $rankRaw))
-                                                : '—';
+                                            $predictedAir = \App\Support\NeetAirPredictor::project($score, $max ?: 720);
+                                            $rankLabel = \App\Support\NeetAirPredictor::rangeLabel($predictedAir);
                                             $attemptedDate = \Carbon\Carbon::parse($value->created_at)->format('Y-m-d');
                                             $modeClass = ((int) $value->type === 2) ? 'eg-badge--offline' : 'eg-badge--online';
                                         @endphp
@@ -171,7 +169,7 @@
                                                         <div class="eg-stat__value">{{ $score }} <span>/ {{ $max }}</span></div>
                                                     </div>
                                                     <div class="eg-stat eg-stat--rank">
-                                                        <span class="eg-stat__label">Rank</span>
+                                                        <span class="eg-stat__label">Predicted AIR</span>
                                                         <div class="eg-stat__value">{{ $rankLabel }}</div>
                                                     </div>
                                                     <button type="button" class="eg-btn eg-btn--purple eg-open-result">

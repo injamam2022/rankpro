@@ -63,8 +63,12 @@
     $avgTotal = (int) round((float) (optional($average_data)->totals_marks_for_exam ?? $youTotal));
     $maxBar = max($topMark, $avgMark, $youMark, 1);
     $youPct = $youTotal > 0 ? (int) round($youMark / $youTotal * 100) : 0;
-    $rank = (int) ($your_score ?? 0);
-    $airDeg = max(8, min(100, $youPct));
+    $projectedAir = ($youTotal > 0)
+        ? \App\Support\NeetAirPredictor::project($youMark, $youTotal)
+        : null;
+    $airDeg = $projectedAir
+        ? max(8, min(100, (float) $projectedAir['percentile']))
+        : max(8, min(100, $youPct));
     $paceHint = function ($seconds, $name) {
         $seconds = (int) $seconds;
         if ($seconds <= 0) {
@@ -196,8 +200,11 @@
                 </div>
                 <div class="aa-air">
                     <div class="aa-air__ring" style="--aa-air: {{ $airDeg }}%;">
-                        <span>AIR #{{ $rank ?: '—' }}</span>
+                        <span>{{ $projectedAir ? number_format((float) $projectedAir['percentile'], 0).'%' : '—' }}</span>
                     </div>
+                    @if($projectedAir)
+                        <div class="aa-air__caption">{{ \App\Support\NeetAirPredictor::rangeLabel($projectedAir) }}</div>
+                    @endif
                 </div>
             </div>
         </div>

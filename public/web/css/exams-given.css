@@ -341,7 +341,8 @@
 }
 
 .eg-stat--score .eg-stat__value { color: #15803d; }
-.eg-stat--rank .eg-stat__value { color: #9a3412; }
+.eg-stat--rank .eg-stat__value { color: #9a3412; font-size: 13px; }
+.eg-stat--rank { min-width: 168px; }
 
 .eg-stat__value span {
   font-size: 12px;
@@ -616,7 +617,7 @@
 }
 
 .eg-modal__stat--score .eg-modal__stat-value { color: #1e3a8a; }
-.eg-modal__stat--rank .eg-modal__stat-value { color: #92400e; font-size: 1.2rem; }
+.eg-modal__stat--rank .eg-modal__stat-value { color: #92400e; font-size: 0.95rem; line-height: 1.3; }
 
 .eg-subjects {
   border-top: 1px solid #f1f5f9;
