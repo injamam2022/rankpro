@@ -19,7 +19,6 @@
     <link href="{{ asset('web/lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css" rel="stylesheet">
     <link href="{{ asset('web/bootstrap-5.0.2/css/bootstrap.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('web/css/jquery.bxslider.css') }}">
     <link href="{{ asset('web/css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('web/css/dashboard.css') }}" rel="stylesheet">
     <link href="{{ asset('web/css/dashboard-v2.css') }}" rel="stylesheet">
@@ -441,23 +440,6 @@
                                     @endforelse
                           </div>
                       </div>
-
-                      @if(count($dashboard_banner))
-                                <div class="rp-banner-strip">
-                        <div class="dashboardSliderAll">
-                          <ul class="dashboardSlider list-unstyled mb-0">
-                                @foreach($dashboard_banner as $value)
-                                  <li>
-                                                    <div class="dashboardSliderImg" @if($value->video_link) onclick="openVideoModel('{{ $value->video_link }}')" @endif>
-                                                        <img src="{{ asset('uploads/dashboard_banner/'.$value->icon) }}" class="img-fluid" alt="">
-                                      </div>
-                                  </li>
-                                @endforeach
-                          </ul>
-                                    </div>
-                        </div>
-                      @endif
-                      
                         </div>
                   </div>
               </div>
@@ -465,15 +447,6 @@
       </div>
     </section>
     
-    <div class="modal fade" id="examVideo">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-                <img src="{{ asset('web/images/examVideoClose_ic.png') }}" class="img-fluid examVideoClose_ic" data-bs-dismiss="modal" alt="">
-          <iframe id="modal_video" width="100%" height="420" src=""></iframe>
-        </div>
-      </div>
-    </div>
-
     <div class="rp-eval-modal" id="rpEvalModal" aria-hidden="true">
         <div class="rp-eval-modal__backdrop" data-rp-eval-close></div>
         <div class="rp-eval-modal__card" role="dialog" aria-modal="true" aria-labelledby="rpEvalTitle">
@@ -593,28 +566,11 @@
     <script src="{{ asset('web/lib/counterup/counterup.min.js') }}"></script>
     <script src="{{ asset('web/lib/owlcarousel/owl.carousel.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js"></script>
-    <script src="{{ asset('web/js/jquery.bxslider.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ asset('web/js/main.js') }}"></script>
 
     <script>
       $(document).ready(function () {
-        if ($(".dashboardSlider").length) {
-        $(".dashboardSlider").bxSlider({
-          slideWidth: 342,
-          minSlides: 1,
-          maxSlides: 4,
-          slideMargin: 15,
-          controls: false,
-          pager: false,
-          infiniteLoop: true,
-          auto: true,
-          autoHover: true,
-          touchEnabled: false,
-          moveSlides: 1
-        });
-        }
-        
         $(".menuBarBtn.menuBarBtnOpen").click(function () {
             $(".dashboardLeft").removeClass("dashboardLeftOff");
         });
@@ -872,11 +828,6 @@
             });
       })();
         @endforeach
-      
-      function openVideoModel(video_link) {
-          document.getElementById("modal_video").src = video_link;
-            $("#examVideo").modal("show");
-      }
 
     </script>
     

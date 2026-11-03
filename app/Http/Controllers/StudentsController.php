@@ -30,7 +30,6 @@ use App\Models\Problem_type;
 use App\Models\User_detail;
 use App\Models\Question_detail;
 use App\Models\Offline_exam_question;
-use App\Models\Dashboard_banner;
 use App\Models\Dashboard_content;
 use App\Models\Subject;
 use App\Models\Chapter;
@@ -393,8 +392,6 @@ class StudentsController extends Controller
         $data['exam_schedule_list'] = $attachGivingStats($data['exam_schedule_list'] ?? collect());
         $data['trending_min_givers'] = $trendingMinGivers;
                             
-        $data['dashboard_banner'] = Dashboard_banner::where('status',1)->get();
-
         $data['dashboard_content'] = Dashboard_content::first();
         $data['neet_exam'] = Setting::where('key_name','neet_exam')->first();
 
