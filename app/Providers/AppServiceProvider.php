@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\View\Composers\StudentShellComposer;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Production MySQL caps index keys at 1000 bytes; 191 utf8mb4 chars keeps string indexes under it.
         Schema::defaultStringLength(191);
+
+        // Site uses Bootstrap 5, not Tailwind — default Tailwind pagination SVGs render huge without Tailwind CSS.
+        Paginator::useBootstrapFive();
 
         View::composer(
             [

@@ -55,7 +55,7 @@
                 </div>
 
                 <div class="rp-blog__pager">
-                    {{ $posts->links() }}
+                    {{ $posts->onEachSide(1)->links('pagination::bootstrap-5') }}
                 </div>
             @else
                 <div class="rp-blog__empty">

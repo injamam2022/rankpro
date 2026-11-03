@@ -3355,6 +3355,40 @@ footer.rp-ft {
     margin-top: 28px;
     text-align: center;
 }
+.rp-blog__pager nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.rp-blog__pager .pagination {
+    margin: 0;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.rp-blog__pager .page-link {
+    border-radius: 10px;
+    color: #345ff4;
+    border-color: #d7def0;
+    padding: 8px 14px;
+}
+.rp-blog__pager .page-item.active .page-link {
+    background: #345ff4;
+    border-color: #345ff4;
+    color: #fff;
+}
+.rp-blog__pager .page-item.disabled .page-link {
+    color: #9aa3b8;
+}
+.rp-blog__pager svg {
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    display: inline-block;
+    vertical-align: middle;
+}
 .rp-blog__empty {
     background: #fff;
     border-radius: 20px;
