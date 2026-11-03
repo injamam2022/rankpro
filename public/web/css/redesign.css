@@ -1523,6 +1523,7 @@
 .pr__card--pink { border-color:rgba(242,11,129,.35); }
 .pr__card--blue { border-color:rgba(52,95,244,.4); }
 .pr__card--violet { border-color:rgba(107,63,212,.4); }
+.pr__card--gold { border-color:rgba(242,11,129,.45); }
 .pr__card--omr { border-color:rgba(107,63,212,.35); padding:26px 22px 22px; }
 
 .pr__icon {
@@ -1535,6 +1536,7 @@
 .pr__card--pink .pr__icon { background:rgba(242,11,129,.1); color:var(--pink); }
 .pr__card--blue .pr__icon { background:rgba(52,95,244,.1); color:var(--blue); }
 .pr__card--violet .pr__icon { background:rgba(107,63,212,.1); color:var(--violet); }
+.pr__card--gold .pr__icon { background:rgba(242,11,129,.12); color:var(--pink); }
 
 .pr__name {
     font-family:"Space Grotesk",sans-serif; font-weight:700;
@@ -1555,6 +1557,7 @@
 .pr__card--pink .pr__pill { background:linear-gradient(100deg,#f20b81,#9b3dff); }
 .pr__card--blue .pr__pill { background:linear-gradient(100deg,#345ff4,#7a4dff); }
 .pr__card--violet .pr__pill { background:linear-gradient(100deg,#6b3fd4,#9b3dff); }
+.pr__card--gold .pr__pill { background:linear-gradient(100deg,#f20b81,#345ff4); }
 
 .pr__pill--free {
     background:#efe8ff; color:#6b3fd4; box-shadow:none;
