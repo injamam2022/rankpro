@@ -419,9 +419,9 @@
                 <div class="pp__subjects">
                     @php
                         $proof = [
-                            ['s'=>'Physics','d'=>'Numericals & conceptual frames you already drilled.','pdf'=>'#'],
-                            ['s'=>'Chemistry','d'=>'Organic, inorganic & physical hits from your streaks.','pdf'=>'#'],
-                            ['s'=>'Biology','d'=>'Diagram- and NCERT-tight repeats straight from your bank.','pdf'=>'#'],
+                            ['s'=>'Physics','d'=>'Numericals & conceptual frames you already drilled.','pdf'=>asset('image/'.rawurlencode('Physics 2026 Re-NEET paper.pdf'))],
+                            ['s'=>'Chemistry','d'=>'Organic, inorganic & physical hits from your streaks.','pdf'=>asset('image/'.rawurlencode('Chemistry 2026 Re-NEET paper.pdf'))],
+                            ['s'=>'Biology','d'=>'Diagram- and NCERT-tight repeats straight from your bank.','pdf'=>asset('image/'.rawurlencode('Biology 2026 Re-NEET paper.pdf'))],
                         ];
                     @endphp
                     @foreach($proof as $i => $p)
