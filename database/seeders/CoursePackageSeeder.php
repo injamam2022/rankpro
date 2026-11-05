@@ -65,7 +65,7 @@ class CoursePackageSeeder extends Seeder
                 'sort_order' => 2,
                 'features' => [
                     'Premium question bank only (not the free Custom Test bank)',
-                    '85 chapters across PCB',
+                    'Pick up to 6 chapters at ₹49 each',
                     '45 questions per chapter',
                     'Separate Botany and Zoology tests',
                     'Detailed performance review',
@@ -82,7 +82,7 @@ class CoursePackageSeeder extends Seeder
                         'requires_address' => false,
                         'includes_online' => true,
                         'includes_omr' => false,
-                        'help_text' => 'Pick subject → chapter/topic. Premium questions only; empty topics show Coming soon.',
+                        'help_text' => 'Choose 1 to 6 chapters. ₹49 each. You can buy more chapters in a later payment.',
                         'sort_order' => 1,
                     ],
                 ],

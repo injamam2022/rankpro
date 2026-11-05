@@ -30,9 +30,16 @@
 @include('site.include.header')
 
 @php
-    $amount = (float) $mode->price;
+    $lineChapters = $lineChapters ?? collect();
+    $isChapterCart = $package->code === 'chapter_master' && $lineChapters->isNotEmpty();
+    $unitPrice = isset($unitPrice) ? (float) $unitPrice : (float) $mode->price;
+    $amount = $isChapterCart ? ($unitPrice * $lineChapters->count()) : (float) $mode->price;
     $tax = (float) ($package->tax ?? 0);
     $final = $amount + $tax;
+    $payDescription = $package->name;
+    if ($isChapterCart) {
+        $payDescription .= ' · '.$lineChapters->count().' chapter'.($lineChapters->count() === 1 ? '' : 's');
+    }
 @endphp
 
 <main class="cpg">
@@ -47,10 +54,23 @@
                     <h5>{{ $package->name }}</h5>
                     <p class="mb-1" style="color:#3a4260;"><strong>Mode:</strong> {{ $mode->label }}</p>
                     @if($mode->help_text)<p class="mb-0" style="color:#6b6577;font-size:13.5px;">{{ $mode->help_text }}</p>@endif
+                    @if($isChapterCart)
+                        <ul class="cpg-cart-lines" style="margin-top:14px;">
+                            @foreach($lineChapters as $chapter)
+                                <li>
+                                    <span>{{ $chapter->cart_label }}</span>
+                                    <span>₹{{ number_format($unitPrice, 0) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </div>
 
                 <form id="cpOrderForm" class="cpg-box">
                     <input type="hidden" name="mode_id" value="{{ $mode->id }}">
+                    @foreach($lineChapters as $chapter)
+                        <input type="hidden" name="chapter_ids[]" value="{{ $chapter->id }}">
+                    @endforeach
                     @if($mode->requires_location)
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Select centre *</label>
@@ -101,7 +121,11 @@
 
             <div class="col-lg-5">
                 <div class="cpg-buy" style="position:static;">
-                    <div class="cpg-sum-row"><span>Package</span><span>₹{{ number_format($amount, 2) }}</span></div>
+                    @if($isChapterCart)
+                        <div class="cpg-sum-row"><span>{{ $lineChapters->count() }} × ₹{{ number_format($unitPrice, 0) }}</span><span>₹{{ number_format($amount, 2) }}</span></div>
+                    @else
+                        <div class="cpg-sum-row"><span>Package</span><span>₹{{ number_format($amount, 2) }}</span></div>
+                    @endif
                     <div class="cpg-sum-row"><span>Tax</span><span>₹{{ number_format($tax, 2) }}</span></div>
                     <div class="cpg-sum-total"><span>Total</span><span id="priceFinal">₹{{ number_format($final, 2) }}</span></div>
                     <button type="button" class="cpg-btn" id="payBtn" onclick="startPay()">Pay ₹{{ number_format($final, 2) }}</button>
@@ -138,8 +162,14 @@ const placeUrl = @json(route('course_packages.place_order', $package->slug));
 
 function collectForm() {
     const form = document.getElementById('cpOrderForm');
-    const data = {};
-    new FormData(form).forEach((v, k) => data[k] = v);
+    const data = { chapter_ids: [] };
+    new FormData(form).forEach((v, k) => {
+        if (k === 'chapter_ids[]') {
+            data.chapter_ids.push(v);
+        } else {
+            data[k] = v;
+        }
+    });
     data.final_price = finalPrice;
     data.total_discount = 0;
     data.coupon_discount = 0;
@@ -172,7 +202,7 @@ function startPay() {
         amount: Math.round(finalPrice * 100),
         currency: "INR",
         name: @json($razorpayName ?? 'RankPro'),
-        description: @json($package->name),
+        description: @json($payDescription),
         handler: function (response) {
             const data = collectForm();
             data.razorpay_payment_id = response.razorpay_payment_id;

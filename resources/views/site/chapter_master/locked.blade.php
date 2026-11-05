@@ -11,7 +11,23 @@
     <link href="{{ asset('web/css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('web/css/dashboard.css') }}" rel="stylesheet">
     <link href="{{ asset('web/css/dashboard-v2.css') }}" rel="stylesheet">
-    <style>.calltoaction{display:none}.cm-lock{max-width:560px;margin:2rem auto;text-align:center;padding:2rem;border:1px solid #e8edf5;border-radius:16px;background:#fff}</style>
+    <style>
+        .calltoaction{display:none}
+        .cm-wrap{max-width:880px;margin:0 auto;padding-bottom:2rem}
+        .ps-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+        .ps-tab{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .9rem;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#334155;font-size:.82rem;font-weight:600;text-decoration:none}
+        .ps-tab:hover{border-color:#c7d2fe;color:#4338ca}
+        .ps-tab.is-on{background:#5b4bb7;border-color:#5b4bb7;color:#fff}
+        .ps-tab.is-locked{color:#667085}
+        .ps-tab.is-on.is-locked{background:#ede9fe;border-color:#c4b5fd;color:#5b21b6}
+        .ps-tab .fa-lock{font-size:.65rem}
+        .ps-pay{border:1px solid #eaecf0;border-radius:1.1rem;background:#fff;padding:1.6rem 1.4rem;text-align:center;max-width:520px;margin:0 auto}
+        .ps-pay__lock{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#5b4bb7,#7c3aed);color:#fff;display:grid;place-items:center;margin:0 auto 1rem}
+        .ps-pay__price{font-size:1.7rem;font-weight:800;color:#5b4bb7;margin-bottom:.85rem}
+        .ps-pay__feats{list-style:none;padding:0;margin:0 0 1.1rem;text-align:left}
+        .ps-pay__feats li{font-size:.88rem;color:#334155;margin-bottom:.4rem;display:flex;gap:.5rem}
+        .ps-pay__feats i{color:#16a34a;margin-top:.2rem}
+    </style>
     @include('site.include.head_meta')
 </head>
 <body class="rp-dash-body">
@@ -23,16 +39,11 @@
       <div class="menuBarBtn menuBarBtnOpen"><i class="fas fa-bars"></i></div>
       <div class="dashboardLeft dashboardLeftOff">@include('site.include.student_left_menu')</div>
       <div class="dashboardRight"><div class="dashboardRightBody">
-        <div class="cm-lock">
-          <div class="mb-3" style="font-size:2.2rem;color:#5b4bb7;"><i class="fas fa-lock"></i></div>
-          <h3 class="mb-2">Rank Chapter Master</h3>
-          <p class="text-muted mb-3">Unlock chapter-wise premium tests across PCB. Pick a subject and chapter — topics without premium questions show as Coming soon.</p>
-          @if($package)
-            <div class="fw-bold mb-3">{{ $package->formattedPrice() }}</div>
-            <a href="{{ route('course_packages.show', $package->slug) }}" class="btn btn-primary">View details &amp; purchase</a>
-          @else
-            <a href="{{ route('course_packages') }}" class="btn btn-primary">Browse course packages</a>
-          @endif
+        <div class="cm-wrap">
+          <div class="dashboardTitle mb-1">Series <span>Tests</span></div>
+          @include('site.include.series_package_tabs')
+          <h2 class="h5 mb-3">Rank Chapter Master</h2>
+          @include('site.include.series_pay_panel', ['payPackage' => $package ?? null, 'payMode' => $payMode ?? null])
         </div>
       </div></div>
     </div>

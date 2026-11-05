@@ -14,4 +14,9 @@ class Chapter extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
 }

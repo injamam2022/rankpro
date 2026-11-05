@@ -196,10 +196,10 @@
                         'theme' => 'pink',
                         'name' => 'Rank Chapter Master',
                         'slug' => 'rank-chapter-master',
-                        'price' => '49',
+                        'price' => '49 / chapter',
                         'free' => false,
                         'features' => [
-                            '85 chapters across PCB',
+                            '₹49 per chapter, pick up to 6',
                             '45 questions per chapter',
                             'Separate Botany and Zoology tests',
                             'Chapter-wise performance analysis',

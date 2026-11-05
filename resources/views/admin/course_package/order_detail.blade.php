@@ -15,6 +15,14 @@
                     <p><strong>Mode:</strong> {{ $details->modeBadge() }}</p>
                     <p><strong>Amount:</strong> ₹{{ number_format($details->final_amount, 2) }} ({{ $details->payment_status }})</p>
                     <p><strong>Txn:</strong> {{ $details->transaction_id ?: '—' }}</p>
+                    @if($details->orderChapters->count())
+                        <p class="mb-1"><strong>Chapters:</strong></p>
+                        <ul class="mb-0">
+                            @foreach($details->orderChapters as $line)
+                                <li>{{ $line->chapter->subject->name ?? 'Subject' }} · {{ $line->chapter->name ?? 'Chapter' }} — ₹{{ number_format($line->price, 0) }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </div>
                 <div class="col-md-6">
                     @if($details->location)

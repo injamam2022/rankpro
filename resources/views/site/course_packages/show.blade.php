@@ -63,6 +63,46 @@
                     @endforeach
                 </ul>
 
+                @if($package->code === 'chapter_master' && !$chapterMasterLegacy)
+                    <h2 class="cpg-detail__section-title">Choose chapters</h2>
+                    <p class="cpg-cart-hint">₹{{ number_format($chapterUnitPrice, 0) }} per chapter. Select up to {{ \App\Support\CoursePackageAccess::CHAPTER_PICK_LIMIT }} chapters in this payment. You can buy more later. Chapters you already own stay unlocked.</p>
+                    @if(count($chapterGroups))
+                        <div class="cpg-cart-search">
+                            <i class="fas fa-search"></i>
+                            <input type="search" id="cpChapterSearch" placeholder="Search chapters" autocomplete="off">
+                        </div>
+                        <div id="cpChapterPick">
+                            @foreach($chapterGroups as $group)
+                                <div class="cpg-ch-group {{ $loop->first ? 'is-open' : '' }}">
+                                    <button type="button" class="cpg-ch-group__head" data-group-toggle>
+                                        <span>{{ $group['name'] }}</span>
+                                        <span>{{ count($group['chapters']) }}</span>
+                                    </button>
+                                    <div class="cpg-ch-group__body">
+                                        @foreach($group['chapters'] as $chapter)
+                                            <label class="cpg-ch-row {{ $chapter['owned'] ? 'is-owned' : '' }}" data-search="{{ $group['name'] }} {{ $chapter['name'] }}">
+                                                @if($chapter['owned'])
+                                                    <input type="checkbox" checked disabled>
+                                                    <span class="cpg-ch-row__name">{{ $chapter['name'] }}</span>
+                                                    <span class="cpg-own">Owned</span>
+                                                @else
+                                                    <input class="cm-pick" type="checkbox" name="chapter_ids[]" value="{{ $chapter['id'] }}" form="cpBuyForm"
+                                                           data-subject="{{ $group['name'] }}" data-name="{{ $chapter['name'] }}">
+                                                    <span class="cpg-ch-row__name">{{ $chapter['name'] }}</span>
+                                                    <span class="cpg-ch-row__meta">{{ $chapter['questions'] > 0 ? $chapter['questions'].' Qs' : 'Coming soon' }}</span>
+                                                    <span class="cpg-ch-row__price">₹{{ number_format($chapterUnitPrice, 0) }}</span>
+                                                @endif
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="cpg-cart-hint">No chapters are available to purchase yet.</p>
+                    @endif
+                @endif
+
                 @if($schedules->count())
                     <h2 class="cpg-detail__section-title">Test schedule</h2>
                     <div class="table-responsive">
@@ -98,14 +138,19 @@
             </div>
 
             <aside class="cpg-buy">
-                <div class="cpg-buy__price" id="cpPriceLabel">{{ $package->formattedPrice() }}</div>
-                <div class="cpg-buy__note">
-                    @if($package->is_free)
-                        Free Custom Test segment — non-premium questions.
-                    @else
-                        Premium segment · secure Razorpay checkout
-                    @endif
-                </div>
+                @if($package->code === 'chapter_master' && !$chapterMasterLegacy)
+                    <div class="cpg-buy__price" id="cpPriceLabel">₹{{ number_format($chapterUnitPrice, 0) }}</div>
+                    <div class="cpg-buy__note" id="cpPriceNote">Per chapter · choose up to {{ \App\Support\CoursePackageAccess::CHAPTER_PICK_LIMIT }}</div>
+                @else
+                    <div class="cpg-buy__price" id="cpPriceLabel">{{ $package->formattedPrice() }}</div>
+                    <div class="cpg-buy__note">
+                        @if($package->is_free)
+                            Free Custom Test segment — non-premium questions.
+                        @else
+                            Premium segment · secure Razorpay checkout
+                        @endif
+                    </div>
+                @endif
                 <p class="cpg-powered-by"><strong>Rank Pro<br>Powered by Shikkha Educational Advisory Solutions LLP</strong></p>
 
                 <form action="{{ route('course_packages.checkout', $package->slug) }}" method="get" id="cpBuyForm">
@@ -144,10 +189,27 @@
                         @endif
                     @endif
 
+                    @if($package->code === 'chapter_master' && !$chapterMasterLegacy)
+                        <div id="cpCartBox">
+                            <ul class="cpg-cart-lines" id="cpCartLines"></ul>
+                            <p class="cpg-cart-empty" id="cpCartEmpty">No chapters selected yet.</p>
+                            <p class="cpg-cart-limit" id="cpCartLimit" hidden>Maximum {{ \App\Support\CoursePackageAccess::CHAPTER_PICK_LIMIT }} chapters in one payment. Remove one to add another.</p>
+                        </div>
+                        @if(\App\Support\CoursePackageAccess::hasChapterMaster())
+                            <a href="{{ route('chapter_master') }}" class="cpg-btn cpg-btn--soft">Open my chapters</a>
+                        @endif
+                    @endif
+
                     @if(Auth::check())
-                        @if($package->code === 'chapter_master' && \App\Support\CoursePackageAccess::hasChapterMaster())
+                        @if($package->code === 'chapter_master' && $chapterMasterLegacy)
                             <a href="{{ route('chapter_master') }}" class="cpg-btn">Open Chapter Master exams</a>
-                            <p class="small text-muted text-center mb-2">You already own this package.</p>
+                            <p class="small text-muted text-center mb-2">You already own every chapter.</p>
+                        @elseif($package->code === 'chapter_master' && !$chapterMasterLegacy)
+                            @if($chapterUnownedCount > 0)
+                                <button type="submit" class="cpg-btn" id="cpCartPay" disabled>Select chapters to pay</button>
+                            @else
+                                <p class="small text-muted text-center mb-2">You already own every listed chapter.</p>
+                            @endif
                         @elseif(in_array($package->code, \App\Support\CoursePackageAccess::seriesPackageCodes(), true) && \App\Support\CoursePackageAccess::hasSeriesPackage($package->code))
                             <a href="{{ route('package_series.show', $package->slug) }}" class="cpg-btn">Open series tests</a>
                             <p class="small text-muted text-center mb-2">You already own this package — start online exams from your schedule.</p>
@@ -157,7 +219,7 @@
                             <button type="submit" class="cpg-btn">Proceed to payment</button>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="cpg-btn">{{ $package->is_free ? 'Login to give exam' : 'Login to purchase' }}</a>
+                        <a href="{{ route('login') }}" class="cpg-btn" @if($package->code === 'chapter_master' && !$chapterMasterLegacy) id="cpCartLogin" @endif>{{ $package->is_free ? 'Login to give exam' : 'Login to purchase' }}</a>
                     @endif
                     @unless($package->is_free)
                         <div class="cpg-secure"><i class="fas fa-lock"></i> Secure payment via Razorpay</div>
@@ -176,5 +238,144 @@
 <script src="{{ asset('') }}web/bootstrap-5.0.2/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('') }}web/lib/wow/wow.min.js"></script>
 <script src="{{ asset('') }}web/js/main.js"></script>
+@if($package->code === 'chapter_master' && !$chapterMasterLegacy)
+<script>
+(function () {
+    var max = {{ (int) \App\Support\CoursePackageAccess::CHAPTER_PICK_LIMIT }};
+    var unit = {{ (float) $chapterUnitPrice }};
+    var preselect = @json((string) ($preselectChapterId ?: ''));
+    var pick = document.getElementById('cpChapterPick');
+    var linesEl = document.getElementById('cpCartLines');
+    var emptyEl = document.getElementById('cpCartEmpty');
+    var limitEl = document.getElementById('cpCartLimit');
+    var priceEl = document.getElementById('cpPriceLabel');
+    var noteEl = document.getElementById('cpPriceNote');
+    var payBtn = document.getElementById('cpCartPay');
+    var loginBtn = document.getElementById('cpCartLogin');
+    var searchEl = document.getElementById('cpChapterSearch');
+    var formEl = document.getElementById('cpBuyForm');
+
+    function money(n) {
+        return '₹' + Number(n).toLocaleString('en-IN');
+    }
+
+    function selectedBoxes() {
+        return Array.prototype.slice.call(document.querySelectorAll('.cm-pick:checked'));
+    }
+
+    function syncCart(changed) {
+        var boxes = selectedBoxes();
+        if (changed && boxes.length > max) {
+            changed.checked = false;
+            boxes = selectedBoxes();
+            if (limitEl) limitEl.hidden = false;
+        } else if (limitEl && boxes.length < max) {
+            limitEl.hidden = true;
+        }
+
+        document.querySelectorAll('.cm-pick').forEach(function (box) {
+            box.disabled = !box.checked && boxes.length >= max;
+        });
+
+        if (linesEl) {
+            linesEl.innerHTML = '';
+            boxes.forEach(function (box) {
+                var li = document.createElement('li');
+                var name = document.createElement('span');
+                name.textContent = (box.dataset.subject || 'Subject') + ' · ' + (box.dataset.name || 'Chapter');
+                var side = document.createElement('span');
+                side.className = 'cpg-cart-line__side';
+                var price = document.createElement('span');
+                price.textContent = money(unit);
+                var remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'cpg-cart-x';
+                remove.setAttribute('data-remove', box.value);
+                remove.setAttribute('aria-label', 'Remove chapter');
+                remove.textContent = '×';
+                side.appendChild(price);
+                side.appendChild(remove);
+                li.appendChild(name);
+                li.appendChild(side);
+                linesEl.appendChild(li);
+            });
+        }
+
+        if (emptyEl) emptyEl.hidden = boxes.length > 0;
+        var total = boxes.length * unit;
+        if (priceEl) priceEl.textContent = boxes.length ? money(total) : money(unit);
+        if (noteEl) {
+            noteEl.textContent = boxes.length
+                ? (boxes.length + (boxes.length === 1 ? ' chapter' : ' chapters') + ' × ' + money(unit))
+                : ('Per chapter · choose up to ' + max);
+        }
+        if (payBtn) {
+            payBtn.disabled = boxes.length < 1;
+            payBtn.textContent = boxes.length ? ('Proceed to pay ' + money(total)) : 'Select chapters to pay';
+        }
+        if (loginBtn) {
+            loginBtn.textContent = boxes.length ? ('Login to pay ' + money(total)) : 'Login to purchase';
+        }
+    }
+
+    if (pick) {
+        pick.addEventListener('click', function (e) {
+            var head = e.target.closest('[data-group-toggle]');
+            if (head) head.parentElement.classList.toggle('is-open');
+        });
+        pick.addEventListener('change', function (e) {
+            if (e.target.classList.contains('cm-pick')) syncCart(e.target);
+        });
+    }
+
+    if (linesEl) {
+        linesEl.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-remove]');
+            if (!btn) return;
+            var id = btn.getAttribute('data-remove');
+            var box = document.querySelector('.cm-pick[value="' + id + '"]');
+            if (box && /^\d+$/.test(id)) {
+                box.checked = false;
+                syncCart(null);
+            }
+        });
+    }
+
+    if (searchEl && pick) {
+        searchEl.addEventListener('input', function () {
+            var q = searchEl.value.toLowerCase().trim();
+            pick.querySelectorAll('.cpg-ch-group').forEach(function (group) {
+                var any = false;
+                group.querySelectorAll('.cpg-ch-row').forEach(function (row) {
+                    var text = (row.getAttribute('data-search') || '').toLowerCase();
+                    var show = !q || text.indexOf(q) !== -1;
+                    row.style.display = show ? '' : 'none';
+                    if (show) any = true;
+                });
+                group.style.display = any ? '' : 'none';
+                if (q && any) group.classList.add('is-open');
+            });
+        });
+    }
+
+    if (formEl) {
+        formEl.addEventListener('submit', function (e) {
+            if (selectedBoxes().length < 1) e.preventDefault();
+        });
+    }
+
+    if (preselect && /^\d+$/.test(preselect)) {
+        var preset = document.querySelector('.cm-pick[value="' + preselect + '"]');
+        if (preset) {
+            preset.checked = true;
+            var group = preset.closest('.cpg-ch-group');
+            if (group) group.classList.add('is-open');
+        }
+    }
+
+    syncCart(null);
+})();
+</script>
+@endif
 </body>
 </html>

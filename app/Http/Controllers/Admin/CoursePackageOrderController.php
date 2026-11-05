@@ -19,7 +19,7 @@ class CoursePackageOrderController extends Controller
 
     public function detail(Request $request)
     {
-        $data['details'] = CoursePackageOrder::with(['user', 'package', 'mode', 'location'])
+        $data['details'] = CoursePackageOrder::with(['user', 'package', 'mode', 'location', 'orderChapters.chapter.subject'])
             ->findOrFail($request->id);
 
         return view('admin.course_package.order_detail', $data);

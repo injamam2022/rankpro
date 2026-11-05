@@ -17,6 +17,8 @@ use App\Models\Exam_result;
 use App\Models\Question_detail;
 use App\Models\Question_paper_question;
 use App\Models\Offline_exam_question;
+use App\Models\CoursePackageOrder;
+use App\Support\CoursePackageAccess;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -27,8 +29,96 @@ class StudentController extends Controller
     public function list(){
         $data = [];
         $data['list'] = User::get();
-        // dd($data['list']);
+        $codes = CoursePackageAccess::assignableOnlineCodes();
+        $data['subscriptions'] = CoursePackageOrder::query()
+            ->with('package:id,code,name')
+            ->whereIn('payment_status', ['SUCCESS', 'FREE'])
+            ->whereHas('package', fn ($q) => $q->whereIn('code', $codes)->where('status', 1))
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('user_id')
+            ->map(function ($orders) {
+                return $orders
+                    ->pluck('package')
+                    ->filter()
+                    ->unique('code')
+                    ->values();
+            });
         return view('admin.student.list',$data);
+    }
+
+    public function subscriptions(Request $request)
+    {
+        $user = User::findOrFail($request->id);
+        $packages = CoursePackageAccess::assignableOnlinePackages();
+        $assigned = [];
+        foreach ($packages as $package) {
+            $assigned[$package->code] = $this->subscriptionState($user->id, $package);
+        }
+
+        return view('admin.student.subscriptions', compact('user', 'packages', 'assigned'));
+    }
+
+    public function saveSubscriptions(Request $request)
+    {
+        $user = User::findOrFail($request->id);
+        $selected = array_values(array_filter(array_map('strval', (array) $request->input('packages', []))));
+        $packages = CoursePackageAccess::assignableOnlinePackages();
+        $granted = [];
+        $revoked = [];
+
+        foreach ($packages as $package) {
+            $want = in_array($package->code, $selected, true);
+            $has = $this->subscriptionState($user->id, $package)['has'];
+            if ($want && !$has) {
+                CoursePackageAccess::grantOnlineAccess((int) $user->id, $package);
+                $granted[] = $package->name;
+            } elseif (!$want && $has) {
+                CoursePackageAccess::revokeOnlineAccess((int) $user->id, $package);
+                $revoked[] = $package->name;
+            }
+        }
+
+        $bits = [];
+        if ($granted) {
+            $bits[] = 'Granted '.implode(', ', $granted);
+        }
+        if ($revoked) {
+            $bits[] = 'Removed '.implode(', ', $revoked);
+        }
+        toastr()->success($bits ? implode('. ', $bits).'.' : 'No subscription changes.');
+
+        return redirect()->route('admin.student.subscriptions', ['id' => $user->id]);
+    }
+
+    private function subscriptionState(int $userId, $package): array
+    {
+        $orders = CoursePackageOrder::query()
+            ->where('user_id', $userId)
+            ->where('course_package_id', $package->id)
+            ->whereIn('payment_status', ['SUCCESS', 'FREE'])
+            ->get();
+
+        if ($package->code === 'chapter_master') {
+            $full = CoursePackageAccess::chapterMasterLegacyFull($userId);
+            $chapterCount = count(CoursePackageAccess::ownedChapterIds($userId));
+
+            return [
+                'has' => $full,
+                'label' => $full
+                    ? ($orders->contains('transaction_id', 'ADMIN-GRANT') ? 'Full access (admin)' : 'Full access')
+                    : ($chapterCount > 0 ? $chapterCount.' chapter'.($chapterCount === 1 ? '' : 's').' purchased' : 'Not assigned'),
+            ];
+        }
+
+        $has = $orders->isNotEmpty();
+        $admin = $orders->contains('transaction_id', 'ADMIN-GRANT');
+        $paid = $orders->contains(fn ($o) => $o->payment_status === 'SUCCESS');
+
+        return [
+            'has' => $has,
+            'label' => !$has ? 'Not assigned' : ($admin && !$paid ? 'Assigned (admin)' : ($paid ? 'Assigned (paid)' : 'Assigned')),
+        ];
     }
 
 

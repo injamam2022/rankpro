@@ -32,11 +32,19 @@ class ChapterMasterController extends Controller
 
     public function index()
     {
+        $tabState = CoursePackageAccess::seriesTabState();
+
         if (!CoursePackageAccess::hasChapterMaster()) {
             $package = CoursePackageAccess::chapterMasterPackage();
+            if ($package) {
+                $package->loadMissing(['features', 'activeModes']);
+            }
+
             return view('site.chapter_master.locked', [
                 'package' => $package,
-            ]);
+                'payMode' => $package ? CoursePackageAccess::onlineModeForPackage($package) : null,
+                'activePackageTab' => 'chapter_master',
+            ] + $tabState);
         }
 
         $subjects = $this->activeSubjects()->map(function (Subject $subject) {
@@ -60,11 +68,16 @@ class ChapterMasterController extends Controller
             ->limit(12)
             ->get();
 
+        $legacyFull = CoursePackageAccess::chapterMasterLegacyFull();
+
         return view('site.chapter_master.index', [
             'subjects' => $subjects,
             'attempts' => $attempts,
             'questionsPerChapter' => self::QUESTIONS_PER_CHAPTER,
-        ]);
+            'legacyFull' => $legacyFull,
+            'ownedChapterCount' => $legacyFull ? null : count(CoursePackageAccess::ownedChapterIds()),
+            'activePackageTab' => 'chapter_master',
+        ] + $tabState);
     }
 
     public function subject($subjectId)
@@ -76,11 +89,16 @@ class ChapterMasterController extends Controller
 
         $subject = Subject::where('id', $subjectId)->where('status', 1)->firstOrFail();
         $key = strtolower($subject->name);
+        $buyPackage = CoursePackageAccess::chapterMasterPackage();
 
         return view('site.chapter_master.subject', [
             'subject' => $subject,
             'meta' => $this->subjectIcons[$key] ?? ['color' => '#5b4bb7', 'icon' => 'fas fa-book'],
             'questionsPerChapter' => self::QUESTIONS_PER_CHAPTER,
+            'chapterBuyUrl' => $buyPackage
+                ? route('course_packages.show', $buyPackage->slug)
+                : route('course_packages'),
+            'chapterUnitPrice' => $buyPackage ? (float) $buyPackage->lowestModePrice() : 49,
         ]);
     }
 
@@ -135,8 +153,10 @@ class ChapterMasterController extends Controller
             ->pluck('total', 'topic_id');
 
         $topicsByChapter = $topics->groupBy('chapter_id');
+        $legacyFull = CoursePackageAccess::chapterMasterLegacyFull();
+        $ownedLookup = $legacyFull ? [] : array_flip(CoursePackageAccess::ownedChapterIds());
 
-        $payload = $chapters->map(function ($chapter) use ($topicsByChapter, $chapterCounts, $topicCounts) {
+        $payload = $chapters->map(function ($chapter) use ($topicsByChapter, $chapterCounts, $topicCounts, $legacyFull, $ownedLookup) {
             $chapterTopics = ($topicsByChapter->get($chapter->id) ?? collect())->map(function ($topic) use ($topicCounts) {
                 $q = (int) ($topicCounts[$topic->id] ?? 0);
                 return [
@@ -154,6 +174,7 @@ class ChapterMasterController extends Controller
                 'name' => $chapter->name,
                 'questions' => $chapterQuestions,
                 'coming_soon' => $chapterQuestions < 1,
+                'owned' => $legacyFull || isset($ownedLookup[(int) $chapter->id]),
                 'topics' => $chapterTopics,
             ];
         })->values();
@@ -183,6 +204,12 @@ class ChapterMasterController extends Controller
             ->where('subject_id', $subject->id)
             ->where('status', 1)
             ->firstOrFail();
+
+        if (!CoursePackageAccess::ownsChapter((int) $chapter->id)) {
+            return redirect()
+                ->route('chapter_master.subject', $subject->id)
+                ->with('error', 'This chapter is not unlocked. Choose it on Rank Chapter Master to purchase it.');
+        }
 
         $topic = null;
         if (!empty($data['topic_id'])) {

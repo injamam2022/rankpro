@@ -32,20 +32,30 @@
     <form method="get" class="mb-3" style="max-width:360px;">
         <label class="form-label">Subject</label>
         <select class="form-control" name="subject_id" onchange="this.form.submit()">
+            <option value="all" @selected($subject_id === null || $subject_id === '' || $subject_id === 'all')>All subjects</option>
             @foreach($subjects as $s)
                 <option value="{{ $s->id }}" @selected((string)$subject_id === (string)$s->id)>{{ $s->name }}</option>
             @endforeach
         </select>
     </form>
 
+    @php $showAll = $subject_id === null || $subject_id === '' || $subject_id === 'all'; @endphp
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="pb-stat"><strong>{{ $stats['premium_total'] }}</strong><span>Premium questions in subject</span></div></div>
+        <div class="col-md-3"><div class="pb-stat"><strong>{{ $stats['premium_total'] }}</strong><span>Premium questions {{ $showAll ? 'across all subjects' : 'in subject' }}</span></div></div>
         <div class="col-md-3"><div class="pb-stat"><strong>{{ $stats['chapters_ready'] }}</strong><span>Chapters ready</span></div></div>
         <div class="col-md-3"><div class="pb-stat"><strong>{{ $stats['chapters_soon'] }}</strong><span>Chapters Coming soon</span></div></div>
         <div class="col-md-3"><div class="pb-stat"><strong>{{ $stats['topics_ready'] }} / {{ $stats['topics_ready'] + $stats['topics_soon'] }}</strong><span>Topics ready</span></div></div>
     </div>
 
-    @forelse($chapters as $ch)
+    @if($chapters->isEmpty())
+        <div class="alert alert-light border">No chapters found for this selection.</div>
+    @else
+    @php $chapterGroups = $showAll ? $chapters->groupBy('subject_name') : collect(['' => $chapters]); @endphp
+    @foreach($chapterGroups as $subjectName => $group)
+        @if($showAll && $subjectName)
+            <h5 class="mt-4 mb-2">{{ $subjectName }}</h5>
+        @endif
+        @foreach($group as $ch)
         <div class="pb-ch">
             <div class="pb-ch-head" onclick="this.parentElement.classList.toggle('open')">
                 <div>
@@ -58,7 +68,7 @@
                     @else
                         <span class="badge-ok">Ready</span>
                     @endif
-                    <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.question', ['subject_id' => $subject_id, 'chapter_id' => $ch['id'], 'is_premium' => 1]) }}" onclick="event.stopPropagation()">Manage</a>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.question', ['subject_id' => $ch['subject_id'] ?? $subject_id, 'chapter_id' => $ch['id'], 'is_premium' => 1]) }}" onclick="event.stopPropagation()">Manage</a>
                     <i class="material-icons text-muted">expand_more</i>
                 </div>
             </div>
@@ -77,8 +87,8 @@
                 @endforelse
             </div>
         </div>
-    @empty
-        <div class="alert alert-light border">Select a subject to see premium coverage.</div>
-    @endforelse
+        @endforeach
+    @endforeach
+    @endif
 </div>
 @endsection

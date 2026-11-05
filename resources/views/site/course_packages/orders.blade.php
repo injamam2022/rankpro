@@ -48,6 +48,18 @@
                                 <strong>Mode:</strong> {{ $order->modeBadge() }}
                                 · <strong>Fulfilment:</strong> {{ str_replace('_', ' ', $order->fulfillment_status) }}
                             </div>
+                            @if($order->orderChapters->count())
+                                <ul class="small mb-0 mt-2 ps-3">
+                                    @foreach($order->orderChapters as $line)
+                                        <li>
+                                            {{ $line->chapter->subject->name ?? 'Subject' }} · {{ $line->chapter->name ?? 'Chapter' }}
+                                            — ₹{{ number_format($line->price, 0) }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @elseif($order->package && $order->package->code === 'chapter_master' && $order->isPaid())
+                                <div class="small mt-1">All chapters included with this purchase.</div>
+                            @endif
                             @if($order->location)
                                 <div class="small mt-1"><strong>Centre:</strong> {{ $order->location->location_name }}</div>
                             @endif

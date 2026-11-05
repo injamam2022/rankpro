@@ -71,6 +71,11 @@ class CoursePackageOrder extends Model
         return $this->belongsTo(Location::class, 'location_id');
     }
 
+    public function orderChapters()
+    {
+        return $this->hasMany(CoursePackageOrderChapter::class, 'course_package_order_id');
+    }
+
     public function isPaid(): bool
     {
         return in_array($this->payment_status, ['SUCCESS', 'FREE'], true);

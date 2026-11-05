@@ -466,6 +466,8 @@
         Route::get('/student/change', [StudentController::class, 'change'])->name('student.change');
         Route::get('/student/exam-list', [StudentController::class, 'exam_list'])->name('student.exam_list');
         Route::get('/student/exam-details', [StudentController::class, 'exam_details'])->name('student.exam_details');
+        Route::get('/student/subscriptions', [StudentController::class, 'subscriptions'])->name('student.subscriptions');
+        Route::post('/student/subscriptions', [StudentController::class, 'saveSubscriptions'])->name('student.subscriptions.save');
 
         Route::get('/question', [QuestionController::class, 'list'])->name('question');
         Route::get('/question/add', [QuestionController::class, 'add'])->name('question.add');

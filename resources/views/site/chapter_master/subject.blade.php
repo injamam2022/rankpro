@@ -25,6 +25,8 @@
         .cm-badge-soon{font-size:.7rem;font-weight:600;color:#b54708;background:#fffaeb;border:1px solid #fedf89;border-radius:999px;padding:.18rem .5rem}
         .cm-badge-ok{font-size:.7rem;font-weight:600;color:#027a48;background:#ecfdf3;border:1px solid #abefc6;border-radius:999px;padding:.18rem .5rem}
         .cm-btn{border:0;border-radius:.65rem;padding:.45rem .85rem;font-size:.8rem;font-weight:600;background:#5b4bb7;color:#fff}
+        a.cm-btn-lock{background:#fff;color:#5b4bb7;border:1px solid #d9d6fe;text-decoration:none;text-align:center}
+        .cm-badge-lock{font-size:.7rem;font-weight:600;color:#5b4bb7;background:#f4f3ff;border:1px solid #d9d6fe;border-radius:999px;padding:.18rem .5rem}
         .cm-btn:disabled,.cm-btn.is-soon{background:#e4e7ec;color:#98a2b3;cursor:not-allowed}
         .cm-topics{display:none;border-top:1px solid #f2f4f7;background:#fcfcfd}
         .cm-ch.open .cm-topics{display:block}
@@ -51,7 +53,7 @@
             <div class="rounded-3 d-grid place-items-center text-white" style="width:42px;height:42px;background:{{ $meta['color'] }};place-items:center;display:grid"><i class="{{ $meta['icon'] }}"></i></div>
             <div>
               <div class="fw-semibold" style="font-size:1.2rem">{{ $subject->name }}</div>
-              <div class="small text-muted">Premium questions only · up to {{ $questionsPerChapter }} Qs / chapter</div>
+              <div class="small text-muted">Premium questions only · up to {{ $questionsPerChapter }} Qs / purchased chapter</div>
             </div>
           </div>
 
@@ -86,6 +88,12 @@
   var topicInput = document.getElementById('cm-topic-id');
   var chapters = [];
   var targetQs = {{ (int) $questionsPerChapter }};
+  var buyUrl = @json($chapterBuyUrl);
+  var unitPrice = {{ (int) $chapterUnitPrice }};
+
+  function unlockBtn(chapterId) {
+    return '<a class="cm-btn cm-btn-lock" href="'+buyUrl+'?chapter='+encodeURIComponent(chapterId)+'">Unlock ₹'+unitPrice+'</a>';
+  }
 
   function esc(s) {
     return String(s || '').replace(/[&<>"']/g, function (c) {
@@ -110,13 +118,17 @@
       if (!matchCh && matchTopics.length === 0) return;
       shown++;
       var soon = !!ch.coming_soon;
+      var owned = !!ch.owned;
       html += '<div class="cm-ch" data-id="'+ch.id+'">';
       html += '<div class="cm-ch-row" data-toggle="1">';
       html += '<div><div class="cm-ch-name">'+esc(ch.name)+'</div>';
       html += '<div class="cm-ch-meta">'+(soon ? 'Premium bank not ready' : (ch.questions + ' premium Qs · ' + topics.length + ' topics'))+'</div></div>';
-      html += soon ? '<span class="cm-badge-soon">Coming soon</span>' : '<span class="cm-badge-ok">Ready</span>';
+      if (!owned) html += '<span class="cm-badge-lock">Not purchased</span>';
+      else html += soon ? '<span class="cm-badge-soon">Coming soon</span>' : '<span class="cm-badge-ok">Ready</span>';
       html += '<div class="d-flex align-items-center gap-2">';
-      if (soon) {
+      if (!owned) {
+        html += unlockBtn(ch.id);
+      } else if (soon) {
         html += '<button type="button" class="cm-btn is-soon" disabled>Coming soon</button>';
       } else {
         html += '<button type="button" class="cm-btn" data-start-chapter="'+ch.id+'">Start chapter test</button>';
@@ -131,8 +143,10 @@
           var tSoon = !!t.coming_soon;
           html += '<div class="cm-topic">';
           html += '<div class="cm-topic-name">'+esc(t.name)+'<div class="cm-ch-meta">'+(tSoon ? 'No premium questions yet' : (t.questions + ' premium Qs'))+'</div></div>';
-          html += tSoon ? '<span class="cm-badge-soon">Coming soon</span>' : '<span class="cm-badge-ok">'+t.questions+' Q</span>';
-          if (tSoon) {
+          html += !owned ? '<span class="cm-badge-lock">Locked</span>' : (tSoon ? '<span class="cm-badge-soon">Coming soon</span>' : '<span class="cm-badge-ok">'+t.questions+' Q</span>');
+          if (!owned) {
+            html += unlockBtn(ch.id);
+          } else if (tSoon) {
             html += '<button type="button" class="cm-btn is-soon" disabled>Coming soon</button>';
           } else {
             html += '<button type="button" class="cm-btn" data-start-topic="'+t.id+'" data-chapter="'+ch.id+'">Start topic test</button>';
@@ -146,6 +160,7 @@
   }
 
   listEl.addEventListener('click', function (e) {
+    if (e.target.closest('.cm-btn-lock')) return;
     var startCh = e.target.closest('[data-start-chapter]');
     if (startCh) {
       e.preventDefault();

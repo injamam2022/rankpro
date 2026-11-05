@@ -62,6 +62,15 @@
                                 <a href="{{route('admin.student.exam_list',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1" title="Exam analytics"><i class="material-icons">visibility</i></a>
                                 <a href="{{route('admin.student.edit',['id'=>$row->id])}}" class="btn btn-primary btn-sm mr-1"><i class="material-icons">edit</i></a>
                                 <a href="{{route('admin.student.delete',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1"><i class="material-icons">close</i></a>
+                                <a href="{{route('admin.student.subscriptions',['id'=>$row->id])}}" class="btn btn-sm mr-1" title="Online subscriptions" style="background:#6b3fd4;color:#fff;"><i class="material-icons">card_membership</i></a>
+                                @php $owned = ($subscriptions ?? collect())->get($row->id, collect()); @endphp
+                                @if($owned->count())
+                                    <div class="small mt-1" style="max-width:180px;line-height:1.3;">
+                                        @foreach($owned as $pkg)
+                                            <span class="badge bg-light text-dark border">{{ $pkg->name }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

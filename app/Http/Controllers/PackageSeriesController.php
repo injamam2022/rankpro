@@ -30,22 +30,16 @@ class PackageSeriesController extends Controller
 
     public function index()
     {
-        $orders = CoursePackageAccess::ownedSeriesOrders();
+        $tabs = CoursePackageAccess::assignableOnlinePackages();
+        $firstSeries = $tabs->first(fn ($p) => $p->code !== 'chapter_master');
 
-        if ($orders->isEmpty()) {
-            $featured = CoursePackage::active()
-                ->whereIn('code', CoursePackageAccess::seriesPackageCodes())
-                ->orderBy('sort_order')
-                ->get();
-
-            return view('site.package_series.locked', compact('featured'));
+        if ($firstSeries) {
+            return redirect()->route('package_series.show', $firstSeries->slug);
         }
 
-        if ($orders->count() === 1) {
-            return redirect()->route('package_series.show', $orders->first()->package->slug);
-        }
-
-        return view('site.package_series.index', compact('orders'));
+        return view('site.package_series.locked', [
+            'featured' => $tabs,
+        ] + CoursePackageAccess::seriesTabState());
     }
 
     public function show(string $slug)
@@ -56,11 +50,20 @@ class PackageSeriesController extends Controller
             abort(404);
         }
 
-        if (!CoursePackageAccess::hasSeriesPackage($package->code)) {
-            return view('site.package_series.locked', [
-                'featured' => collect([$package]),
-                'focusPackage' => $package,
-            ]);
+        $tabState = CoursePackageAccess::seriesTabState();
+        $unlocked = CoursePackageAccess::hasSeriesPackage($package->code);
+
+        if (!$unlocked) {
+            $package->loadMissing(['features', 'activeModes']);
+
+            return view('site.package_series.show', [
+                'package' => $package,
+                'order' => null,
+                'rows' => collect(),
+                'unlocked' => false,
+                'payMode' => CoursePackageAccess::onlineModeForPackage($package),
+                'activePackageTab' => $package->code,
+            ] + $tabState);
         }
 
         $order = CoursePackageAccess::ownedSeriesOrders()
@@ -145,7 +148,10 @@ class PackageSeriesController extends Controller
             'package' => $package,
             'order' => $order,
             'rows' => $rows,
-        ]);
+            'unlocked' => true,
+            'payMode' => null,
+            'activePackageTab' => $package->code,
+        ] + $tabState);
     }
 
     public function start(Request $request, string $slug)

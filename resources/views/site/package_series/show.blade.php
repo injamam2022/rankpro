@@ -29,6 +29,19 @@
         .ps-badge--expired{background:#fef2f2;color:#b91c1c}
         .ps-cov{font-size:.82rem;color:#64748b;margin-top:.35rem;line-height:1.45}
         .ps-actions{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+        .ps-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+        .ps-tab{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .9rem;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#334155;font-size:.82rem;font-weight:600;text-decoration:none}
+        .ps-tab:hover{border-color:#c7d2fe;color:#4338ca}
+        .ps-tab.is-on{background:#5b4bb7;border-color:#5b4bb7;color:#fff}
+        .ps-tab.is-locked{color:#667085}
+        .ps-tab.is-on.is-locked{background:#ede9fe;border-color:#c4b5fd;color:#5b21b6}
+        .ps-tab .fa-lock{font-size:.65rem}
+        .ps-pay{border:1px solid #eaecf0;border-radius:1.1rem;background:#fff;padding:1.6rem 1.4rem;text-align:center;max-width:520px;margin:0 auto}
+        .ps-pay__lock{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#5b4bb7,#7c3aed);color:#fff;display:grid;place-items:center;margin:0 auto 1rem}
+        .ps-pay__price{font-size:1.7rem;font-weight:800;color:#5b4bb7;margin-bottom:.85rem}
+        .ps-pay__feats{list-style:none;padding:0;margin:0 0 1.1rem;text-align:left}
+        .ps-pay__feats li{font-size:.88rem;color:#334155;margin-bottom:.4rem;display:flex;gap:.5rem}
+        .ps-pay__feats i{color:#16a34a;margin-top:.2rem}
     </style>
     @include('site.include.head_meta')
 </head>
@@ -45,7 +58,13 @@
           @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
           @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
-          <div class="dashboardTitle mb-1">{{ $package->name }} <span>Tests</span></div>
+          <div class="dashboardTitle mb-1">Series <span>Tests</span></div>
+          @include('site.include.series_package_tabs')
+          <h2 class="h5 mb-1">{{ $package->name }}</h2>
+          @if(empty($unlocked))
+            <p class="text-muted mb-3">This tab stays visible for every student. Pay below, or get admin access, to start these tests.</p>
+            @include('site.include.series_pay_panel', ['payPackage' => $package, 'payMode' => $payMode ?? null])
+          @else
           <p class="text-muted mb-2">{{ $package->tagline }} · Premium questions only. Tests with an admin-assigned paper are ready to start; others use the schedule syllabus when the bank is filled.</p>
 
           <div class="ps-meta">
@@ -135,6 +154,7 @@
           <div class="mt-3">
             <a href="{{ route('my_orders') }}" class="small">← My Orders</a>
           </div>
+          @endif
         </div>
       </div></div>
     </div>

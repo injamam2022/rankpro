@@ -868,17 +868,17 @@ class QuestionController extends Controller
         }
 
         $subjectId = $request->input('subject_id');
+        if ($subjectId === 'all' || $subjectId === '') {
+            $subjectId = null;
+        }
+
         $subjectsQuery = Subject::where('status', 1)->where(function ($q) {
             $q->where('is_deleted', 0)->orWhereNull('is_deleted');
         });
         if (session()->get('admmin_is_super') == 'T') {
             $subjectsQuery->where('id', session()->get('admmin_subject_id'));
         }
-        $subjects = $subjectsQuery->orderBy('name')->get();
-
-        if (!$subjectId && $subjects->count()) {
-            $subjectId = $subjects->first()->id;
-        }
+        $subjects = $subjectsQuery->orderByRaw("FIELD(name, 'Physics', 'Chemistry', 'Biology', 'Botany', 'Zoology')")->orderBy('name')->get();
 
         $chapters = collect();
         $stats = [
@@ -889,11 +889,15 @@ class QuestionController extends Controller
             'topics_soon' => 0,
         ];
 
-        if ($subjectId) {
-            $chapterRows = Chapter::where('subject_id', $subjectId)->where('status', 1)->orderBy('name')->get();
+        $subjectIds = $subjectId
+            ? collect([(int) $subjectId])->filter()
+            : $subjects->pluck('id');
+
+        if ($subjectIds->count()) {
+            $chapterRows = Chapter::whereIn('subject_id', $subjectIds)->where('status', 1)->orderBy('name')->get();
             $chapterCounts = Question::query()
                 ->select('chapter_id', DB::raw('COUNT(*) as total'))
-                ->where('subject_id', $subjectId)
+                ->whereIn('subject_id', $subjectIds)
                 ->where('is_deleted', 0)
                 ->where('status', 1)
                 ->where('is_premium', 1)
@@ -903,7 +907,7 @@ class QuestionController extends Controller
 
             $topicCounts = Question::query()
                 ->select('topic_id', DB::raw('COUNT(*) as total'))
-                ->where('subject_id', $subjectId)
+                ->whereIn('subject_id', $subjectIds)
                 ->where('is_deleted', 0)
                 ->where('status', 1)
                 ->where('is_premium', 1)
@@ -911,10 +915,11 @@ class QuestionController extends Controller
                 ->groupBy('topic_id')
                 ->pluck('total', 'topic_id');
 
-            $topics = Topic::where('subject_id', $subjectId)->where('status', 1)->orderBy('name')->get(['id', 'chapter_id', 'name']);
+            $topics = Topic::whereIn('subject_id', $subjectIds)->where('status', 1)->orderBy('name')->get(['id', 'chapter_id', 'name']);
             $topicsByChapter = $topics->groupBy('chapter_id');
+            $subjectNames = $subjects->pluck('name', 'id');
 
-            $chapters = $chapterRows->map(function ($ch) use ($chapterCounts, $topicCounts, $topicsByChapter, &$stats) {
+            $chapters = $chapterRows->map(function ($ch) use ($chapterCounts, $topicCounts, $topicsByChapter, $subjectNames, &$stats) {
                 $qCount = (int) ($chapterCounts[$ch->id] ?? 0);
                 $topicList = ($topicsByChapter->get($ch->id) ?? collect())->map(function ($t) use ($topicCounts, &$stats) {
                     $tq = (int) ($topicCounts[$t->id] ?? 0);
@@ -940,12 +945,21 @@ class QuestionController extends Controller
 
                 return [
                     'id' => $ch->id,
+                    'subject_id' => (int) $ch->subject_id,
+                    'subject_name' => $subjectNames[$ch->subject_id] ?? 'Subject',
                     'name' => $ch->name,
                     'questions' => $qCount,
                     'coming_soon' => $qCount < 1,
                     'topics' => $topicList,
                 ];
             })->values();
+
+            if (!$subjectId) {
+                $subjectOrder = $subjects->pluck('id')->flip();
+                $chapters = $chapters->sortBy(function ($ch) use ($subjectOrder) {
+                    return str_pad((string) ($subjectOrder[$ch['subject_id']] ?? 99), 3, '0', STR_PAD_LEFT).'-'.$ch['name'];
+                })->values();
+            }
         }
 
         return view('admin.question.premium_bank', [

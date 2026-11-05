@@ -20,6 +20,13 @@
         .cm-soon{font-size:.72rem;font-weight:600;color:#b54708;background:#fffaeb;border:1px solid #fedf89;border-radius:999px;padding:.2rem .55rem}
         .cm-ready{font-size:.72rem;font-weight:600;color:#027a48;background:#ecfdf3;border:1px solid #abefc6;border-radius:999px;padding:.2rem .55rem}
         .cm-attempt{border:1px solid #eaecf0;border-radius:.85rem;padding:.85rem 1rem;background:#fff;margin-bottom:.55rem;display:flex;justify-content:space-between;gap:.75rem;align-items:center}
+        .ps-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+        .ps-tab{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .9rem;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#334155;font-size:.82rem;font-weight:600;text-decoration:none}
+        .ps-tab:hover{border-color:#c7d2fe;color:#4338ca}
+        .ps-tab.is-on{background:#5b4bb7;border-color:#5b4bb7;color:#fff}
+        .ps-tab.is-locked{color:#667085}
+        .ps-tab.is-on.is-locked{background:#ede9fe;border-color:#c4b5fd;color:#5b21b6}
+        .ps-tab .fa-lock{font-size:.65rem}
     </style>
     @include('site.include.head_meta')
 </head>
@@ -37,7 +44,15 @@
           @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
           <div class="dashboardTitle mb-1">Rank <span>Chapter Master</span></div>
-          <p class="text-muted mb-3">Paid Course Package segment — tests use <strong>premium questions only</strong> (up to {{ $questionsPerChapter }} per chapter). Free practice stays under <a href="{{ route('custom_test') }}">Custom Test</a> (non-premium). Topics without premium questions show <em>Coming soon</em>.</p>
+          @include('site.include.series_package_tabs')
+          <p class="text-muted mb-3">Tests use <strong>premium questions only</strong> (up to {{ $questionsPerChapter }} per chapter you purchased).
+            @if(!empty($legacyFull))
+              You have full chapter access.
+            @else
+              {{ (int) ($ownedChapterCount ?? 0) }} chapter{{ (int) ($ownedChapterCount ?? 0) === 1 ? '' : 's' }} unlocked.
+              <a href="{{ route('course_packages.show', 'rank-chapter-master') }}">Add chapters</a>
+            @endif
+          </p>
 
           @foreach($subjects as $card)
             @php $s = $card['subject']; @endphp

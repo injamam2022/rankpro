@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chapter;
 use App\Models\CoursePackage;
 use App\Models\CoursePackageMode;
 use App\Models\CoursePackageOrder;
+use App\Models\CoursePackageOrderChapter;
 use App\Models\CourseSchedule;
 use App\Models\Location;
+use App\Support\CoursePackageAccess;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class CoursePackageController extends Controller
@@ -38,7 +43,39 @@ class CoursePackageController extends Controller
             $preselectMode = 'delivery';
         }
 
-        return view('site.course_packages.show', compact('package', 'schedules', 'locations', 'preselectMode'));
+        $chapterGroups = [];
+        $chapterMasterLegacy = false;
+        $chapterUnitPrice = 0;
+        $chapterUnownedCount = 0;
+        $preselectChapterId = (int) $request->query('chapter');
+
+        if ($package->code === 'chapter_master') {
+            $chapterUnitPrice = (float) ($package->lowestModePrice() ?? 0);
+            $chapterMasterLegacy = Auth::check() && CoursePackageAccess::chapterMasterLegacyFull();
+            if (!$chapterMasterLegacy) {
+                $ownedIds = Auth::check() ? CoursePackageAccess::ownedChapterIds() : [];
+                $chapterGroups = CoursePackageAccess::chapterCatalog($ownedIds);
+                foreach ($chapterGroups as $group) {
+                    foreach ($group['chapters'] as $chapter) {
+                        if (!$chapter['owned']) {
+                            $chapterUnownedCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return view('site.course_packages.show', compact(
+            'package',
+            'schedules',
+            'locations',
+            'preselectMode',
+            'chapterGroups',
+            'chapterMasterLegacy',
+            'chapterUnitPrice',
+            'chapterUnownedCount',
+            'preselectChapterId'
+        ));
     }
 
     public function checkout(Request $request, $slug)
@@ -64,6 +101,17 @@ class CoursePackageController extends Controller
 
         $locations = Location::where('status', 1)->where('is_deleted', 0)->orderBy('location_name')->get();
 
+        $lineChapters = collect();
+        $unitPrice = (float) $mode->price;
+        if ($package->code === 'chapter_master') {
+            $picked = $this->chapterMasterSelection($request);
+            if (isset($picked['error'])) {
+                return redirect()->route('course_packages.show', $package->slug)
+                    ->with('error', $picked['error']);
+            }
+            $lineChapters = $picked['chapters'];
+        }
+
         // Prefer config (works with config:cache). Fall back to env for uncached local/dev.
         $razorpayKey = config('services.razorpay.key') ?: env('RAZORPAY_KEY');
         $razorpayName = config('services.razorpay.name') ?: env('RAZORPAY_NAME', 'RankPro');
@@ -73,7 +121,9 @@ class CoursePackageController extends Controller
             'mode',
             'locations',
             'razorpayKey',
-            'razorpayName'
+            'razorpayName',
+            'lineChapters',
+            'unitPrice'
         ));
     }
 
@@ -112,7 +162,19 @@ class CoursePackageController extends Controller
             ], 422);
         }
 
-        $amount = (float) $mode->price;
+        $lineChapters = collect();
+        $unitPrice = (float) $mode->price;
+        if ($package->code === 'chapter_master') {
+            $picked = $this->chapterMasterSelection($request);
+            if (isset($picked['error'])) {
+                return response()->json(['success' => 0, 'message' => $picked['error']], 422);
+            }
+            $lineChapters = $picked['chapters'];
+        }
+
+        $amount = $package->code === 'chapter_master'
+            ? $unitPrice * $lineChapters->count()
+            : $unitPrice;
         $tax = (float) ($package->tax ?? 0);
         $couponDiscount = (float) ($request->coupon_discount ?? 0);
         $discount = (float) ($request->total_discount ?? 0);
@@ -132,30 +194,62 @@ class CoursePackageController extends Controller
             return response()->json(['success' => 0, 'message' => 'Payment details missing.'], 422);
         }
 
-        $order = CoursePackageOrder::create([
-            'user_id' => Auth::id(),
-            'course_package_id' => $package->id,
-            'course_package_mode_id' => $mode->id,
-            'mode_code' => $mode->mode_code,
-            'mode_label' => $mode->label,
-            'amount' => $amount,
-            'discount' => $discount,
-            'coupon_discount' => $couponDiscount,
-            'coupon_code' => $request->coupon_code,
-            'tax' => $tax,
-            'final_amount' => $final,
-            'location_id' => $request->location_id,
-            'shipping_name' => $request->shipping_name,
-            'shipping_phone' => $request->shipping_phone,
-            'shipping_address' => $request->shipping_address,
-            'shipping_city' => $request->shipping_city,
-            'shipping_state' => $request->shipping_state,
-            'shipping_pincode' => $request->shipping_pincode,
-            'fulfillment_status' => $fulfillment,
-            'payment_status' => $paymentStatus,
-            'transaction_id' => $request->razorpay_payment_id,
-            'gateway_order_id' => $request->razorpay_order_id,
-        ]);
+        $modeLabel = $mode->label;
+        if ($package->code === 'chapter_master') {
+            $count = $lineChapters->count();
+            $modeLabel .= ' · '.$count.' chapter'.($count === 1 ? '' : 's');
+        }
+
+        try {
+            $order = DB::transaction(function () use (
+                $request, $package, $mode, $modeLabel, $amount, $discount, $couponDiscount,
+                $tax, $final, $fulfillment, $paymentStatus, $lineChapters, $unitPrice
+            ) {
+                $order = CoursePackageOrder::create([
+                    'user_id' => Auth::id(),
+                    'course_package_id' => $package->id,
+                    'course_package_mode_id' => $mode->id,
+                    'mode_code' => $mode->mode_code,
+                    'mode_label' => $modeLabel,
+                    'amount' => $amount,
+                    'discount' => $discount,
+                    'coupon_discount' => $couponDiscount,
+                    'coupon_code' => $request->coupon_code,
+                    'tax' => $tax,
+                    'final_amount' => $final,
+                    'location_id' => $request->location_id,
+                    'shipping_name' => $request->shipping_name,
+                    'shipping_phone' => $request->shipping_phone,
+                    'shipping_address' => $request->shipping_address,
+                    'shipping_city' => $request->shipping_city,
+                    'shipping_state' => $request->shipping_state,
+                    'shipping_pincode' => $request->shipping_pincode,
+                    'fulfillment_status' => $fulfillment,
+                    'payment_status' => $paymentStatus,
+                    'transaction_id' => $request->razorpay_payment_id,
+                    'gateway_order_id' => $request->razorpay_order_id,
+                ]);
+
+                foreach ($lineChapters as $chapter) {
+                    CoursePackageOrderChapter::create([
+                        'course_package_order_id' => $order->id,
+                        'user_id' => Auth::id(),
+                        'chapter_id' => $chapter->id,
+                        'price' => $unitPrice,
+                    ]);
+                }
+
+                return $order;
+            });
+        } catch (QueryException $e) {
+            if ($package->code === 'chapter_master') {
+                return response()->json([
+                    'success' => 0,
+                    'message' => 'One of these chapters is already unlocked on your account.',
+                ], 422);
+            }
+            throw $e;
+        }
 
         $redirect = route('my_orders');
         if ($package->code === 'chapter_master') {
@@ -176,7 +270,7 @@ class CoursePackageController extends Controller
 
     public function myOrders()
     {
-        $orders = CoursePackageOrder::with(['package', 'location'])
+        $orders = CoursePackageOrder::with(['package', 'location', 'orderChapters.chapter.subject'])
             ->where('user_id', Auth::id())
             ->orderByDesc('id')
             ->get();
@@ -240,5 +334,69 @@ class CoursePackageController extends Controller
         }
 
         return $query->get();
+    }
+
+    /**
+     * Chapters selected on the Rank Chapter Master cart.
+     * Price is the mode price × count, capped at CHAPTER_PICK_LIMIT.
+     *
+     * @return array{chapters?: \Illuminate\Support\Collection, error?: string}
+     */
+    private function chapterMasterSelection(Request $request): array
+    {
+        $raw = $request->input('chapter_ids', []);
+        if (!is_array($raw)) {
+            $raw = preg_split('/\s*,\s*/', (string) $raw) ?: [];
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $raw))));
+        $limit = CoursePackageAccess::CHAPTER_PICK_LIMIT;
+
+        if (count($ids) < 1) {
+            return ['error' => 'Select at least one chapter.'];
+        }
+        if (count($ids) > $limit) {
+            return ['error' => 'You can select up to '.$limit.' chapters in one payment.'];
+        }
+
+        if (Auth::check() && CoursePackageAccess::chapterMasterLegacyFull()) {
+            return ['error' => 'You already have access to every chapter.'];
+        }
+
+        $chapters = Chapter::query()
+            ->with('subject')
+            ->whereIn('id', $ids)
+            ->where('status', 1)
+            ->whereHas('subject', function ($q) {
+                $q->where('status', 1)->where(function ($inner) {
+                    $inner->where('is_deleted', 0)->orWhereNull('is_deleted');
+                });
+            })
+            ->get();
+
+        if ($chapters->count() !== count($ids)) {
+            return ['error' => 'One of the selected chapters is not available.'];
+        }
+
+        if (Auth::check()) {
+            $owned = array_flip(CoursePackageAccess::ownedChapterIds());
+            $already = $chapters->filter(fn ($chapter) => isset($owned[(int) $chapter->id]));
+            if ($already->isNotEmpty()) {
+                return ['error' => 'You already own '.$already->pluck('name')->join(', ').'.'];
+            }
+        }
+
+        $chapters->each(function (Chapter $chapter) {
+            $name = $chapter->name;
+            $level = (int) ($chapter->class_level ?? 0);
+            if ($level === 11) {
+                $name .= ' (Class 11)';
+            } elseif ($level === 12) {
+                $name .= ' (Class 12)';
+            }
+            $chapter->setAttribute('cart_label', trim(($chapter->subject->name ?? 'Subject').' · '.$name));
+        });
+
+        return ['chapters' => $chapters];
     }
 }

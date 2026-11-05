@@ -86,6 +86,9 @@ class CoursePackage extends Model
         }
 
         $price = $this->lowestModePrice();
+        if ($this->code === 'chapter_master') {
+            return '₹' . number_format($price, 0) . ' / chapter';
+        }
         if ($this->mode_selection === 'choose_one' && $this->activeModes()->count() > 1) {
             return '₹' . number_format($price, 0) . '+';
         }
