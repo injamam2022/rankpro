@@ -7,18 +7,19 @@
 
 @section('content')
     <div class="container-xl px-5">
-        <div class="d-flex mt-10 mb-4" style="display:flex;">
-            <div class="" style="width: calc(100% - 50px);">
-                <h1 class="page-header mb-0">Contact</h1>
-            </div>
-            <div>
-                
+        <div class="d-flex mt-10 mb-3 align-items-center justify-content-between">
+            <h1 class="page-header mb-0">Contact</h1>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.contact') }}" class="btn btn-sm {{ empty($category) ? 'btn-dark' : 'btn-outline-dark' }}">All</a>
+                <a href="{{ route('admin.contact', ['category' => 'scholarship']) }}" class="btn btn-sm {{ ($category ?? '') === 'scholarship' ? 'btn-dark' : 'btn-outline-dark' }}">Scholarship</a>
+                <a href="{{ route('admin.contact', ['category' => 'contact']) }}" class="btn btn-sm {{ ($category ?? '') === 'contact' ? 'btn-dark' : 'btn-outline-dark' }}">Contact</a>
             </div>
         </div>
         <!-- Simple DataTables example-->
         <table id="datatablesSimple">
             <thead>
                 <tr>
+                    <th>Category</th>
                     <th>Location Name</th>
                     <th>Name</th>
                     <th>Email</th>
@@ -32,6 +33,13 @@
                 @if(count($list)>0)
                     @foreach ($list as $key=>$row)
                         <tr>
+                            <td>
+                                @if($row->page_type === 'scholarship')
+                                    <span class="btn btn-sm" style="background:#5b3fc4;color:#fff;pointer-events:none;">Scholarship</span>
+                                @else
+                                    <span class="btn btn-secondary btn-sm" style="pointer-events:none;">Contact</span>
+                                @endif
+                            </td>
                             <td>{{$row->location_name}}</td>
                             <td>{{$row->name}}</td>
                             <td>{{$row->email}}</td>

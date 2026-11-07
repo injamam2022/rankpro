@@ -16,9 +16,22 @@ class ContactController extends Controller
 {
     public function list(){
         $data = [];
-        $data['list'] = Contact::select(['contacts.*','locations.location_name'])
-                        ->leftJoin('locations', 'contacts.location_id', '=', 'locations.id')
-                        ->get();
+        $category = request('category');
+        $query = Contact::select(['contacts.*','locations.location_name'])
+                        ->leftJoin('locations', 'contacts.location_id', '=', 'locations.id');
+
+        if ($category === 'scholarship') {
+            $query->where('contacts.page_type', 'scholarship');
+        } elseif ($category === 'contact') {
+            $query->where(function ($rows) {
+                $rows->whereNull('contacts.page_type')
+                    ->orWhere('contacts.page_type', '')
+                    ->orWhere('contacts.page_type', '!=', 'scholarship');
+            });
+        }
+
+        $data['list'] = $query->get();
+        $data['category'] = $category;
         return view('admin.contact.list',$data);
     }
 

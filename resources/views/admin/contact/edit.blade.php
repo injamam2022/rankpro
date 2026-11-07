@@ -18,6 +18,10 @@
                     @csrf
                     <div class="row">
                         <div class="col-sm-6">
+                            <label class="form-label">Category</label>
+                            <input class="form-control" type="text" value="{{ $details->page_type === 'scholarship' ? 'Scholarship' : 'Contact' }}" readonly />
+                        </div>
+                        <div class="col-sm-6">
                             <label class="form-label" for="name">Name</label>
                             <input class="form-control" id="name" type="text" name="name" placeholder=""  value="{{$details->name}}" />
                         </div>
