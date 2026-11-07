@@ -87,6 +87,13 @@ class Seo
                 'description' => 'Contact RankPro on call, WhatsApp or email for help with NEET test series, payments, mentorship and your account.',
                 'keywords' => 'contact RankPro, RankPro support, RankPro phone number, NEET test series help',
             ],
+            'scholarship' => [
+                'label' => 'Scholarship Test',
+                'type' => 'WebPage',
+                'title' => 'Rank Pro Scholarship Test - Score More, Pay Less',
+                'description' => 'Take the free Rank Pro NEET scholarship test. Score more, pay less: up to 100% off the course fee, plus a detailed result analysis.',
+                'keywords' => 'RankPro scholarship test, NEET scholarship test, NEET scholarship, free NEET mock test, Rank Pro course discount',
+            ],
             'help' => [
                 'label' => 'Help & Support',
                 'type' => 'WebPage',

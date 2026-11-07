@@ -1,0 +1,18 @@
+PHP:
+
+<?php
+
+function hmacDigest($msg, $keyString) {
+    // Create an HMAC digest using the SHA-256 algorithm
+    $digest = hash_hmac('sha256', $msg, $keyString);
+
+    return $digest;
+}
+
+// Example usage
+$msg = "your message here";
+$keyString = "your secret key";
+$digest = hmacDigest($msg, $keyString);
+echo "HMAC Digest: " . $digest;
+
+?>

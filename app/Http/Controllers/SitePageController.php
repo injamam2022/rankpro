@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\Contact;
 use App\Support\Seo;
 use App\Support\WebsiteSettings;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 class SitePageController extends Controller
 {
@@ -60,6 +63,70 @@ class SitePageController extends Controller
                 'wa' => WebsiteSettings::whatsappHref(),
             ])->render(),
         ]);
+    }
+
+    public function scholarship()
+    {
+        return view('site.scholarship');
+    }
+
+    public function scholarshipRegister(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{8,20}$/'],
+            'class' => ['required', 'in:Class 10,Class 10+2 (Class 11 / 12),Class 12+ (12th pass & beyond)'],
+            'city' => ['nullable', 'string', 'max:80'],
+            'mode' => ['required', 'in:Online,Offline'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'message' => ['nullable', 'string', 'max:500'],
+        ], [
+            'phone.regex' => 'Enter a valid phone number.',
+            'class.required' => 'Select your class.',
+            'class.in' => 'Select your class.',
+        ]);
+
+        $city = trim((string) ($data['city'] ?? ''));
+        $note = trim((string) ($data['message'] ?? ''));
+        $email = trim((string) ($data['email'] ?? ''));
+        $summary = 'Scholarship Test | Class: '.$data['class']
+            .' | City: '.($city !== '' ? $city : '-')
+            .' | Mode: '.$data['mode'];
+        if ($note !== '') {
+            $summary .= ' | Note: '.$note;
+        }
+
+        Contact::create([
+            'page_type' => 'scholarship',
+            'name' => $data['name'],
+            'email' => $email,
+            'mobile_number' => $data['phone'],
+            'message' => Str::limit($summary, 255, ''),
+            'status' => 1,
+        ]);
+
+        $whatsapp = 'https://wa.me/'.WebsiteSettings::digits('whatsapp').'?text='.rawurlencode(implode("\n", [
+            'Scholarship Test Registration',
+            'Name: '.$data['name'],
+            'Phone: '.$data['phone'],
+            'Class: '.$data['class'],
+            'City: '.($city !== '' ? $city : '-'),
+            'Mode: '.$data['mode'],
+            'Email: '.($email !== '' ? $email : '-'),
+            'Message: '.($note !== '' ? $note : '-'),
+        ]));
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'whatsapp' => $whatsapp,
+            ]);
+        }
+
+        return redirect()
+            ->to(route('scholarship').'#register')
+            ->with('scholarship_ok', true)
+            ->with('scholarship_wa', $whatsapp);
     }
 
     public function blog()

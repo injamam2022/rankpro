@@ -262,6 +262,8 @@
     Route::post('/ranker-save-checkout', [HomeController::class, 'rankerSaveCheckout'])->name('ranker.save_checkout')->middleware(['verifyMembership']);
 
     //Sourav Start
+    Route::get('/scholarship', [SitePageController::class, 'scholarship'])->name('scholarship');
+    Route::post('/scholarship', [SitePageController::class, 'scholarshipRegister'])->name('scholarship.register');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/save_contact', [HomeController::class, 'save_contact'])->name('save_contact');
     Route::get('/about-us', [SitePageController::class, 'about'])->name('about');
