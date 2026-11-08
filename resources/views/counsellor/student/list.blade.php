@@ -23,7 +23,7 @@
         <table id="datatablesSimple">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th data-type="number" data-sort="desc">ID</th>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone Number</th>

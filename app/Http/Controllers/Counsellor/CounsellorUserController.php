@@ -22,7 +22,7 @@ class CounsellorUserController extends Controller
 {
     public function list(){
         $data = [];
-        $data['list'] = User::where('counsellor_id',session()->get('counsellorAuth'))->get();
+        $data['list'] = User::where('counsellor_id',session()->get('counsellorAuth'))->orderByDesc('id')->get();
         // dd($data['list']);
         return view('counsellor.student.list',$data);
     }

@@ -168,7 +168,7 @@
                     <span class="pr__eyebrow"><i></i>Pricing</span>
                     <h2 class="pr__title">Simple, transparent <span class="pr__grad">pricing</span></h2>
                 </div>
-                <p class="pr__sub">Choose the plan that fits your NEET preparation journey. First 3 custom tests are completely free.</p>
+                <p class="pr__sub">Cusom test are free.</p>
             </div>
 
             @php

@@ -96,11 +96,16 @@ class User extends Authenticatable
     }
 
     /**
-     * Sequential RankPro ID: RP/{2-digit year}/{4-digit sequence}, e.g. RP/26/0001.
+     * NEET cycle used in RankPro IDs. 27 = 2027, so IDs look like RP/27/0001.
+     */
+    public const RANKPRO_ID_YEAR = '27';
+
+    /**
+     * Sequential RankPro ID: RP/{year}/{4-digit sequence}, e.g. RP/27/0001.
      */
     public static function generateRankproId(): string
     {
-        $prefix = 'RP/'.now()->format('y').'/';
+        $prefix = 'RP/'.self::RANKPRO_ID_YEAR.'/';
 
         $lastId = static::query()
             ->where('rankpro_id', 'like', $prefix.'%')

@@ -28,7 +28,7 @@ class StudentController extends Controller
 {
     public function list(){
         $data = [];
-        $data['list'] = User::get();
+        $data['list'] = User::orderByDesc('id')->get();
         $codes = CoursePackageAccess::assignableOnlineCodes();
         $data['subscriptions'] = CoursePackageOrder::query()
             ->with('package:id,code,name')
