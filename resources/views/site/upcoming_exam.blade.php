@@ -48,9 +48,9 @@
         $nextSlotLabel = $next_slot_label ?? 'No upcoming slot';
         $searchQ = (string) ($q ?? '');
         $searchOpen = $searchQ !== '';
-        $planDone = 2;
-        $planTotal = 5;
-        $planPct = $planTotal > 0 ? (int) round(($planDone / $planTotal) * 100) : 0;
+        $planDone = 0;
+        $planTotal = 0;
+        $planPct = 0;
         $scheduleList = $schedule_exam_list ?? collect();
 
         $calendarEvents = [];
@@ -546,7 +546,7 @@
                                         <p class="ge-panel__sub">Tap a row to mark it complete. Plans are saved on this device.</p>
                                                                         </div>
                                     <div class="ge-plan-meta">
-                                        <span>Today's Target: <strong id="gePlanHours">8.5 Study Hours</strong></span>
+                                        <span>Today's Target: <strong id="gePlanHours">0.0 Study Hours</strong></span>
                                         <button type="button" class="ge-btn ge-btn--blue ge-btn--sm" id="geOpenPlanModal">
                                             <i class="fas fa-plus"></i> Add Study Plan
                                         </button>
@@ -751,24 +751,17 @@
       });
       renderCalendar();
 
-      /* Study plan (localStorage) */
-      var STORAGE_KEY = 'rankpro_give_exam_study_plan_v1';
-      var defaultPlan = [
-        { id: 'p1', subject: 'Biology', topic: 'NCERT Line-by-Line: Human Endocrine System', subTopic: '', targetOutput: 'Revise + 40 PYQs', durationMins: 90, timeSlot: '06:00 AM – 07:30 AM', priority: 'High', completed: true },
-        { id: 'p2', subject: 'Physics', topic: 'Rotational Dynamics', subTopic: 'Torque & Angular Momentum', targetOutput: 'Solve 45 High-Yield NCERT Questions', durationMins: 60, timeSlot: '10:00 AM – 11:00 AM', priority: 'High', completed: false },
-        { id: 'p3', subject: 'Chemistry', topic: 'Chemical Bonding & Molecular Structure', subTopic: '', targetOutput: 'NCERT Exemplar Set A', durationMins: 75, timeSlot: '04:00 PM – 05:15 PM', priority: 'Medium', completed: false },
-        { id: 'p4', subject: 'Biology', topic: 'RankPro Mock Exam Window', subTopic: 'Full Syllabus Simulation', targetOutput: 'Complete live mock under timer', durationMins: 200, timeSlot: '02:00 PM – 05:20 PM', priority: 'High', completed: false },
-        { id: 'p5', subject: 'Physics', topic: 'Current Electricity Revision', subTopic: '', targetOutput: 'Error log + formula sheet', durationMins: 45, timeSlot: '08:00 PM – 08:45 PM', priority: 'Medium', completed: true }
-      ];
+      /* Study plan (per-user localStorage; never seed demo sessions) */
+      var STORAGE_KEY = 'rankpro_give_exam_study_plan_v1_u{{ (int) Auth::id() }}';
 
       function loadPlan() {
         try {
           var raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return defaultPlan.slice();
+          if (!raw) return [];
           var parsed = JSON.parse(raw);
-          return Array.isArray(parsed) && parsed.length ? parsed : defaultPlan.slice();
+          return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
-          return defaultPlan.slice();
+          return [];
         }
       }
 
@@ -781,8 +774,8 @@
 
       function updatePlanMetrics() {
         var done = plan.filter(function (p) { return p.completed; }).length;
-        var total = plan.length || 1;
-        var pct = Math.round((done / total) * 100);
+        var total = plan.length;
+        var pct = total > 0 ? Math.round((done / total) * 100) : 0;
         var hours = (plan.reduce(function (s, p) { return s + (Number(p.durationMins) || 0); }, 0) / 60).toFixed(1);
         var pctEl = document.getElementById('gePlanPct');
         var hintEl = document.getElementById('gePlanHint');
