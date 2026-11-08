@@ -2,29 +2,44 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use Intervention\Image\Facades\Image;
-
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Arr;
-
 use App\Models\Footer;
 use App\Support\WebsiteSettings;
+use Illuminate\Http\Request;
 
 class FooterController extends Controller
 {
-    public function list(){
-        $data = [];
-        $data['settings'] = WebsiteSettings::all();
-        return view('admin.footer.settings',$data);
+    public function list()
+    {
+        return view('admin.footer.settings', [
+            'settings' => WebsiteSettings::all(),
+            'groups' => WebsiteSettings::groups(),
+        ]);
     }
 
     public function saveSettings(Request $request)
     {
+        $rules = [];
         foreach (WebsiteSettings::defaults() as $key => $meta) {
-            $value = trim((string) $request->input($key, ''));
+            $type = $meta['type'] ?? 'text';
+            if ($type === 'email') {
+                $rules[$key] = 'nullable|email|max:190';
+            } elseif ($type === 'textarea') {
+                $rules[$key] = 'nullable|string|max:2000';
+            } else {
+                $rules[$key] = 'nullable|string|max:500';
+            }
+        }
+
+        $validated = $request->validate($rules);
+        $socialKeys = array_keys(WebsiteSettings::fieldsIn('social'));
+
+        foreach (WebsiteSettings::defaults() as $key => $meta) {
+            $value = trim((string) ($validated[$key] ?? ''));
+            if (in_array($key, $socialKeys, true)) {
+                $value = WebsiteSettings::normalizeUrl($value);
+            }
+
             Footer::updateOrCreate(
                 ['key_name' => $key],
                 [
@@ -35,7 +50,7 @@ class FooterController extends Controller
             );
         }
 
-        $phone = trim((string) $request->input('phone', ''));
+        $phone = trim((string) ($validated['phone'] ?? ''));
         if ($phone !== '') {
             Footer::updateOrCreate(
                 ['key_name' => 'contact_us'],
@@ -49,103 +64,82 @@ class FooterController extends Controller
 
         WebsiteSettings::flush();
         toastr()->success('Website settings saved successfully.');
-        return redirect()->route('admin.footer');
+
+        return redirect()->route('admin.website_settings');
     }
 
-
-    public function add(){
-        $data = [];
-        return view('admin.footer.add',$data);
+    public function add()
+    {
+        return view('admin.footer.add');
     }
 
-    public function save(Request $request){
-        $validatedData = $request->validate([
-                            'name' => 'required'
-                        ]);
+    public function save(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+        ]);
 
-        $input = $request->all();
-
-        $loginCheck = Footer::where('email',$request->email)->first();
-
-        if (!$loginCheck){
-            $insertData = [];
-            $insertData['name'] = $request->name;
-            $insertData['email'] = $request->email;
-            $insertData['phone_number'] = $request->phone_number;
-            $insertData['college_name'] = $request->college_name;
-            $insertData['location'] = $request->location;
-            $insertData['access_token'] = md5(time().$request->email);
-            $insertData['hash_code'] = md5(time().$request->email);
-            $insertData['password'] = md5($request->password);
-            $insertData['status'] = $request->status;
-
-            Footer::create($insertData);
-        
-            toastr()->success('Footer added successfully.');
-            return redirect()->route('admin.footer');
-        }else{
-            toastr()->warning('Footer already exist');
-            return back()->withInput();
-        }
-    }
-
-    public function edit(Request $request){
-        $input = $request->all();
-        $data = [];
-        $data['details'] = Footer::where('id',$request->id)->first();
-        return view('admin.footer.edit',$data);
-    }
-
-    public function update(Request $request){
-        $validatedData = $request->validate([
-                            'name' => 'required'
-                        ]);
-
-        $input = $request->all();
-        
-        // dd($input);
-        $loginCheck = Footer::where('id',$request->id)->first();
-
-        if ($loginCheck){
-            $insertData = [];
-            $insertData['name'] = $request->name;
-            $insertData['value'] = $request->value;
-            $insertData['status'] = $request->status;
-
-            $loginCheck->update($insertData);
-            WebsiteSettings::flush();
-            toastr()->success('Footer updated successfully.');
-            return redirect()->route('admin.footer');
-        }else{
-            toastr()->warning('Footer already exist');
-            return back()->withInput();
-        }
-    }
-    
-    public function delete(Request $request){
-        $id = $request->id;
-        Footer::where('id',$id)->delete();
+        Footer::create([
+            'name' => $request->name,
+            'key_name' => $request->key_name,
+            'value' => $request->value,
+            'status' => $request->status,
+        ]);
         WebsiteSettings::flush();
-        toastr()->success('Footer deleted successfully.');
-        return redirect()->route('admin.footer');
+        toastr()->success('Footer added successfully.');
+
+        return redirect()->route('admin.website_settings');
     }
 
-    public function change(Request $request){
-        $id = $request->id;
+    public function edit(Request $request)
+    {
+        return view('admin.footer.edit', [
+            'details' => Footer::where('id', $request->id)->first(),
+        ]);
+    }
 
-        $loginCheck = Footer::where('id',$request->id)->first();
+    public function update(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+        ]);
 
-        if($loginCheck){
-            if($loginCheck->status){
-                $loginCheck->update(["status"=>0]);
-            }else{
-                $loginCheck->update(["status"=>1]);
-            }
+        $row = Footer::where('id', $request->id)->first();
+        if (!$row) {
+            toastr()->warning('Setting not found.');
+            return back()->withInput();
+        }
+
+        $row->update([
+            'name' => $request->name,
+            'value' => $request->value,
+            'status' => $request->status,
+        ]);
+        WebsiteSettings::flush();
+        toastr()->success('Website setting updated successfully.');
+
+        return redirect()->route('admin.website_settings');
+    }
+
+    public function delete(Request $request)
+    {
+        Footer::where('id', $request->id)->delete();
+        WebsiteSettings::flush();
+        toastr()->success('Website setting deleted successfully.');
+
+        return redirect()->route('admin.website_settings');
+    }
+
+    public function change(Request $request)
+    {
+        $row = Footer::where('id', $request->id)->first();
+        if ($row) {
+            $row->update(['status' => $row->status ? 0 : 1]);
         }
 
         WebsiteSettings::flush();
-        toastr()->success('Footer status change successfully.');
-        return redirect()->route('admin.footer');
+        toastr()->success('Website setting status changed successfully.');
+
+        return redirect()->route('admin.website_settings');
     }
-    
 }

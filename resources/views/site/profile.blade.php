@@ -230,21 +230,21 @@
                                     </div>
                                   @endif
 
-                                  <form class="registrationForm" action="{{route('update_profile')}}" method="POST" enctype="multipart/form-data" onsubmit="return validationFun();">
+                                  <form class="registrationForm" action="{{route('update_profile')}}" method="POST" enctype="multipart/form-data" autocomplete="off" onsubmit="return validationFun();">
                                     @csrf
+                                    <input type="text" name="prevent_autofill_user" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0;">
+                                    <input type="password" name="prevent_autofill_pass" autocomplete="current-password" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0;">
                                     <div class="formAvatar text-center">
                                       <div class="formAvatarImg" id="avatarClickArea" role="button" tabindex="0" title="Change profile picture" style="cursor:pointer;">
                                           @php
-                                            $profileImgName = $user->profile_img ? basename(str_replace('\\', '/', $user->profile_img)) : '';
-                                            $profileImgUrl = $profileImgName !== ''
-                                              ? asset('uploads/profileImage/'.$profileImgName)
-                                              : asset('web/images/dashboardCheck.png');
+                                            $profileImgUrl = student_profile_image_url($user->profile_img);
                                           @endphp
-                                          <img src="{{ $profileImgUrl }}" class="img-fluid" alt="Profile" id="avatarPreview" @if($profileImgName === '') style="opacity:.4;object-fit:contain;padding:18px;" @endif>
+                                          <img src="{{ $profileImgUrl ?: asset('web/images/dashboardCheck.png') }}" class="img-fluid" alt="Profile" id="avatarPreview" @if(!$profileImgUrl) style="opacity:.4;object-fit:contain;padding:18px;" @endif>
                                       </div>
                                       <img src="{{ asset('') }}web/images/form/cam_ic.png" class="img-fluid cam_ic" alt="Change photo" id="photoSourceTrigger" title="Change profile picture">
                                     </div>
                                     <input type="file" name="profileImage" id="profileImage" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" style="display: none;">
+                                    <input type="hidden" name="cropped_profile_image" id="cropped_profile_image" value="">
                                     @error('profileImage')
                                       <div class="text-danger text-center mb-2">{{ $message }}</div>
                                     @enderror
@@ -281,6 +281,9 @@
                                         <div class="form-group">
                                           <label for="class_name">Class <span class="text-danger">*</span></label>
                                           @include('include._student_class_select', ['required' => true, 'selected' => $user->class_name])
+                                          @error('class_name')
+                                            <div class="text-danger">{{ $message }}</div>
+                                          @enderror
                                         </div>
                                       </div>
                                       <div class="col-md-12">
@@ -328,8 +331,13 @@
                                       <div class="col-md-6">
                                         <div class="form-group">
                                           <label for="father_full_name">Father's Name</label>
-                                          <input type="text" class="form-control" id="father_full_name" value="{{ $user->father_full_name }}" placeholder="Not set" readonly disabled>
-                                          <small class="form-text text-muted">Contact support to update this field.</small>
+                                          @php
+                                            $fatherNameValue = trim((string) ($user->father_full_name ?? ''));
+                                            if ($fatherNameValue !== '' && (filter_var($fatherNameValue, FILTER_VALIDATE_EMAIL) || strcasecmp($fatherNameValue, (string) $user->email_id) === 0)) {
+                                              $fatherNameValue = '';
+                                            }
+                                          @endphp
+                                          <input type="text" class="form-control" id="father_full_name" name="father_full_name" placeholder="Father's Name" value="{{ $fatherNameValue }}" autocomplete="off">
                                         </div>
                                       </div>
                                      <!--  <div class="col-md-6">
@@ -341,8 +349,11 @@
                                       <div class="col-md-6">
                                         <div class="form-group">
                                           <label for="father_mobile_number">Father's Contact No</label>
-                                          <input type="text" class="form-control" id="father_mobile_number" value="{{ $user->father_mobile_number }}" placeholder="Not set" readonly disabled>
-                                          <small class="form-text text-muted">Used for parent login — contact support to update.</small>
+                                          <input type="tel" class="form-control" id="father_mobile_number" name="father_mobile_number" placeholder="Father's Contact No" value="{{ $user->father_mobile_number }}" inputmode="numeric" maxlength="10" autocomplete="off">
+                                          <small class="form-text text-muted">This number can also be used for parent login.</small>
+                                          @error('father_mobile_number')
+                                            <div class="text-danger">{{ $message }}</div>
+                                          @enderror
                                         </div>
                                       </div>
                                       <div class="col-md-6">
@@ -354,7 +365,13 @@
                                       <div class="col-md-6">
                                         <div class="form-group">
                                           <label for="text">Mother's Name</label>
-                                          <input type="text" class="form-control" id="mother_full_name" placeholder="Mother's Name" name="mother_full_name" value="{{$user->mother_full_name}}">
+                                          @php
+                                            $motherNameValue = trim((string) ($user->mother_full_name ?? ''));
+                                            if ($motherNameValue !== '' && (filter_var($motherNameValue, FILTER_VALIDATE_EMAIL) || strcasecmp($motherNameValue, (string) $user->email_id) === 0)) {
+                                              $motherNameValue = '';
+                                            }
+                                          @endphp
+                                          <input type="text" class="form-control" id="mother_full_name" placeholder="Mother's Name" name="mother_full_name" value="{{ $motherNameValue }}" autocomplete="off">
                                         </div>
                                       </div>
                                       <!-- <div class="col-md-6">
@@ -445,7 +462,7 @@
                                       <div class="col-md-4">
                                         <div class="form-group">
                                           <label for="current_password">Current Password</label>
-                                          <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Current Password" autocomplete="current-password">
+                                          <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Current Password" autocomplete="new-password">
                                         </div>
                                       </div>
                                       <div class="col-md-4">
@@ -837,8 +854,18 @@
           });
           if (!canvas) return;
 
+          var dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+          $('#cropped_profile_image').val(dataUrl);
+
           canvas.toBlob(function (blob) {
               if (!blob) {
+                  if (dataUrl) {
+                      committedProfileFile = null;
+                      profileCropApplied = true;
+                      $('#avatarPreview').attr('src', dataUrl).css({ opacity: 1, objectFit: 'cover', padding: 0 });
+                      profileCropModal.hide();
+                      return;
+                  }
                   alert('Could not process this image. Please try another photo.');
                   return;
               }
@@ -847,10 +874,10 @@
                   lastModified: Date.now()
               });
               if (!setProfileInputFile(croppedFile)) {
-                  alert('Your browser could not attach the edited photo. Please try again or use another browser.');
-                  return;
+                  committedProfileFile = null;
+              } else {
+                  committedProfileFile = croppedFile;
               }
-              committedProfileFile = croppedFile;
               profileCropApplied = true;
               $('#avatarPreview').attr('src', URL.createObjectURL(blob)).css({ opacity: 1, objectFit: 'cover', padding: 0 });
               profileCropModal.hide();
@@ -863,11 +890,37 @@
         "student_signature":{{($user->student_signature)?1:0}}
       }
 
+      function looksLikeEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || '').trim());
+      }
+
+      function clearAutofilledPasswordsIfUnchanged() {
+        var currentPassword = document.getElementById('current_password');
+        var newPassword = document.getElementById('new_password');
+        var confirmPassword = document.getElementById('new_password_confirmation');
+        if (!currentPassword || !newPassword || !confirmPassword) return;
+        if (!newPassword.value && !confirmPassword.value) {
+          currentPassword.value = '';
+        }
+      }
+
       function validationFun(){
         const pattern = /^[6-9]\d{9}$/;
 
         var successFlag = true;
         var data = {};
+        clearAutofilledPasswordsIfUnchanged();
+
+        if (committedProfileFile) {
+          setProfileInputFile(committedProfileFile);
+        }
+
+        ['father_full_name', 'mother_full_name'].forEach(function (id) {
+          var nameEl = document.getElementById(id);
+          if (nameEl && looksLikeEmail(nameEl.value)) {
+            nameEl.value = '';
+          }
+        });
 
         data.first_name = document.getElementById('first_name').value;
         if(!data.first_name){
@@ -1056,15 +1109,27 @@
           }
         }*/
         
+        var fatherMobileEl = document.getElementById('father_mobile_number');
+        if (fatherMobileEl) {
+          var fatherMobile = (fatherMobileEl.value || '').replace(/\D+/g, '');
+          fatherMobileEl.value = fatherMobile;
+          if (fatherMobile && !pattern.test(fatherMobile)) {
+            fatherMobileEl.classList.add('dangerBoader');
+            successFlag = false;
+          } else {
+            fatherMobileEl.classList.remove('dangerBoader');
+          }
+        }
+
         var currentPassword = document.getElementById('current_password');
         var newPassword = document.getElementById('new_password');
         var confirmPassword = document.getElementById('new_password_confirmation');
         if (currentPassword && newPassword && confirmPassword) {
-          var anyPasswordFilled = currentPassword.value || newPassword.value || confirmPassword.value;
           [currentPassword, newPassword, confirmPassword].forEach(function (el) {
             el.classList.remove('dangerBoader');
           });
-          if (anyPasswordFilled) {
+          var changingPassword = newPassword.value || confirmPassword.value;
+          if (changingPassword) {
             if (!currentPassword.value) {
               currentPassword.classList.add('dangerBoader');
               successFlag = false;
@@ -1082,6 +1147,21 @@
 
         return successFlag;
       }
+
+      $(function () {
+        setTimeout(function () {
+          ['current_password', 'new_password', 'new_password_confirmation'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+          });
+          ['father_full_name', 'mother_full_name'].forEach(function (id) {
+            var nameEl = document.getElementById(id);
+            if (nameEl && looksLikeEmail(nameEl.value)) {
+              nameEl.value = '';
+            }
+          });
+        }, 250);
+      });
     </script>
 </body>
 

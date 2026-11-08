@@ -32,7 +32,7 @@ class Online_examController extends Controller
 {
     public function list(){
         $data = [];
-        $data['list'] = Exam::where('type',1)
+        $list = Exam::where('type',1)
             ->where('is_deleted',0)
             ->where(function ($q) {
                 $q->whereNull('exam_code')->orWhere('exam_code', 'not like', 'CT-%');
@@ -40,6 +40,11 @@ class Online_examController extends Controller
             ->whereNotIn('id', CustomTest::examIdQuery())
             ->orderByDesc('id')
             ->get();
+        $attemptedCounts = Exam::attemptedStudentCounts($list->pluck('id'));
+        $list->each(function ($exam) use ($attemptedCounts) {
+            $exam->attempted_students_count = (int) ($attemptedCounts[$exam->id] ?? 0);
+        });
+        $data['list'] = $list;
         return view('admin.online_exam.list',$data);
     }
 

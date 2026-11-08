@@ -53,7 +53,7 @@
             <div class="rounded-3 d-grid place-items-center text-white" style="width:42px;height:42px;background:{{ $meta['color'] }};place-items:center;display:grid"><i class="{{ $meta['icon'] }}"></i></div>
             <div>
               <div class="fw-semibold" style="font-size:1.2rem">{{ $subject->name }}</div>
-              <div class="small text-muted">Premium questions only · up to {{ $questionsPerChapter }} Qs / purchased chapter</div>
+              <div class="small text-muted">Chapter Question sets only · up to {{ $questionsPerChapter }} Qs / purchased chapter</div>
             </div>
           </div>
 
@@ -122,7 +122,7 @@
       html += '<div class="cm-ch" data-id="'+ch.id+'">';
       html += '<div class="cm-ch-row" data-toggle="1">';
       html += '<div><div class="cm-ch-name">'+esc(ch.name)+'</div>';
-      html += '<div class="cm-ch-meta">'+(soon ? 'Premium bank not ready' : (ch.questions + ' premium Qs · ' + topics.length + ' topics'))+'</div></div>';
+      html += '<div class="cm-ch-meta">'+(soon ? 'Chapter set not ready' : (ch.questions + ' chapter Qs · ' + topics.length + ' topics'))+'</div></div>';
       if (!owned) html += '<span class="cm-badge-lock">Not purchased</span>';
       else html += soon ? '<span class="cm-badge-soon">Coming soon</span>' : '<span class="cm-badge-ok">Ready</span>';
       html += '<div class="d-flex align-items-center gap-2">';
@@ -142,7 +142,7 @@
         (matchCh ? topics : matchTopics).forEach(function (t) {
           var tSoon = !!t.coming_soon;
           html += '<div class="cm-topic">';
-          html += '<div class="cm-topic-name">'+esc(t.name)+'<div class="cm-ch-meta">'+(tSoon ? 'No premium questions yet' : (t.questions + ' premium Qs'))+'</div></div>';
+          html += '<div class="cm-topic-name">'+esc(t.name)+'<div class="cm-ch-meta">'+(tSoon ? 'No chapter-set questions yet' : (t.questions + ' chapter Qs'))+'</div></div>';
           html += !owned ? '<span class="cm-badge-lock">Locked</span>' : (tSoon ? '<span class="cm-badge-soon">Coming soon</span>' : '<span class="cm-badge-ok">'+t.questions+' Q</span>');
           if (!owned) {
             html += unlockBtn(ch.id);

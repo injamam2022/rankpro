@@ -150,7 +150,7 @@
 <h3>5.5 Refund Request Procedure</h3>
 <p>A customer seeking a refund or reporting a payment or service-delivery issue must contact Rank Pro through the support channel specified in Section 17 and provide the relevant order or transaction reference, details of the issue and any reasonably necessary supporting information.</p>
 <p>Rank Pro may request additional information to verify the transaction and investigate the complaint.</p>
-<p>Refund request channel: <a href="mailto:support.rankproteam@gmail.com">support.rankproteam@gmail.com</a></p>
+<p>Refund request channel: <a href="mailto:{{ \App\Support\WebsiteSettings::get('email') }}">{{ \App\Support\WebsiteSettings::get('email') }}</a></p>
 <p>Complaint acknowledgement and resolution timelines: 30 days</p>
 <p>Any mandatory statutory timelines will apply irrespective of the timelines stated here.</p>
 
@@ -415,8 +415,8 @@
 <p><strong>Website:</strong> <a href="https://www.rankpro.co.in/" target="_blank" rel="noopener noreferrer">https://www.rankpro.co.in/</a></p>
 <p><strong>Legal entity name:</strong> Rank Pro. Rank Pro is a sister company of Shikkha Educational Advisory Solutions LLP.</p>
 <p><strong>Registered or principal business address:</strong> Rank Pro, a sister company of Shikkha Educational Advisory Solutions LLP, 224A AJC Bose Road, Krishna Building, 7th floor (Near Minto Park), Opposite- La Martiniere for Girls School, SUITE NO - 706, 707, 708, Kolkata- 700017, West Bengal.</p>
-<p><strong>Customer support email:</strong> <a href="mailto:contact@rankpro.co.in">contact@rankpro.co.in</a></p>
-<p><strong>Customer support telephone number:</strong> <a href="tel:9088999222">9088999222</a></p>
+<p><strong>Customer support email:</strong> <a href="mailto:{{ \App\Support\WebsiteSettings::get('email') }}">{{ \App\Support\WebsiteSettings::get('email') }}</a></p>
+<p><strong>Customer support telephone number:</strong> <a href="{{ \App\Support\WebsiteSettings::telHref('phone') }}">{{ \App\Support\WebsiteSettings::displayPhone('phone') }}</a></p>
 
 <h3>17.1 Contacting Rank Pro</h3>
 <p>Customers may use the designated contact channels to raise questions, payment disputes, technical complaints, refund requests, privacy-related requests or other concerns regarding Rank Pro.</p>

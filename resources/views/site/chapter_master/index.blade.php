@@ -61,7 +61,7 @@
               <div class="flex-grow-1">
                 <div class="fw-semibold">{{ $s->name }}</div>
                 <div class="small text-muted">
-                  {{ $card['chapters_ready'] }} chapter{{ $card['chapters_ready'] == 1 ? '' : 's' }} ready · {{ $card['available'] }} premium Qs
+                  {{ $card['chapters_ready'] }} chapter{{ $card['chapters_ready'] == 1 ? '' : 's' }} ready · {{ $card['available'] }} chapter Qs
                 </div>
               </div>
               @if($card['ready'])

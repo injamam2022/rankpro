@@ -265,6 +265,12 @@
                                 <div class="nav-link-icon"><i class="material-icons">dashboard</i></div>
                                 Dashboard
                             </a>
+                            @if(session()->get('admmin_is_super') == 'SA' || isUserPermitted('footer-list', 'list'))
+                                <a class="nav-link {{ request()->is('admin/footer') || request()->is('admin/footer/*') || request()->is('admin/website-settings') || request()->is('admin/website-settings/*') ? ' active' : '' }}" href="{{ route('admin.website_settings') }}">
+                                    <div class="nav-link-icon"><i class="material-icons">language</i></div>
+                                    Website Settings
+                                </a>
+                            @endif
                             @if(session()->get('admmin_is_super') == 'SA')
                                 <a class="nav-link collapsed
                                     {{ request()->is('admin/admin-user') ? ' active' : '' }} {{ request()->is('admin/admin-user/*') ? ' active' : '' }}
@@ -631,6 +637,7 @@
                                     {{ request()->is('admin/gallery') ? ' active' : '' }} {{ request()->is('admin/gallery/*') ? ' active' : '' }}
                                     {{ request()->is('admin/mention') ? ' active' : '' }} {{ request()->is('admin/mention/*') ? ' active' : '' }}
                                     {{ request()->is('admin/footer') ? ' active' : '' }} {{ request()->is('admin/footer/*') ? ' active' : '' }}
+                                    {{ request()->is('admin/website-settings') ? ' active' : '' }} {{ request()->is('admin/website-settings/*') ? ' active' : '' }}
                                     {{ request()->is('admin/video_tutorial') ? ' active' : '' }} {{ request()->is('admin/video_tutorial/*') ? ' active' : '' }}
                                     {{ request()->is('admin/dashboard-banner') ? ' active' : '' }} {{ request()->is('admin/dashboard-banner/*') ? ' active' : '' }}
                                     {{ request()->is('admin/dashboard-content') ? ' active' : '' }} {{ request()->is('admin/dashboard-content/*') ? ' active' : '' }}
@@ -692,7 +699,7 @@
                                             <a class="nav-link {{ request()->is('admin/video_tutorial') ? ' active' : '' }} {{ request()->is('admin/video_tutorial/*') ? ' active' : '' }}" href="{{route('admin.video_tutorial')}}">How To Use Video</a>
                                         @endif
                                         @if(isUserPermitted('footer-list', 'list'))
-                                            <a class="nav-link {{ request()->is('admin/footer') ? ' active' : '' }} {{ request()->is('admin/footer/*') ? ' active' : '' }}" href="{{route('admin.footer')}}">Website Settings</a>
+                                            <a class="nav-link {{ request()->is('admin/footer') || request()->is('admin/footer/*') || request()->is('admin/website-settings') || request()->is('admin/website-settings/*') ? ' active' : '' }}" href="{{ route('admin.website_settings') }}">Website Settings</a>
                                             <a class="nav-link {{ request()->is('admin/seo') ? ' active' : '' }} {{ request()->is('admin/seo/*') ? ' active' : '' }}" href="{{route('admin.seo')}}">SEO</a>
                                         @endif
                                     </nav>

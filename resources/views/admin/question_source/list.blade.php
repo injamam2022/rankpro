@@ -10,8 +10,13 @@
         <div class="d-flex mt-10 mb-4" style="display:flex;">
             <div class="" style="width: calc(100% - 50px);">
                 <h1 class="page-header mb-0">Question source</h1>
+                <p class="text-muted mb-0 mt-1">Total questions: {{ number_format($questions_total) }}</p>
             </div>
-            <div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.question_source.print', array_filter(['q' => $q])) }}" class="rp-act rp-act-ghost" target="_blank">
+                    <i class="material-icons">print</i>
+                    Print
+                </a>
                 <a href="{{route('admin.question_source.add')}}" class="rp-act rp-act-add">
                     <i class="material-icons">add</i>
                     Add
@@ -26,6 +31,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
+                    <th>Total questions</th>
                     <th>Added</th>
                     <th>Updated</th>
                     <th>Status</th>
@@ -37,6 +43,7 @@
                     <tr>
                         <td>{{$row->id}}</td>
                         <td>{{$row->name}}</td>
+                        <td>{{ number_format((int) $row->questions_count) }}</td>
                         <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->created_at) }}</td>
                         <td class="admin-when">{{ \App\Support\AdminListQuery::when($row->updated_at) }}</td>
                         <td>
@@ -74,7 +81,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No records found.</td>
+                        <td colspan="7" class="text-center text-muted">No records found.</td>
                     </tr>
                 @endforelse
             </tbody>

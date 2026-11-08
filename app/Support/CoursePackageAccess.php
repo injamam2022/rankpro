@@ -127,15 +127,7 @@ class CoursePackageAccess
             ? ['id', 'subject_id', 'name', 'class_level']
             : ['id', 'subject_id', 'name']);
 
-        $counts = Question::query()
-            ->select('chapter_id', DB::raw('COUNT(*) as total'))
-            ->whereIn('subject_id', $subjects->pluck('id'))
-            ->where('is_deleted', 0)
-            ->where('status', 1)
-            ->premiumOnly()
-            ->whereNotNull('chapter_id')
-            ->groupBy('chapter_id')
-            ->pluck('total', 'chapter_id');
+        $counts = \App\Models\Question_source::chapterMasterCountsByChapter();
 
         $bySubject = $chapters->groupBy('subject_id');
 

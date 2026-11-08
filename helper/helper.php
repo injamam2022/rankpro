@@ -225,6 +225,17 @@ if (!function_exists('student_class_values')) {
     }
 }
 
+if (!function_exists('student_profile_image_url')) {
+    function student_profile_image_url($profileImg): ?string
+    {
+        $name = $profileImg ? basename(str_replace('\\', '/', (string) $profileImg)) : '';
+        if ($name === '') {
+            return null;
+        }
+        return asset('uploads/profileImage/'.rawurlencode($name));
+    }
+}
+
 if (!function_exists('custom_test_marks_per_question')) {
     function custom_test_marks_per_question(): int
     {

@@ -47,19 +47,22 @@ class ExamAssignmentController extends Controller
             ])
             ->withCount(['batches', 'assignedStudents'])
             ->orderBy('name')
-            ->get()
-            ->each(function (Exam $exam) {
-                $exam->unique_students_count = $exam->batches
-                    ->filter(function (Batch $batch) {
-                        return (int) $batch->status === 1;
-                    })
-                    ->flatMap(function (Batch $batch) {
-                        return $batch->students->pluck('id');
-                    })
-                    ->merge($exam->assignedStudents->pluck('id'))
-                    ->unique()
-                    ->count();
-            });
+            ->get();
+
+        $attemptedCounts = Exam::attemptedStudentCounts($exams->pluck('id'));
+        $exams->each(function (Exam $exam) use ($attemptedCounts) {
+            $exam->unique_students_count = $exam->batches
+                ->filter(function (Batch $batch) {
+                    return (int) $batch->status === 1;
+                })
+                ->flatMap(function (Batch $batch) {
+                    return $batch->students->pluck('id');
+                })
+                ->merge($exam->assignedStudents->pluck('id'))
+                ->unique()
+                ->count();
+            $exam->attempted_students_count = (int) ($attemptedCounts[$exam->id] ?? 0);
+        });
 
         $exam = null;
         if ($request->filled('exam_id')) {

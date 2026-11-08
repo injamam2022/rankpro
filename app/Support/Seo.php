@@ -250,12 +250,9 @@ class Seo
         $siteId = $home . '/#website';
         $pageId = $p['url'] . '#webpage';
 
-        $sameAs = array_values(array_filter([
-            WebsiteSettings::get('facebook'),
-            WebsiteSettings::get('instagram'),
-            WebsiteSettings::get('linkedin'),
-            WebsiteSettings::get('youtube'),
-        ]));
+        $sameAs = array_values(array_filter(array_map(function ($link) {
+            return $link['href'];
+        }, WebsiteSettings::socialLinks())));
 
         $organization = [
             '@type' => ['EducationalOrganization', 'Organization'],

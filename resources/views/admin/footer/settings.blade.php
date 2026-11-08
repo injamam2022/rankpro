@@ -3,74 +3,70 @@
 @section('css_after')
 <style>
     .ws-card { background:#fff; border-radius:16px; box-shadow:0 8px 24px rgba(12,10,40,.06); padding:24px; margin-bottom:24px; }
-    .ws-card h2 { font-size:18px; margin:0 0 18px; }
+    .ws-card h2 { font-size:18px; margin:0 0 6px; }
+    .ws-intro { font-size:13px; color:#6b6577; margin:0 0 18px; }
     .ws-hint { font-size:13px; color:#6b6577; margin-top:4px; }
+    .ws-note { background:#f4f1ff; border:1px solid #e4dcff; border-radius:14px; padding:14px 16px; color:#3d3470; font-size:13px; margin-bottom:24px; }
+    .ws-note strong { display:block; margin-bottom:4px; }
 </style>
 @endsection
 
 @section('content')
+    @php
+        use App\Support\WebsiteSettings;
+    @endphp
     <div class="container-xl px-5">
         <div class="d-flex mt-10 mb-4 align-items-center justify-content-between">
             <div>
                 <h1 class="page-header mb-1">Website Settings</h1>
-                <p class="text-muted mb-0">Phone, WhatsApp, email and social links used in the footer and floating contact buttons.</p>
+                <p class="text-muted mb-0">Manage the public email, phone, WhatsApp, address and social links used across the website.</p>
             </div>
         </div>
 
-        <form action="{{ route('admin.footer.settings') }}" method="post">
-            @csrf
-            <div class="ws-card">
-                <h2>Contact</h2>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label" for="phone">Call Us number</label>
-                        <input class="form-control" id="phone" type="text" name="phone" value="{{ old('phone', $settings['phone'] ?? '') }}" placeholder="8100392229">
-                        <div class="ws-hint">Used by the Call Us button and tel: links.</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="whatsapp">WhatsApp number</label>
-                        <input class="form-control" id="whatsapp" type="text" name="whatsapp" value="{{ old('whatsapp', $settings['whatsapp'] ?? '') }}" placeholder="8100392229">
-                        <div class="ws-hint">Used by the WhatsApp button. Same number is fine.</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="email">Support email</label>
-                        <input class="form-control" id="email" type="email" name="email" value="{{ old('email', $settings['email'] ?? '') }}" placeholder="support.rankproteam@gmail.com">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="copyright">Copyright text</label>
-                        <input class="form-control" id="copyright" type="text" name="copyright" value="{{ old('copyright', $settings['copyright'] ?? '') }}">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label" for="address">Location / address</label>
-                        <textarea class="form-control" id="address" name="address" rows="3" placeholder="Office address">{{ old('address', $settings['address'] ?? '') }}</textarea>
-                    </div>
-                </div>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                @foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach
             </div>
+        @endif
 
-            <div class="ws-card">
-                <h2>Social media</h2>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label" for="instagram">Instagram URL</label>
-                        <input class="form-control" id="instagram" type="url" name="instagram" value="{{ old('instagram', $settings['instagram'] ?? '') }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="facebook">Facebook URL</label>
-                        <input class="form-control" id="facebook" type="url" name="facebook" value="{{ old('facebook', $settings['facebook'] ?? '') }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="linkedin">LinkedIn URL</label>
-                        <input class="form-control" id="linkedin" type="url" name="linkedin" value="{{ old('linkedin', $settings['linkedin'] ?? '') }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="youtube">YouTube URL</label>
-                        <input class="form-control" id="youtube" type="url" name="youtube" value="{{ old('youtube', $settings['youtube'] ?? '') }}">
+        <div class="ws-note">
+            <strong>These values update the live site immediately after save.</strong>
+            Footer, contact page, help page, floating Call Us / WhatsApp buttons, scholarship WhatsApp link and SEO contact markup all read from here.
+        </div>
+
+        <form action="{{ route('admin.website_settings.save') }}" method="post">
+            @csrf
+            @foreach ($groups as $groupKey => $group)
+                <div class="ws-card">
+                    <h2>{{ $group['title'] }}</h2>
+                    @if(!empty($group['intro']))
+                        <p class="ws-intro">{{ $group['intro'] }}</p>
+                    @endif
+                    <div class="row g-3">
+                        @foreach (WebsiteSettings::fieldsIn($groupKey) as $key => $field)
+                            @php
+                                $type = $field['type'] ?? 'text';
+                                $col = $type === 'textarea' ? 'col-12' : 'col-md-6';
+                                $value = old($key, $settings[$key] ?? ($field['value'] ?? ''));
+                            @endphp
+                            <div class="{{ $col }}">
+                                <label class="form-label" for="{{ $key }}">{{ $field['name'] }}</label>
+                                @if($type === 'textarea')
+                                    <textarea class="form-control" id="{{ $key }}" name="{{ $key }}" rows="3" placeholder="{{ $field['placeholder'] ?? '' }}">{{ $value }}</textarea>
+                                @else
+                                    <input class="form-control" id="{{ $key }}" type="{{ $type === 'email' ? 'email' : 'text' }}" name="{{ $key }}" value="{{ $value }}" placeholder="{{ $field['placeholder'] ?? '' }}">
+                                @endif
+                                @if(!empty($field['hint']))
+                                    <div class="ws-hint">{{ $field['hint'] }}</div>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
                 </div>
-            </div>
+            @endforeach
 
             <div class="mb-5">
-                <button class="btn btn-primary" type="submit">Save settings</button>
+                <button class="btn btn-primary" type="submit">Save website settings</button>
             </div>
         </form>
     </div>

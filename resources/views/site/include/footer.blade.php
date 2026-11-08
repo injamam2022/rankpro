@@ -4,10 +4,13 @@
     $ws = WebsiteSettings::all();
     $wsPhone = WebsiteSettings::displayPhone('phone');
     $wsWhatsapp = WebsiteSettings::displayPhone('whatsapp');
+    $wsTollFree = trim($ws['toll_free'] ?? '');
     $wsTel = WebsiteSettings::telHref('phone');
     $wsWa = WebsiteSettings::whatsappHref();
     $wsEmail = $ws['email'] ?? '';
     $wsAddress = $ws['address'] ?? '';
+    $wsSocials = WebsiteSettings::socialLinks();
+    $wsName = $ws['site_name'] ?? 'RankPro';
 
     $exam = \App\Models\Exam::where('status', 1)->where('type', 2)->where('is_in_footer', 1)->orderByDesc('id')->limit(8)->get();
     $locationsQuery = \App\Models\Location::where('status', 1)->orderBy('location_name');
@@ -61,14 +64,20 @@
                 <ul class="rp-ft__contact">
                     @if($wsWhatsapp)
                         <li>
-                            <span>WhatsApp</span>
+                            <span>WhatsApp No</span>
                             <a href="{{ $wsWa }}" target="_blank" rel="noopener noreferrer">{{ $wsWhatsapp }}</a>
                         </li>
                     @endif
                     @if($wsPhone)
                         <li>
-                            <span>Call Us</span>
+                            <span>Ph No</span>
                             <a href="{{ $wsTel }}">{{ $wsPhone }}</a>
+                        </li>
+                    @endif
+                    @if($wsTollFree !== '')
+                        <li>
+                            <span>Toll Free</span>
+                            {{ $wsTollFree }}
                         </li>
                     @endif
                     @if($wsEmail)
@@ -96,18 +105,13 @@
                     @if($wsWa)
                         <li><a href="{{ $wsWa }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
                     @endif
-                    @if(!empty($ws['facebook']))
-                        <li><a href="{{ $ws['facebook'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i> Facebook</a></li>
-                    @endif
-                    @if(!empty($ws['instagram']))
-                        <li><a href="{{ $ws['instagram'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i> Instagram</a></li>
-                    @endif
-                    @if(!empty($ws['linkedin']))
-                        <li><a href="{{ $ws['linkedin'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-linkedin-in"></i> LinkedIn</a></li>
-                    @endif
-                    @if(!empty($ws['youtube']))
-                        <li><a href="{{ $ws['youtube'] }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> YouTube</a></li>
-                    @endif
+                    @foreach($wsSocials as $social)
+                        <li>
+                            <a href="{{ $social['href'] }}" target="_blank" rel="noopener noreferrer">
+                                <i class="{{ $social['icon'] }}"></i> {{ $social['label'] }}
+                            </a>
+                        </li>
+                    @endforeach
                 </ul>
             </div>
         </div>
@@ -115,25 +119,16 @@
     <div class="rp-ft__bottom">
         <div class="rp-ft__bottom-inner">
             <div class="rp-ft__copy">
-                <p>&copy; {{ date('Y') }} {{ $ws['copyright'] ?? 'RankPro. All Rights Reserved.' }}</p>
-                <p class="rp-ft__powered"><strong>Rank Pro<br>Powered by Shikkha Educational Advisory Solutions LLP</strong></p>
+                <p>&copy; {{ date('Y') }} {{ $ws['copyright'] ?? ($wsName . '. All Rights Reserved.') }}</p>
+                <p class="rp-ft__powered"><strong>{{ $wsName }}<br>Powered by Shikkha Educational Advisory Solutions LLP</strong></p>
             </div>
             <div class="rp-ft__icons">
                 @if($wsWa)
                     <a href="{{ $wsWa }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                 @endif
-                @if(!empty($ws['facebook']))
-                    <a href="{{ $ws['facebook'] }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                @endif
-                @if(!empty($ws['instagram']))
-                    <a href="{{ $ws['instagram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                @endif
-                @if(!empty($ws['linkedin']))
-                    <a href="{{ $ws['linkedin'] }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                @endif
-                @if(!empty($ws['youtube']))
-                    <a href="{{ $ws['youtube'] }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                @endif
+                @foreach($wsSocials as $social)
+                    <a href="{{ $social['href'] }}" target="_blank" rel="noopener noreferrer" aria-label="{{ $social['label'] }}"><i class="{{ $social['icon'] }}"></i></a>
+                @endforeach
             </div>
         </div>
     </div>

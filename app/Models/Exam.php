@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Exam extends Model
 {
@@ -114,6 +115,32 @@ class Exam extends Model
     public function assignedStudents()
     {
         return $this->belongsToMany(User::class, 'exam_assignments');
+    }
+
+    public function examUsers()
+    {
+        return $this->hasMany(Exam_user::class, 'exam_id');
+    }
+
+    /**
+     * Distinct students who have started each exam (one exam_users row per attempt).
+     *
+     * @param  iterable<int|string>  $examIds
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    public static function attemptedStudentCounts($examIds)
+    {
+        $ids = collect($examIds)->filter()->map(fn ($id) => (int) $id)->unique()->values();
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Exam_user::query()
+            ->select('exam_id', DB::raw('COUNT(DISTINCT user_id) as attempted_students'))
+            ->whereIn('exam_id', $ids)
+            ->groupBy('exam_id')
+            ->pluck('attempted_students', 'exam_id')
+            ->mapWithKeys(fn ($count, $examId) => [(int) $examId => (int) $count]);
     }
 
     protected $fillable = [

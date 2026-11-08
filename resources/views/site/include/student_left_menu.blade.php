@@ -46,12 +46,10 @@
         <a href="{{ route('profile') }}" class="dashboardAvatarBlock dashboardAvatarLink" title="View &amp; edit profile">
             <div class="dashboardAvatar">
                 @php
-                    $menuProfileImg = !empty($auth_data->profile_img)
-                        ? basename(str_replace('\\', '/', $auth_data->profile_img))
-                        : '';
+                    $menuProfileImgUrl = student_profile_image_url($auth_data->profile_img ?? null);
                 @endphp
-                @if($menuProfileImg !== '')
-                    <img src="{{ asset('uploads/profileImage/'.$menuProfileImg) }}" class="img-fluid" alt="Profile" style="object-fit: cover;">
+                @if($menuProfileImgUrl)
+                    <img src="{{ $menuProfileImgUrl }}" class="img-fluid" alt="Profile" style="object-fit: cover;">
                 @else
                     <img src="{{ asset('') }}web/images/dashboardCheck.png" class="img-fluid" alt="Profile" style="object-fit: contain; opacity:.35;">
                 @endif

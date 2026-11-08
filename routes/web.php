@@ -520,6 +520,7 @@
         Route::get('/subject/change', [SubjectController::class, 'change'])->name('subject.change');
 
         Route::get('/source', [SourceController::class, 'list'])->name('source');
+        Route::get('/source/print', [SourceController::class, 'printList'])->name('source.print');
         Route::get('/source/add', [SourceController::class, 'add'])->name('source.add');
         Route::post('/source/save', [SourceController::class, 'save'])->name('source.save');
         Route::get('/source/edit', [SourceController::class, 'edit'])->name('source.edit');
@@ -528,6 +529,7 @@
         Route::get('/source/change', [SourceController::class, 'change'])->name('source.change');
 
         Route::get('/question-source', [Question_sourceController::class, 'list'])->name('question_source');
+        Route::get('/question-source/print', [Question_sourceController::class, 'printList'])->name('question_source.print');
         Route::get('/question-source/add', [Question_sourceController::class, 'add'])->name('question_source.add');
         Route::post('/question-source/save', [Question_sourceController::class, 'save'])->name('question_source.save');
         Route::get('/question-source/edit', [Question_sourceController::class, 'edit'])->name('question_source.edit');
@@ -690,6 +692,8 @@
 
         Route::get('/footer', [FooterController::class, 'list'])->name('footer');
         Route::post('/footer/settings', [FooterController::class, 'saveSettings'])->name('footer.settings');
+        Route::get('/website-settings', [FooterController::class, 'list'])->name('website_settings');
+        Route::post('/website-settings', [FooterController::class, 'saveSettings'])->name('website_settings.save');
 
         Route::get('/seo', [SeoController::class, 'list'])->name('seo');
         Route::get('/seo/edit', [SeoController::class, 'edit'])->name('seo.edit');

@@ -3,9 +3,7 @@
     $hdrName = session()->get('parant_login_type') == 'P'
         ? ($hdrUser->father_full_name ?? 'Parent')
         : trim(($hdrUser->first_name ?? '') . ' ' . ($hdrUser->last_name ?? ''));
-    $hdrImg = !empty($hdrUser->profile_img)
-        ? basename(str_replace('\\', '/', $hdrUser->profile_img))
-        : '';
+    $hdrImgUrl = student_profile_image_url($hdrUser->profile_img ?? null);
     $neetLabel = 'NEET Timer';
     $neetDateLabel = '';
     $neetTargetIso = '2027-05-02T14:00:00+05:30';
@@ -109,8 +107,8 @@
             </a>
             <a href="{{ route('profile') }}" class="rp-profile-pill" title="Profile settings">
                 <div class="rp-profile-pill__avatar">
-                    @if($hdrImg !== '')
-                        <img src="{{ asset('uploads/profileImage/'.$hdrImg) }}" alt="">
+                    @if($hdrImgUrl)
+                        <img src="{{ $hdrImgUrl }}" alt="">
                     @else
                         <img src="{{ asset('web/images/dashboardCheck.png') }}" alt="" style="object-fit:contain;opacity:.4;padding:4px;">
                     @endif

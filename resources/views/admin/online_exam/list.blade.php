@@ -26,6 +26,7 @@
                     <th data-sortable="false" data-searchable="false">Logo</th>
                     <th>Exam Code</th>
                     <th>Name</th>
+                    <th>Attempted</th>
                     <!-- <th>No of question</th> -->
                     <!-- <th>Totals marks for exam</th> -->
                     <!-- <th>Question</th> -->
@@ -49,6 +50,11 @@
                             </td>
                             <td>{{$row->exam_code}}</td>
                             <td>{{$row->name}}</td>
+                            <td>
+                                <a href="{{ route('admin.online_exam.proctoring', ['id' => $row->id]) }}" title="Students who started this exam" style="text-decoration: none;">
+                                    <span class="btn btn-info btn-sm">{{ (int) ($row->attempted_students_count ?? 0) }}</span>
+                                </a>
+                            </td>
                             <!-- <td>{{$row->no_of_question}}</td> -->
                             <!-- <td>{{$row->totals_marks_for_exam}}</td> -->
                             <!-- <td>

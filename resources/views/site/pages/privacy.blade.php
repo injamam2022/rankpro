@@ -164,11 +164,16 @@
 <p>We will let You know via email and/or a prominent notice on Our Service, prior to the change becoming effective and update the "Last updated" date at the top of this Privacy Policy.</p>
 <p>You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
 
+@php
+    $privacyEmail = \App\Support\WebsiteSettings::get('email');
+    $privacyPhone = \App\Support\WebsiteSettings::displayPhone('phone');
+    $privacyTel = \App\Support\WebsiteSettings::telHref('phone');
+@endphp
 <h2>Contact Us</h2>
 <p>If you have any questions about this Privacy Policy, You can contact us:</p>
 <ul>
-    <li>By email: <a href="mailto:contact@rankpro.co.in">contact@rankpro.co.in</a></li>
+    <li>By email: <a href="mailto:{{ $privacyEmail }}">{{ $privacyEmail }}</a></li>
     <li>By visiting this page on our website: <a href="{{ route('contact') }}">Contact Us</a></li>
-    <li>By phone number: <a href="tel:9088999222">9088999222</a></li>
+    <li>By phone number: <a href="{{ $privacyTel }}">{{ $privacyPhone }}</a></li>
     <li>Office Address: 224A AJC Bose Road, Krishna Building, 7th floor (Near Minto Park), Opposite- La Martiniere for Girls School, SUITE NO - 706, 707, 708, Kolkata- 700017, West Bengal.</li>
 </ul>

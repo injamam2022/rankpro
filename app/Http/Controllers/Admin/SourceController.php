@@ -13,23 +13,19 @@ use Illuminate\Support\Arr;
 use App\Models\Source;
 use App\Models\Subject;
 use App\Support\AdminListQuery;
+use Illuminate\Support\Facades\DB;
 
 class SourceController extends Controller
 {
     public function list(Request $request){
-        $data = [];
-        $data['q'] = AdminListQuery::q($request);
-        $data['per_page'] = AdminListQuery::perPage($request);
-        $query = Source::select(['sources.*','subjects.name as subject_name'])
-                            ->leftJoin('subjects', 'sources.subject_id', '=', 'subjects.id');
-        $tax = AdminListQuery::taxonomyOptions($request, ['subject']);
-        $data = array_merge($data, $tax);
-        if ($tax['subject_id']) {
-            $query->where('sources.subject_id', $tax['subject_id']);
-        }
-        AdminListQuery::applySearch($query, $data['q'], ['sources.name', 'subjects.name']);
-        $data['list'] = $query->orderByDesc('sources.id')->paginate($data['per_page'])->withQueryString();
-        return view('admin.source.list',$data);
+        $data = $this->sourceListData($request, true);
+        return view('admin.source.list', $data);
+    }
+
+    public function printList(Request $request)
+    {
+        $data = $this->sourceListData($request, false);
+        return view('admin.source.print', $data);
     }
 
 
@@ -119,6 +115,65 @@ class SourceController extends Controller
 
         toastr()->success('Source status change successfully.');
         return redirect()->route('admin.source');
+    }
+
+    private function sourceListData(Request $request, bool $paginate): array
+    {
+        $data = [];
+        $data['q'] = AdminListQuery::q($request);
+        $data['per_page'] = AdminListQuery::perPage($request);
+        $query = Source::select(['sources.*', 'subjects.name as subject_name'])
+            ->leftJoin('subjects', 'sources.subject_id', '=', 'subjects.id');
+        $tax = AdminListQuery::taxonomyOptions($request, ['subject']);
+        $data = array_merge($data, $tax);
+        if ($tax['subject_id']) {
+            $query->where('sources.subject_id', $tax['subject_id']);
+        }
+        AdminListQuery::applySearch($query, $data['q'], ['sources.name', 'subjects.name']);
+
+        $counts = $this->questionCountsForSources((clone $query)->pluck('sources.id'));
+        $query->orderByDesc('sources.id');
+
+        if ($paginate) {
+            $list = $query->paginate($data['per_page'])->withQueryString();
+            $rows = $list->getCollection();
+        } else {
+            $list = $query->get();
+            $rows = $list;
+        }
+
+        $rows->each(function ($row) use ($counts) {
+            $row->questions_count = (int) ($counts[(int) $row->id] ?? 0);
+        });
+
+        $data['list'] = $list;
+        $data['questions_total'] = (int) $counts->sum();
+
+        return $data;
+    }
+
+    private function questionCountsForSources($sourceIds)
+    {
+        $ids = collect($sourceIds)->map(fn ($id) => (int) $id)->filter()->unique()->values();
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $query = DB::table('questions')
+            ->selectRaw('source_id, COUNT(*) as total')
+            ->where('is_deleted', 0)
+            ->whereIn('source_id', $ids);
+        if (session()->get('admmin_is_super') == 'T') {
+            $subjectId = (int) session()->get('admmin_subject_id');
+            if ($subjectId > 0) {
+                $query->where('subject_id', $subjectId);
+            }
+        }
+
+        return $query
+            ->groupBy('source_id')
+            ->pluck('total', 'source_id')
+            ->mapWithKeys(fn ($total, $id) => [(int) $id => (int) $total]);
     }
     
 }

@@ -147,6 +147,7 @@
         background: #f4ebff; color: #6200ea; font-size: .72rem; font-weight: 500; line-height: 1.2;
     }
     .ta-pill-muted { background: #f2f4f7; color: #475467; }
+    .ta-pill-ok { background: #ecfdf3; color: #067647; }
 
     .ta-batch-list { list-style: none; margin: 0; padding: 0 0 .35rem; }
     .ta-batch-item {
@@ -354,6 +355,7 @@
         ];
     })->values();
     $currentUnique = $exam ? ($exams->firstWhere('id', $exam->id)->unique_students_count ?? 0) : 0;
+    $currentAttempted = $exam ? (int) ($exams->firstWhere('id', $exam->id)->attempted_students_count ?? 0) : 0;
 @endphp
 <div class="container-xl px-5 ta-page">
     <div class="ta-header d-flex flex-wrap justify-content-between align-items-end gap-2">
@@ -395,7 +397,7 @@
                     <span><strong>{{ $exam->name }}</strong></span>
                     <span>{{ $exam->exam_code }}</span>
                     <span>{{ $exam->type == 1 ? 'Online' : 'Offline' }}</span>
-                    <span>{{ $exam->batches->count() }} batches · {{ $currentUnique }} unique students</span>
+                    <span>{{ $exam->batches->count() }} batches · {{ $currentUnique }} unique students · <a class="ta-link" href="{{ route('admin.online_exam.proctoring', ['id' => $exam->id]) }}">{{ $currentAttempted }} attempted</a></span>
                 </div>
 
                 <form method="post" action="{{ route('admin.exam_assignments.save') }}" id="assignment-form">
@@ -579,6 +581,7 @@
                                         @endif
                                         <span class="ta-pill">{{ $row->batches_count }} batches</span>
                                         <span class="ta-pill">{{ $row->unique_students_count }} students</span>
+                                        <span class="ta-pill ta-pill-ok">{{ (int) ($row->attempted_students_count ?? 0) }} attempted</span>
                                     </div>
                                 </a>
                             </li>

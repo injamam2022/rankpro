@@ -38,6 +38,14 @@ class Question extends Model
         return self::applyPremiumOnly($query);
     }
 
+    /**
+     * Chapter Master bank: questions tagged to a 45-question Question source set.
+     */
+    public function scopeChapterMasterBank(Builder $query): Builder
+    {
+        return self::constrainBySources($query, Question_source::chapterMasterSetIds());
+    }
+
     public static function applyNonPremium(Builder $query, string $column = 'is_premium'): Builder
     {
         if (! Schema::hasColumn('questions', 'is_premium')) {
@@ -107,14 +115,24 @@ class Question extends Model
 
     public static function constrainBySource(Builder $query, int $sourceId, string $idColumn = 'questions.id', string $sourceColumn = 'questions.question_source_id'): Builder
     {
-        return $query->where(function ($q) use ($sourceId, $idColumn, $sourceColumn) {
-            $q->where($sourceColumn, $sourceId);
+        return self::constrainBySources($query, [$sourceId], $idColumn, $sourceColumn);
+    }
+
+    public static function constrainBySources($query, array $sourceIds, string $idColumn = 'questions.id', string $sourceColumn = 'questions.question_source_id')
+    {
+        $sourceIds = array_values(array_unique(array_filter(array_map('intval', $sourceIds))));
+        if ($sourceIds === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function ($q) use ($sourceIds, $idColumn, $sourceColumn) {
+            $q->whereIn($sourceColumn, $sourceIds);
             if (Schema::hasTable('question_question_source')) {
-                $q->orWhereExists(function ($sub) use ($sourceId, $idColumn) {
+                $q->orWhereExists(function ($sub) use ($sourceIds, $idColumn) {
                     $sub->selectRaw('1')
                         ->from('question_question_source')
                         ->whereColumn('question_question_source.question_id', $idColumn)
-                        ->where('question_question_source.question_source_id', $sourceId);
+                        ->whereIn('question_question_source.question_source_id', $sourceIds);
                 });
             }
         });

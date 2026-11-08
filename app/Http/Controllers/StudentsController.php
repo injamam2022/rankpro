@@ -681,8 +681,9 @@ class StudentsController extends Controller
 
     public function update_profile(Request $request){
 
-        $wantsPasswordChange = $request->filled('current_password')
-            || $request->filled('new_password')
+        // Only treat this as a password change when a new password is actually provided.
+        // Browsers often autofill "Current Password", which must not block a normal profile save.
+        $wantsPasswordChange = $request->filled('new_password')
             || $request->filled('new_password_confirmation');
 
         $classAllowed = student_class_values();
@@ -695,6 +696,9 @@ class StudentsController extends Controller
             'first_name' => 'required',
             'class_name' => ['required', Rule::in($classAllowed)],
             'profileImage' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+            'father_full_name' => 'nullable|string|max:255',
+            'father_mobile_number' => 'nullable|digits:10',
+            'mother_full_name' => 'nullable|string|max:255',
         ];
 
         if ($wantsPasswordChange) {
@@ -723,33 +727,15 @@ class StudentsController extends Controller
                 if (!$passwordMatches) {
                     return back()
                         ->withErrors(['current_password' => 'Current password does not match.'])
-                        ->withInput($request->except(['current_password', 'new_password', 'new_password_confirmation', 'profileImage', 'certificate']));
+                        ->withInput($request->except(['current_password', 'new_password', 'new_password_confirmation', 'profileImage', 'cropped_profile_image', 'certificate']));
                 }
 
                 $insertData['password'] = Hash::make($request->new_password);
             }
 
-            if ($request->hasFile('profileImage')) {
-                $image = $request->file('profileImage');
-                $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
-                $filename = 'profile_' . $user_id . '_' . time() . '.' . $extension;
-                $destinationPath = public_path('uploads/profileImage');
-
-                if (!is_dir($destinationPath)) {
-                    mkdir($destinationPath, 0755, true);
-                }
-
-                $image->move($destinationPath, $filename);
-                $insertData['profile_img'] = $filename;
-
-                $oldImg = (string) ($loginCheck->profile_img ?? '');
-                if ($oldImg !== '') {
-                    $oldBasename = basename(str_replace('\\', '/', $oldImg));
-                    $oldPath = $destinationPath . DIRECTORY_SEPARATOR . $oldBasename;
-                    if (is_file($oldPath)) {
-                        @unlink($oldPath);
-                    }
-                }
+            $savedPhoto = $this->storeProfilePhoto($request, $user_id, $loginCheck);
+            if ($savedPhoto) {
+                $insertData['profile_img'] = $savedPhoto;
             }
             if ($image = $request->file('certificate')){
                 $insertData['certificate'] = time().'.'.$image->getClientOriginalExtension();
@@ -801,11 +787,11 @@ class StudentsController extends Controller
             // $insertData['mobile_number'] = $request->mobile_number;
             $insertData['is_whatsapp'] = ($request->is_whatsapp)?1:0;
             // $insertData['email_id'] = $request->email_id;
-            // $insertData['father_full_name'] = $request->father_full_name;
+            $insertData['father_full_name'] = $this->sanitizeParentName($request->father_full_name, $loginCheck->email_id);
             // $insertData['father_occupation'] = $request->father_occupation;
-            // $insertData['father_mobile_number'] = $request->father_mobile_number;
+            $insertData['father_mobile_number'] = $request->father_mobile_number;
             $insertData['father_qualification'] = $request->father_qualification;
-            $insertData['mother_full_name'] = $request->mother_full_name;
+            $insertData['mother_full_name'] = $this->sanitizeParentName($request->mother_full_name, $loginCheck->email_id);
             // $insertData['mother_occupation'] = $request->mother_occupation;
             $insertData['mother_mobile_number'] = $request->mother_mobile_number;
             $insertData['mother_qualification'] = $request->mother_qualification;
@@ -828,6 +814,69 @@ class StudentsController extends Controller
         }
 
         return redirect()->route('profile');
+    }
+
+    private function sanitizeParentName($name, $email = null): string
+    {
+        $name = trim((string) $name);
+        if ($name === '') {
+            return '';
+        }
+        if (filter_var($name, FILTER_VALIDATE_EMAIL)) {
+            return '';
+        }
+        if ($email && strcasecmp($name, (string) $email) === 0) {
+            return '';
+        }
+        return $name;
+    }
+
+    private function storeProfilePhoto(Request $request, $userId, $user): ?string
+    {
+        $destinationPath = public_path('uploads/profileImage');
+        if (!is_dir($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
+        $filename = null;
+
+        if ($request->hasFile('profileImage')) {
+            $image = $request->file('profileImage');
+            $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
+            if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                $extension = 'jpg';
+            }
+            $filename = 'profile_' . $userId . '_' . time() . '.' . $extension;
+            $image->move($destinationPath, $filename);
+        } elseif ($request->filled('cropped_profile_image')) {
+            $dataUrl = (string) $request->input('cropped_profile_image');
+            if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $m)) {
+                $raw = base64_decode(substr($dataUrl, strpos($dataUrl, ',') + 1), true);
+                if ($raw !== false && strlen($raw) > 0 && strlen($raw) <= 5 * 1024 * 1024 && @getimagesizefromstring($raw) !== false) {
+                    $extension = strtolower($m[1]) === 'jpeg' ? 'jpg' : strtolower($m[1]);
+                    if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                        $extension = 'jpg';
+                    }
+                    $filename = 'profile_' . $userId . '_' . time() . '.' . $extension;
+                    file_put_contents($destinationPath . DIRECTORY_SEPARATOR . $filename, $raw);
+                }
+            }
+        }
+
+        if (!$filename) {
+            return null;
+        }
+
+        $oldImg = (string) ($user->profile_img ?? '');
+        if ($oldImg !== '') {
+            $oldBasename = basename(str_replace('\\', '/', $oldImg));
+            $oldPath = $destinationPath . DIRECTORY_SEPARATOR . $oldBasename;
+            if ($oldBasename !== $filename && is_file($oldPath)) {
+                @unlink($oldPath);
+            }
+        }
+
+        return $filename;
     }
 
     public function my_courses(){

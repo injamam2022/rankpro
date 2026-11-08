@@ -7,6 +7,7 @@ use App\Models\CustomTest;
 use App\Models\Exam;
 use App\Models\Exam_user;
 use App\Models\Question;
+use App\Models\Question_source;
 use App\Models\Question_paper;
 use App\Models\Question_paper_question;
 use App\Models\Question_paper_subject;
@@ -132,22 +133,14 @@ class ChapterMasterController extends Controller
             ->orderBy('name')
             ->get(['id', 'chapter_id', 'name']);
 
-        $chapterCounts = Question::query()
-            ->select('chapter_id', DB::raw('COUNT(*) as total'))
-            ->where('subject_id', $subject->id)
-            ->where('is_deleted', 0)
-            ->where('status', 1)
-            ->premiumOnly()
-            ->whereNotNull('chapter_id')
-            ->groupBy('chapter_id')
-            ->pluck('total', 'chapter_id');
+        $chapterCounts = Question_source::chapterMasterCountsByChapter();
 
         $topicCounts = Question::query()
             ->select('topic_id', DB::raw('COUNT(*) as total'))
             ->where('subject_id', $subject->id)
             ->where('is_deleted', 0)
             ->where('status', 1)
-            ->premiumOnly()
+            ->chapterMasterBank()
             ->whereNotNull('topic_id')
             ->groupBy('topic_id')
             ->pluck('total', 'topic_id');
@@ -364,7 +357,7 @@ class ChapterMasterController extends Controller
             ->where('subject_id', $subjectId)
             ->where('is_deleted', 0)
             ->where('status', 1)
-            ->premiumOnly();
+            ->chapterMasterBank();
 
         if (empty($selection)) {
             return $query;
@@ -378,7 +371,7 @@ class ChapterMasterController extends Controller
                     continue;
                 }
                 $outer->orWhere(function ($q) use ($chapterId, $topicIds) {
-                    $q->where('chapter_id', $chapterId);
+                    Question::constrainBySources($q, Question_source::chapterMasterSetIdsForChapter($chapterId));
                     if (!empty($topicIds)) {
                         $q->whereIn('topic_id', $topicIds);
                     }
@@ -396,14 +389,10 @@ class ChapterMasterController extends Controller
 
     private function chaptersWithPremium(int $subjectId): int
     {
-        return (int) Question::query()
-            ->where('subject_id', $subjectId)
-            ->where('is_deleted', 0)
-            ->where('status', 1)
-            ->premiumOnly()
-            ->whereNotNull('chapter_id')
-            ->distinct()
-            ->count('chapter_id');
+        $chapterIds = Chapter::where('subject_id', $subjectId)->where('status', 1)->pluck('id')->map(fn ($id) => (int) $id);
+        $counts = Question_source::chapterMasterCountsByChapter();
+
+        return (int) $chapterIds->filter(fn ($id) => (int) ($counts[$id] ?? 0) > 0)->count();
     }
 
     private function pickPremiumQuestions(int $subjectId, array $selection, int $count, ?int $userId = null): array
