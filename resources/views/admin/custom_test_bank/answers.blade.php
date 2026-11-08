@@ -71,7 +71,7 @@
                             {!! question_html_media($row->question_text) !!}
                             @if($row->question_image)
                                 <div class="mt-2">
-                                    <img src="{{ question_media_url($row->question_image) }}" alt="">
+                                    {!! question_img_tag($row->question_image, ['alt' => '']) !!}
                                 </div>
                             @endif
                             <div class="mt-2">
@@ -84,7 +84,7 @@
                                     <div class="{{ $classes }}">
                                         <strong>{{ $n }}.</strong>
                                         @if($opt['img'])
-                                            <img src="{{ question_media_url($opt['text']) }}" alt="Option {{ $n }}">
+                                            {!! question_img_tag($opt['text'], ['alt' => 'Option '.$n]) !!}
                                         @else
                                             {!! question_html_media($opt['text']) !!}
                                         @endif

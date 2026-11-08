@@ -33,13 +33,16 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
+    <link href="{{ asset('') }}web/css/redesign.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/style_a.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/form.css" rel="stylesheet">
+    @include('site.include.head_meta')
 </head>
 
 <!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;"> -->
 
 <body>
+    @include('site.include.body_meta')
     <!-- Spinner Start -->
     <div id="spinner"
         class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
@@ -60,7 +63,7 @@
               <div class="col-md-6">
                 <div class="loginLeft">
                   <div class="formTitle text-left">Forgot password</div>
-                  <p class="auth-lead">Enter the email on your RankPro account. We'll send a 4-digit code so you can choose a new password.</p>
+                  <p class="auth-lead">Enter the email or mobile number on your RankPro account. We'll email a reset link and send an OTP to your registered mobile.</p>
 
                   @if (session('error'))
                     <div class="auth-alert error" role="alert">{{ session('error') }}</div>
@@ -76,14 +79,22 @@
                   <form action="{{ route('password.sendCode') }}" method="POST">
                     @csrf
                     <div class="form-group">
-                      <label for="email">Email <span class="req" aria-hidden="true">*</span></label>
+                      <label for="email">Email</label>
                       <div class="auth-input">
                         <span class="field-icon"><i class="bi bi-envelope"></i></span>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" placeholder="Email" name="email" value="{{ old('email') }}" autocomplete="email" required>
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" placeholder="Email" name="email" value="{{ old('email') }}" autocomplete="email">
                       </div>
                     </div>
+                    <div class="form-group">
+                      <label for="mobile">Mobile number</label>
+                      <div class="auth-input">
+                        <span class="field-icon"><i class="bi bi-phone"></i></span>
+                        <input type="tel" class="form-control @error('mobile') is-invalid @enderror" id="mobile" placeholder="10-digit mobile number" name="mobile" value="{{ old('mobile') }}" inputmode="numeric" maxlength="10" autocomplete="tel">
+                      </div>
+                      <div class="field-hint">Enter either one. If the email is delayed, use the OTP on your phone.</div>
+                    </div>
                     <div class="text-center">
-                      <button type="submit" class="btn btnRegister w-100">Send code</button>
+                      <button type="submit" class="btn btnRegister w-100">Send reset link</button>
                     </div>
                   </form>
                   <a href="{{ route('login') }}" class="back-link"><i class="bi bi-arrow-left"></i> Back to login</a>
@@ -96,7 +107,7 @@
                     <div class="authVisualMsg">
                       <span class="authVisualTag">Password Help</span>
                       <h3>Reset and get back to NEET prep</h3>
-                      <p>We'll email you a short code so you can set a new password safely.</p>
+                      <p>We'll email a reset link and text an OTP to your registered mobile.</p>
                     </div>
                   </div>
                 </div>
@@ -125,6 +136,9 @@
     <script src="{{ asset('') }}web/js/main.js"></script>
     <script>
         $(document).ready(function () {
+            $("#mobile").on("input", function () {
+                this.value = this.value.replace(/\D/g, "").slice(0, 10);
+            });
 
             var sectionIds = $('a.list-group-item');
 

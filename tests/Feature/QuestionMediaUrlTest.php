@@ -57,4 +57,32 @@ class QuestionMediaUrlTest extends TestCase
         $this->assertSame($data, question_media_url($data));
         $this->assertStringContainsString($data, question_html_media('<img src="'.$data.'">'));
     }
+
+    public function test_html_adds_dev_and_production_fallbacks()
+    {
+        config([
+            'app.question_media_fallback' => 'https://rankpro.co.in/public',
+            'app.question_media_fallbacks' => 'https://dev.rankpro.co.in/public,https://rankpro.co.in/public',
+        ]);
+
+        $out = question_html_media('<p>Q <img src="diagram.png" alt="x"></p>');
+
+        $this->assertStringContainsString('https://rankpro.co.in/public/uploads/question/diagram.png', $out);
+        $this->assertStringContainsString('https://dev.rankpro.co.in/public/uploads/question/diagram.png', $out);
+        $this->assertStringContainsString('onerror=', $out);
+    }
+
+    public function test_img_tag_tries_dev_when_production_is_primary()
+    {
+        config([
+            'app.question_media_fallback' => 'https://rankpro.co.in/public',
+            'app.question_media_fallbacks' => 'https://dev.rankpro.co.in/public,https://rankpro.co.in/public',
+        ]);
+
+        $tag = question_img_tag('diagram.png', ['alt' => 'q']);
+
+        $this->assertStringContainsString('src="https://rankpro.co.in/public/uploads/question/diagram.png"', $tag);
+        $this->assertStringContainsString('data-qfb="', $tag);
+        $this->assertStringContainsString('https://dev.rankpro.co.in/public/uploads/question/diagram.png', $tag);
+    }
 }

@@ -152,10 +152,6 @@ class StudentController extends Controller
                 $image->move($destinationPath, $insertData['profile_img']);
             }
 
-            do {
-                $rankproId = random_int(100000, 999999);
-            } while (User::where('rankpro_id', $rankproId)->exists());
-
             $insertData['first_name'] = $request->first_name;
             $insertData['last_name'] = $request->last_name;
             $insertData['address'] = $request->address;
@@ -176,7 +172,7 @@ class StudentController extends Controller
             $insertData['hash_code'] = md5(time().$request->email);
             $insertData['password'] = md5($request->password);
             $insertData['status'] = $request->status;
-            $insertData['rankpro_id'] = $rankproId;
+            $insertData['rankpro_id'] = User::generateRankproId();
 
             $user = User::create($insertData);
 

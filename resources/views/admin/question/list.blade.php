@@ -250,7 +250,7 @@
 
                                 @if($row->question_image)
                                     <div>
-                                        <img src="{{ question_media_url($row->question_image) }}" style="width:50px;">
+                                        {!! question_img_tag($row->question_image, ['style' => 'width:50px;']) !!}
                                     </div>
                                 @endif
                                 
@@ -258,7 +258,7 @@
                                     <div style="display:flex;">
                                         (1) 
                                         @if($row->is_option1_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option1) }}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;">{!! question_img_tag($row->option1, ['style' => 'width:100px;']) !!}</div>
                                         @else
                                             {!! question_html_media($row->option1) !!}
                                         @endif
@@ -266,7 +266,7 @@
                                     <div style="display:flex;">
                                         (2) 
                                         @if($row->is_option2_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option2) }}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;">{!! question_img_tag($row->option2, ['style' => 'width:100px;']) !!}</div>
                                         @else
                                             {!! question_html_media($row->option2) !!}
                                         @endif
@@ -274,7 +274,7 @@
                                     <div style="display:flex;">
                                         (3) 
                                         @if($row->is_option3_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option3) }}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;">{!! question_img_tag($row->option3, ['style' => 'width:100px;']) !!}</div>
                                         @else
                                             {!! question_html_media($row->option3) !!}
                                         @endif
@@ -282,7 +282,7 @@
                                     <div style="display:flex;">
                                         (4) 
                                         @if($row->is_option4_image)
-                                            <div style="margin: -15px 0px 10px 25px;"><img src="{{ question_media_url($row->option4) }}" style="width:100px;"></div>
+                                            <div style="margin: -15px 0px 10px 25px;">{!! question_img_tag($row->option4, ['style' => 'width:100px;']) !!}</div>
                                         @else
                                             {!! question_html_media($row->option4) !!}
                                         @endif

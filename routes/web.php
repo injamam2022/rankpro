@@ -283,11 +283,12 @@
     Route::post('/login', [AdmissionController::class, 'login'])->name('login.submit');
 
     Route::get('forgot-password', [PasswordController::class, 'showForgotPasswordForm'])->name('password.forgot');
-    Route::post('forgot-password', [PasswordController::class, 'sendVerificationCode'])->name('password.sendCode');
+    Route::post('forgot-password', [PasswordController::class, 'sendVerificationCode'])->middleware('throttle:5,15')->name('password.sendCode');
     Route::get('verify-code', [PasswordController::class, 'showVerificationForm'])->name('password.verify');
-    Route::post('verify-code', [PasswordController::class, 'verifyCode'])->name('password.verifyCode');
-    Route::get('reset-password', [PasswordController::class, 'showResetPasswordForm'])->name('password.reset');
-    Route::post('reset-password', [PasswordController::class, 'resetPassword'])->name('password.update');
+    Route::post('verify-code', [PasswordController::class, 'verifyCode'])->middleware('throttle:10,15')->name('password.verifyCode');
+    Route::post('forgot-password/resend-otp', [PasswordController::class, 'resendOtp'])->middleware('throttle:5,15')->name('password.resendOtp');
+    Route::get('reset-password/{token}', [PasswordController::class, 'showResetPasswordForm'])->where('token', '[A-Za-z0-9]{32,64}')->name('password.reset');
+    Route::post('reset-password', [PasswordController::class, 'resetPassword'])->middleware('throttle:10,15')->name('password.update');
     //Sourav End
 
 

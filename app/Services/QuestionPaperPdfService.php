@@ -280,10 +280,18 @@ class QuestionPaperPdfService
             }
         }
 
-        $fallbackRoot = rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/');
-        $downloaded = $this->downloadFallbackImage($fallbackRoot.'/uploads/question/'.$basename, $basename);
-        if ($downloaded === '') {
-            $downloaded = $this->downloadFallbackImage($fallbackRoot.'/uploads/option/'.$basename, $basename);
+        $bases = function_exists('question_media_fallback_bases')
+            ? question_media_fallback_bases()
+            : [rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/')];
+        $downloaded = '';
+        foreach ($bases as $fallbackRoot) {
+            $downloaded = $this->downloadFallbackImage(rtrim($fallbackRoot, '/').'/uploads/question/'.$basename, $basename);
+            if ($downloaded === '') {
+                $downloaded = $this->downloadFallbackImage(rtrim($fallbackRoot, '/').'/uploads/option/'.$basename, $basename);
+            }
+            if ($downloaded !== '') {
+                break;
+            }
         }
 
         return $this->imageCache[$basename] = $downloaded;

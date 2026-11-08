@@ -104,7 +104,7 @@
                                     </div>
                                     @if($language->question_image)
                                         <div class="col-sm-6">
-                                            <img src="{{ question_media_url($language->question_image) }}" style="width:100px;">
+                                            {!! question_img_tag($language->question_image, ['style' => 'width:100px;']) !!}
                                         </div>
                                     @endif
                                 </div>
@@ -130,7 +130,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option1_image == 1)
-                                            <img src="{{ question_media_url($language->option1) }}" style="width:100%;">
+                                            {!! question_img_tag($language->option1, ['style' => 'width:100%;']) !!}
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -179,7 +179,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option2_image == 1)
-                                            <img src="{{ question_media_url($language->option2) }}" style="width:100%;">
+                                            {!! question_img_tag($language->option2, ['style' => 'width:100%;']) !!}
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -228,7 +228,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option3_image == 1)
-                                            <img src="{{ question_media_url($language->option3) }}" style="width:100%;">
+                                            {!! question_img_tag($language->option3, ['style' => 'width:100%;']) !!}
                                         @endif
                                     </div>
                                     <div class="col-sm-2">
@@ -277,7 +277,7 @@
                                     </div>
                                     <div class="col-sm-1">
                                         @if($language->is_option4_image == 1)
-                                            <img src="{{ question_media_url($language->option4) }}" style="width:100%;">
+                                            {!! question_img_tag($language->option4, ['style' => 'width:100%;']) !!}
                                         @endif
                                     </div>
                                     <div class="col-sm-2">

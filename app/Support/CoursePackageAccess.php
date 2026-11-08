@@ -127,12 +127,10 @@ class CoursePackageAccess
             ? ['id', 'subject_id', 'name', 'class_level']
             : ['id', 'subject_id', 'name']);
 
-        $counts = \App\Models\Question_source::chapterMasterCountsByChapter();
-
         $bySubject = $chapters->groupBy('subject_id');
 
-        return $subjects->map(function ($subject) use ($bySubject, $counts, $ownedLookup) {
-            $rows = ($bySubject->get($subject->id) ?? collect())->map(function ($chapter) use ($counts, $ownedLookup) {
+        return $subjects->map(function ($subject) use ($bySubject, $ownedLookup) {
+            $rows = ($bySubject->get($subject->id) ?? collect())->map(function ($chapter) use ($ownedLookup) {
                 $name = $chapter->name;
                 $level = (int) ($chapter->class_level ?? 0);
                 if ($level === 11) {
@@ -144,7 +142,7 @@ class CoursePackageAccess
                 return [
                     'id' => (int) $chapter->id,
                     'name' => $name,
-                    'questions' => (int) ($counts[$chapter->id] ?? 0),
+                    'questions' => \App\Models\Question_source::chapterMasterDisplayCount((int) $chapter->id),
                     'owned' => isset($ownedLookup[(int) $chapter->id]),
                 ];
             })->values()->all();

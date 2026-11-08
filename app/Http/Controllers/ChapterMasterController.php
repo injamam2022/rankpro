@@ -133,8 +133,6 @@ class ChapterMasterController extends Controller
             ->orderBy('name')
             ->get(['id', 'chapter_id', 'name']);
 
-        $chapterCounts = Question_source::chapterMasterCountsByChapter();
-
         $topicCounts = Question::query()
             ->select('topic_id', DB::raw('COUNT(*) as total'))
             ->where('subject_id', $subject->id)
@@ -149,7 +147,7 @@ class ChapterMasterController extends Controller
         $legacyFull = CoursePackageAccess::chapterMasterLegacyFull();
         $ownedLookup = $legacyFull ? [] : array_flip(CoursePackageAccess::ownedChapterIds());
 
-        $payload = $chapters->map(function ($chapter) use ($topicsByChapter, $chapterCounts, $topicCounts, $legacyFull, $ownedLookup) {
+        $payload = $chapters->map(function ($chapter) use ($topicsByChapter, $topicCounts, $legacyFull, $ownedLookup) {
             $chapterTopics = ($topicsByChapter->get($chapter->id) ?? collect())->map(function ($topic) use ($topicCounts) {
                 $q = (int) ($topicCounts[$topic->id] ?? 0);
                 return [
@@ -160,7 +158,7 @@ class ChapterMasterController extends Controller
                 ];
             })->values();
 
-            $chapterQuestions = (int) ($chapterCounts[$chapter->id] ?? 0);
+            $chapterQuestions = Question_source::chapterMasterDisplayCount((int) $chapter->id, self::QUESTIONS_PER_CHAPTER);
 
             return [
                 'id' => (int) $chapter->id,
@@ -390,9 +388,10 @@ class ChapterMasterController extends Controller
     private function chaptersWithPremium(int $subjectId): int
     {
         $chapterIds = Chapter::where('subject_id', $subjectId)->where('status', 1)->pluck('id')->map(fn ($id) => (int) $id);
-        $counts = Question_source::chapterMasterCountsByChapter();
 
-        return (int) $chapterIds->filter(fn ($id) => (int) ($counts[$id] ?? 0) > 0)->count();
+        return (int) $chapterIds
+            ->filter(fn ($id) => Question_source::chapterMasterDisplayCount((int) $id, self::QUESTIONS_PER_CHAPTER) > 0)
+            ->count();
     }
 
     private function pickPremiumQuestions(int $subjectId, array $selection, int $count, ?int $userId = null): array

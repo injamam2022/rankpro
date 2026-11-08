@@ -141,18 +141,48 @@ if (!function_exists('website_setting')) {
     }
 }
 
-if (!function_exists('question_media_url')) {
-    function question_media_url($file): string
+if (!function_exists('question_media_fallback_bases')) {
+    function question_media_fallback_bases(): array
+    {
+        $bases = [];
+        $extra = config('app.question_media_fallbacks', 'https://dev.rankpro.co.in/public,https://rankpro.co.in/public');
+        if (! is_array($extra)) {
+            $extra = array_map('trim', explode(',', (string) $extra));
+        }
+        foreach (array_merge([
+            rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/'),
+        ], $extra, [
+            'https://dev.rankpro.co.in/public',
+            'https://rankpro.co.in/public',
+        ]) as $base) {
+            $base = rtrim((string) $base, '/');
+            if ($base !== '' && ! in_array($base, $bases, true)) {
+                $bases[] = $base;
+            }
+        }
+
+        return $bases;
+    }
+}
+
+if (!function_exists('question_media_ensure_dir')) {
+    function question_media_ensure_dir(): string
+    {
+        $dir = public_path('uploads/question');
+        if (! is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        return $dir;
+    }
+}
+
+if (!function_exists('question_media_normalize')) {
+    function question_media_normalize($file): string
     {
         $file = trim((string) $file);
-        if ($file === '') {
-            return '';
-        }
-        if (preg_match('#^data:#i', $file)) {
+        if ($file === '' || preg_match('#^data:#i', $file) || strlen($file) > 2000) {
             return $file;
-        }
-        if (strlen($file) > 2000) {
-            return '';
         }
 
         $appUrl = rtrim((string) config('app.url'), '/');
@@ -179,17 +209,162 @@ if (!function_exists('question_media_url')) {
             $file = 'uploads/question/'.basename($file);
         }
 
-        if (is_file(public_path($file))) {
-            return asset($file);
-        }
-        $optionPath = str_replace('uploads/question/', 'uploads/option/', $file);
-        if ($optionPath !== $file && is_file(public_path($optionPath))) {
-            return asset($optionPath);
+        return $file;
+    }
+}
+
+if (!function_exists('question_media_existing_public_file')) {
+    function question_media_existing_public_file(string $relative): ?string
+    {
+        $relative = str_replace('\\', '/', $relative);
+        $full = public_path($relative);
+        if (is_file($full)) {
+            return $relative;
         }
 
-        $fallback = rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/');
+        $dir = dirname($full);
+        $want = strtolower(basename($full));
+        if ($want === '' || $want === '.' || ! is_dir($dir)) {
+            return null;
+        }
 
-        return $fallback.'/'.$file;
+        static $indexes = [];
+        if (! isset($indexes[$dir])) {
+            $map = [];
+            foreach (scandir($dir) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                $map[strtolower($entry)] = $entry;
+            }
+            $indexes[$dir] = $map;
+        }
+
+        if (! isset($indexes[$dir][$want])) {
+            return null;
+        }
+
+        $relDir = dirname($relative);
+
+        return ($relDir === '.' || $relDir === '')
+            ? $indexes[$dir][$want]
+            : $relDir.'/'.$indexes[$dir][$want];
+    }
+}
+
+if (!function_exists('question_media_url')) {
+    function question_media_url($file): string
+    {
+        $file = trim((string) $file);
+        if ($file === '') {
+            return '';
+        }
+        if (preg_match('#^data:#i', $file)) {
+            return $file;
+        }
+        if (strlen($file) > 2000) {
+            return '';
+        }
+
+        $normalized = question_media_normalize($file);
+        if (preg_match('#^https?://#i', $normalized) || preg_match('#^data:#i', $normalized)) {
+            return $normalized;
+        }
+
+        $local = question_media_existing_public_file($normalized);
+        if ($local) {
+            return asset($local);
+        }
+        $optionPath = str_replace('uploads/question/', 'uploads/option/', $normalized);
+        if ($optionPath !== $normalized) {
+            $localOption = question_media_existing_public_file($optionPath);
+            if ($localOption) {
+                return asset($localOption);
+            }
+        }
+
+        $fallback = question_media_fallback_bases()[0] ?? rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/');
+
+        return $fallback.'/'.$normalized;
+    }
+}
+
+if (!function_exists('question_media_src_chain')) {
+    function question_media_src_chain($file): array
+    {
+        $file = trim((string) $file);
+        if ($file === '' || preg_match('#^data:#i', $file)) {
+            $url = question_media_url($file);
+            return $url !== '' ? [$url] : [];
+        }
+
+        $normalized = question_media_normalize($file);
+        if (preg_match('#^https?://#i', $normalized)) {
+            $urls = [$normalized];
+            if (str_contains($normalized, 'dev.rankpro.co.in')) {
+                $urls[] = str_replace('dev.rankpro.co.in', 'rankpro.co.in', $normalized);
+            } elseif (str_contains($normalized, 'rankpro.co.in')) {
+                $urls[] = str_replace('://rankpro.co.in', '://dev.rankpro.co.in', $normalized);
+            }
+            return array_values(array_unique($urls));
+        }
+
+        $urls = [];
+        $local = question_media_existing_public_file($normalized);
+        if ($local) {
+            $urls[] = asset($local);
+        }
+        $optionPath = str_replace('uploads/question/', 'uploads/option/', $normalized);
+        if ($optionPath !== $normalized) {
+            $localOption = question_media_existing_public_file($optionPath);
+            if ($localOption) {
+                $urls[] = asset($localOption);
+            }
+        }
+        foreach (question_media_fallback_bases() as $base) {
+            $urls[] = $base.'/'.$normalized;
+            if ($optionPath !== $normalized) {
+                $urls[] = $base.'/'.$optionPath;
+            }
+        }
+
+        return array_values(array_unique(array_filter($urls)));
+    }
+}
+
+if (!function_exists('question_img_fallback_attr')) {
+    function question_img_fallback_attr($file, $primary = ''): string
+    {
+        $primary = (string) $primary;
+        $chain = [];
+        foreach (question_media_src_chain($file) as $url) {
+            if ($url !== '' && $url !== $primary) {
+                $chain[] = $url;
+            }
+        }
+        $fb = htmlspecialchars(implode('|', $chain), ENT_QUOTES, 'UTF-8');
+        $onerror = 'if(this.dataset.qfb){var a=this.dataset.qfb.split(\'|\');this.dataset.qfb=a.slice(1).join(\'|\');if(a[0]){this.src=a[0];return;}}this.onerror=null;this.remove();';
+
+        return ' data-qfb="'.$fb.'" onerror="'.$onerror.'"';
+    }
+}
+
+if (!function_exists('question_img_tag')) {
+    function question_img_tag($file, array $attrs = []): string
+    {
+        $src = question_media_url($file);
+        if ($src === '') {
+            return '';
+        }
+        $attrStr = '';
+        foreach ($attrs as $key => $value) {
+            if ($value === null || $value === false) {
+                continue;
+            }
+            $attrStr .= ' '.$key.'="'.htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8').'"';
+        }
+
+        return '<img src="'.htmlspecialchars($src, ENT_QUOTES, 'UTF-8').'"'.$attrStr.question_img_fallback_attr($file, $src).'>';
     }
 }
 
@@ -202,9 +377,29 @@ if (!function_exists('question_html_media')) {
         }
 
         return preg_replace_callback(
-            '/(<img\b[^>]*\bsrc=["\'])([^"\']+)(["\'])/i',
+            '/<img\b[^>]*>/i',
             function ($m) {
-                return $m[1].question_media_url(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8')).$m[3];
+                $tag = $m[0];
+                if (! preg_match('/\bsrc=(["\'])([^"\']*)\1/i', $tag, $sm)) {
+                    return $tag;
+                }
+                $raw = html_entity_decode($sm[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $src = question_media_url($raw);
+                $tag = preg_replace(
+                    '/\bsrc=(["\'])([^"\']*)\1/i',
+                    'src="'.htmlspecialchars($src, ENT_QUOTES, 'UTF-8').'"',
+                    $tag,
+                    1
+                );
+                if (preg_match('#^data:#i', $src) || stripos($tag, 'onerror=') !== false) {
+                    return $tag;
+                }
+                $attr = question_img_fallback_attr($raw, $src);
+                if (preg_match('/\/\s*>$/', $tag)) {
+                    return preg_replace('/\/\s*>$/', $attr.'>', $tag);
+                }
+
+                return preg_replace('/>$/', $attr.'>', $tag);
             },
             $html
         );

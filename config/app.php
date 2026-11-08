@@ -58,7 +58,9 @@ return [
 
     'asset_url' => env('ASSET_URL'),
 
-    'question_media_fallback' => env('QUESTION_MEDIA_FALLBACK_URL', 'https://rankpro.co.in/public'),
+    'question_media_fallback' => env('QUESTION_MEDIA_FALLBACK_URL', 'https://dev.rankpro.co.in/public'),
+
+    'question_media_fallbacks' => env('QUESTION_MEDIA_FALLBACK_URLS', 'https://dev.rankpro.co.in/public,https://rankpro.co.in/public'),
 
     /*
     |--------------------------------------------------------------------------

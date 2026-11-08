@@ -402,7 +402,7 @@ class QuestionController extends Controller
                     if ($image = $request->file('question_image')[$value->id]){
                         $insertData['question_image'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                        $destinationPath = public_path('/uploads/question');
+                        $destinationPath = question_media_ensure_dir();
                         $image->move($destinationPath, $insertData['question_image']);
                     }
                 }
@@ -413,7 +413,7 @@ class QuestionController extends Controller
                     if ($image = $request->file('option1_image')[$value->id]){
                         $insertData['option1'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                        $destinationPath = public_path('/uploads/question');
+                        $destinationPath = question_media_ensure_dir();
                         $image->move($destinationPath, $insertData['option1']);
                     }
                 }else{
@@ -425,7 +425,7 @@ class QuestionController extends Controller
                     if ($image = $request->file('option2_image')[$value->id]){
                         $insertData['option2'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                        $destinationPath = public_path('/uploads/question');
+                        $destinationPath = question_media_ensure_dir();
                         $image->move($destinationPath, $insertData['option2']);
                     }
                 }else{
@@ -437,7 +437,7 @@ class QuestionController extends Controller
                     if ($image = $request->file('option3_image')[$value->id]){
                         $insertData['option3'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                        $destinationPath = public_path('/uploads/question');
+                        $destinationPath = question_media_ensure_dir();
                         $image->move($destinationPath, $insertData['option3']);
                     }
                 }else{
@@ -449,7 +449,7 @@ class QuestionController extends Controller
                     if ($image = $request->file('option4_image')[$value->id]){
                         $insertData['option4'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                        $destinationPath = public_path('/uploads/question');
+                        $destinationPath = question_media_ensure_dir();
                         $image->move($destinationPath, $insertData['option4']);
                     }
                 }else{
@@ -585,7 +585,7 @@ class QuestionController extends Controller
                         if ($image = $request->file('question_image')[$value->id]){
                             $insertData['question_image'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                            $destinationPath = public_path('/uploads/question');
+                            $destinationPath = question_media_ensure_dir();
                             $image->move($destinationPath, $insertData['question_image']);
                             if($question_detail->question_image){
                                 if (file_exists(public_path('uploads/question/'.$question_detail->question_image))) {
@@ -602,7 +602,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option1_image')[$value->id]){
                                 $insertData['option1'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option1']);
                                 if($question_detail->option1){
                                     if (file_exists(public_path('uploads/question/'.$question_detail->option1))) {
@@ -621,7 +621,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option2_image')[$value->id]){
                                 $insertData['option2'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option2']);
                                 if($question_detail->option2){
                                     if (file_exists(public_path('uploads/question/'.$question_detail->option2))) {
@@ -640,7 +640,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option3_image')[$value->id]){
                                 $insertData['option3'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option3']);
                                 if($question_detail->option3){
                                     if (file_exists(public_path('uploads/question/'.$question_detail->option3))) {
@@ -659,7 +659,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option4_image')[$value->id]){
                                 $insertData['option4'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option4']);
                                 if($question_detail->option4){
                                     if (file_exists(public_path('uploads/question/'.$question_detail->option4))) {
@@ -688,7 +688,7 @@ class QuestionController extends Controller
                         if ($image = $request->file('question_image')[$value->id]){
                             $insertData['question_image'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                            $destinationPath = public_path('/uploads/question');
+                            $destinationPath = question_media_ensure_dir();
                             $image->move($destinationPath, $insertData['question_image']);
                         }
                     }
@@ -700,7 +700,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option1_image')[$value->id]){
                                 $insertData['option1'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option1']);
                             }
                         }
@@ -714,7 +714,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option2_image')[$value->id]){
                                 $insertData['option2'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option2']);
                             }
                         }
@@ -728,7 +728,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option3_image')[$value->id]){
                                 $insertData['option3'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option3']);
                             }
                         }
@@ -742,7 +742,7 @@ class QuestionController extends Controller
                             if ($image = $request->file('option4_image')[$value->id]){
                                 $insertData['option4'] = uniqid()."_".time().'.'.$image->getClientOriginalExtension();
 
-                                $destinationPath = public_path('/uploads/question');
+                                $destinationPath = question_media_ensure_dir();
                                 $image->move($destinationPath, $insertData['option4']);
                             }
                         }
@@ -1333,10 +1333,7 @@ class QuestionController extends Controller
             return null;
         }
 
-        $dest = public_path('uploads/question');
-        if (!is_dir($dest)) {
-            mkdir($dest, 0755, true);
-        }
+        $dest = question_media_ensure_dir();
 
         $allowed = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
         $map = [];

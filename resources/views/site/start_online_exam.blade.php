@@ -1116,8 +1116,8 @@
         return @json(asset(''));
       }
 
-      function examMediaFallbackBase() {
-        return @json(rtrim((string) config('app.question_media_fallback', 'https://rankpro.co.in/public'), '/') . '/');
+      function examMediaFallbackBases() {
+        return @json(question_media_fallback_bases());
       }
 
       function looksLikeImageFile(value) {
@@ -1161,29 +1161,34 @@
         return primary.replace('/uploads/question/', '/uploads/option/');
       }
 
-      function productionMediaUrl(file) {
-        if (!file) return '';
+      function mediaRemoteUrls(file) {
+        if (!file) return [];
         var f = String(file).trim();
-        if (/^https?:\/\//i.test(f) || /^data:/i.test(f)) return '';
+        if (/^https?:\/\//i.test(f) || /^data:/i.test(f)) return [];
         f = f.replace(/\\/g, '/').replace(/^(\.\.\/)+/, '').replace(/^\/+/, '');
         if (f.indexOf('public/uploads/') === 0) f = f.replace('public/uploads/', 'uploads/');
         if (f.indexOf('uploads/option/') === 0) f = f.replace('uploads/option/', 'uploads/question/');
         if (f.indexOf('uploads/') !== 0) f = 'uploads/question/' + f.split('/').pop();
-        return examMediaFallbackBase() + f;
+        var urls = [];
+        examMediaFallbackBases().forEach(function (base) {
+          var root = String(base || '').replace(/\/+$/, '') + '/';
+          urls.push(root + f);
+          if (f.indexOf('uploads/question/') === 0) {
+            urls.push(root + f.replace('uploads/question/', 'uploads/option/'));
+          }
+        });
+        return urls;
       }
 
       function mediaOnErrorAttr(primary, file) {
         var chain = [];
         var optionFb = mediaUrlFallback(file);
-        var prod = productionMediaUrl(file);
         if (optionFb && optionFb !== primary) chain.push(optionFb);
-        if (prod && prod !== primary && prod !== optionFb) chain.push(prod);
-        if (!chain.length) return '';
-        var js = 'if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + chain[0].replace(/'/g, "\\'") + '\';}';
-        if (chain[1]) {
-          js += 'else if(this.dataset.fb==1){this.dataset.fb=2;this.src=\'' + chain[1].replace(/'/g, "\\'") + '\';}';
-        }
-        return ' onerror="' + js + '"';
+        mediaRemoteUrls(file).forEach(function (u) {
+          if (u && u !== primary && chain.indexOf(u) === -1) chain.push(u);
+        });
+        var fb = chain.join('|').replace(/"/g, '&quot;');
+        return ' data-qfb="' + fb + '" onerror="if(this.dataset.qfb){var a=this.dataset.qfb.split(\'|\');this.dataset.qfb=a.slice(1).join(\'|\');if(a[0]){this.src=a[0];return;}}this.onerror=null;this.remove();"';
       }
 
       function imgTag(src, alt) {
@@ -1218,20 +1223,23 @@
             var current = img.getAttribute('src') || '';
             var chain = [];
             var optionFb = current.replace('/uploads/question/', '/uploads/option/');
-            var prod = productionMediaUrl(cleaned || src);
             if (optionFb && optionFb !== current) chain.push(optionFb);
-            if (prod && prod !== current && prod !== optionFb) chain.push(prod);
+            mediaRemoteUrls(cleaned || src).forEach(function (u) {
+              if (u && u !== current && chain.indexOf(u) === -1) chain.push(u);
+            });
             if (chain.length) {
-              img.setAttribute('data-fallback', chain[0]);
-              if (chain[1]) img.setAttribute('data-fallback2', chain[1]);
+              img.setAttribute('data-qfb', chain.join('|'));
               img.onerror = function () {
-                if (!this.dataset.fb) {
-                  this.dataset.fb = '1';
-                  this.src = this.getAttribute('data-fallback');
-                } else if (this.dataset.fb === '1' && this.getAttribute('data-fallback2')) {
-                  this.dataset.fb = '2';
-                  this.src = this.getAttribute('data-fallback2');
+                if (this.dataset.qfb) {
+                  var a = this.dataset.qfb.split('|');
+                  this.dataset.qfb = a.slice(1).join('|');
+                  if (a[0]) {
+                    this.src = a[0];
+                    return;
+                  }
                 }
+                this.onerror = null;
+                this.remove();
               };
             }
           }

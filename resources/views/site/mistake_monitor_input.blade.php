@@ -147,6 +147,7 @@
         var startId = String(root.getAttribute('data-start') || '');
         var saveUrl = root.getAttribute('data-save');
         var assetBase = root.getAttribute('data-asset') || '';
+        var mediaFallbacks = @json(question_media_fallback_bases());
         var csrf = document.querySelector('meta[name="csrf-token"]');
         csrf = csrf ? csrf.getAttribute('content') : '';
         var index = Math.max(0, questions.findIndex(function (q) { return String(q.id) === startId; }));
@@ -154,12 +155,26 @@
 
         function current() { return questions[index]; }
 
+        function mediaImg(file, alt) {
+            if (!file) return '';
+            var f = String(file).trim();
+            var primary = f;
+            if (!/^https?:\/\//i.test(f) && !/^data:/i.test(f) && f.indexOf('/') !== 0) {
+                primary = assetBase + 'uploads/question/' + f;
+            }
+            var name = f.split('/').pop();
+            var chain = [];
+            (mediaFallbacks || []).forEach(function (base) {
+                var u = String(base || '').replace(/\/+$/, '') + '/uploads/question/' + name;
+                if (u && u !== primary) chain.push(u);
+            });
+            return '<img src="'+primary.replace(/"/g, '&quot;')+'" alt="'+(alt || '')+'" data-qfb="'+chain.join('|').replace(/"/g, '&quot;')+'" onerror="if(this.dataset.qfb){var a=this.dataset.qfb.split(\'|\');this.dataset.qfb=a.slice(1).join(\'|\');if(a[0]){this.src=a[0];return;}}this.onerror=null;this.remove();">';
+        }
+
         function optionHtml(text, isImage) {
             if (!text) return '';
             if (Number(isImage) === 1) {
-                var src = String(text);
-                if (!/^https?:\/\//i.test(src) && src.indexOf('/') !== 0) src = assetBase + 'uploads/question/' + src;
-                return '<img src="'+src.replace(/"/g, '&quot;')+'" alt="">';
+                return mediaImg(text, '');
             }
             return text;
         }
@@ -191,7 +206,7 @@
             var q = current();
             document.getElementById('mtCount').textContent = questions.length + ' incorrect';
             document.getElementById('mtQno').textContent = 'Q ' + (q.question_number || (index + 1));
-            document.getElementById('mtQuestion').innerHTML = q.question_text || '';
+            document.getElementById('mtQuestion').innerHTML = (q.question_text || '') + (q.question_image ? '<div class="mt-2">'+mediaImg(q.question_image, '')+'</div>' : '');
             document.getElementById('mtPos').textContent = (index + 1) + ' of ' + questions.length;
 
             var chips = [];

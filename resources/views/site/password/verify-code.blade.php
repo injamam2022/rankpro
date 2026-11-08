@@ -33,13 +33,16 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
+    <link href="{{ asset('') }}web/css/redesign.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/style_a.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/form.css" rel="stylesheet">
+    @include('site.include.head_meta')
 </head>
 
 <!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;"> -->
 
 <body>
+    @include('site.include.body_meta')
     <!-- Spinner Start -->
     <div id="spinner"
         class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
@@ -59,8 +62,17 @@
             <div class="row align-items-center">
               <div class="col-md-6">
                 <div class="loginLeft">
-                  <div class="formTitle text-left">Check your email</div>
-                  <p class="auth-lead">Enter the 4-digit code sent to <strong>{{ session('password_reset_email') }}</strong>. It expires in 10 minutes.</p>
+                  <div class="formTitle text-left">{{ session('password_reset_email_sent') ? 'Check your email' : 'Check your phone' }}</div>
+                  @if (session('password_reset_email_sent'))
+                    <p class="auth-lead">Open the RankPro email sent to <strong>{{ session('password_reset_email_masked') ?: session('password_reset_email') }}</strong> and click <strong>Reset password</strong>. The link expires in 60 minutes.</p>
+                  @endif
+                  @if (session('password_reset_sms_sent'))
+                    <p class="auth-lead">{{ session('password_reset_email_sent') ? 'If that email does not arrive, enter the 4-digit OTP sent to' : 'Enter the 4-digit OTP sent to' }} <strong>{{ session('password_reset_mobile_masked') }}</strong>. It expires in 10 minutes.</p>
+                  @elseif (session('password_reset_mobile_masked'))
+                    <p class="auth-lead">If that email does not arrive, send an OTP to <strong>{{ session('password_reset_mobile_masked') }}</strong>.</p>
+                  @elseif (!session('password_reset_email_sent'))
+                    <p class="auth-lead">Enter the 4-digit OTP from your mobile. It expires in 10 minutes.</p>
+                  @endif
 
                   @if (session('success'))
                     <div class="auth-alert success" role="alert">{{ session('success') }}</div>
@@ -76,20 +88,29 @@
                     </div>
                   @endif
 
-                  <form action="{{ route('password.verifyCode') }}" method="POST">
-                    @csrf
-                    <div class="form-group">
-                      <label for="verification_code">Verification code <span class="req" aria-hidden="true">*</span></label>
-                      <div class="auth-input">
-                        <span class="field-icon"><i class="bi bi-shield-check"></i></span>
-                        <input type="text" class="form-control @error('verification_code') is-invalid @enderror" id="verification_code" placeholder="4-digit code" name="verification_code" value="{{ old('verification_code') }}" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="one-time-code" required>
+                  @if (session('password_reset_sms_sent') || session('password_reset_mobile_masked'))
+                    @if (session('password_reset_email_sent'))
+                      <div class="auth-or"><span>Or use the mobile OTP</span></div>
+                    @endif
+                    <form action="{{ route('password.verifyCode') }}" method="POST">
+                      @csrf
+                      <div class="form-group">
+                        <label for="verification_code">Mobile OTP <span class="req" aria-hidden="true">*</span></label>
+                        <div class="auth-input">
+                          <span class="field-icon"><i class="bi bi-shield-check"></i></span>
+                          <input type="text" class="form-control @error('verification_code') is-invalid @enderror" id="verification_code" placeholder="4-digit OTP" name="verification_code" value="{{ old('verification_code') }}" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="one-time-code" required>
+                        </div>
                       </div>
-                    </div>
-                    <div class="text-center">
-                      <button type="submit" class="btn btnRegister w-100">Verify code</button>
-                    </div>
-                  </form>
-                  <a href="{{ route('password.forgot') }}" class="back-link">Didn't get it? Send a new code</a>
+                      <div class="text-center">
+                        <button type="submit" class="btn btnRegister w-100">Verify OTP</button>
+                      </div>
+                    </form>
+                    <form action="{{ route('password.resendOtp') }}" method="POST" class="mt-2">
+                      @csrf
+                      <button type="submit" class="back-link" style="border:0; background:none; padding:0;">Resend OTP to mobile</button>
+                    </form>
+                  @endif
+                  <a href="{{ route('password.forgot') }}" class="back-link">Didn't get it? Send a new reset link</a>
                 </div>
               </div>
               <div class="col-md-6">
@@ -98,8 +119,8 @@
                     <img src="{{ asset('web/images/form/neet-auth-side.jpg') }}" class="img-fluid" alt="NEET exam preparation">
                     <div class="authVisualMsg">
                       <span class="authVisualTag">Almost there</span>
-                      <h3>Verify your email to continue</h3>
-                      <p>Enter the 4-digit code and you'll be ready to choose a new password.</p>
+                      <h3>Reset from email or OTP</h3>
+                      <p>Click the link in your email, or enter the mobile OTP if the email is delayed.</p>
                     </div>
                   </div>
                 </div>

@@ -168,4 +168,15 @@ class Question_source extends Model
 
         return collect($totals);
     }
+
+    /**
+     * Count shown on Rank Chapter Master: 45 when this chapter has a tagged 45-question set.
+     * Extra sets in the same chapter are not added together.
+     */
+    public static function chapterMasterDisplayCount(int $chapterId, int $perChapter = 45): int
+    {
+        $raw = (int) (self::chapterMasterCountsByChapter()[$chapterId] ?? 0);
+
+        return $raw >= 40 ? $perChapter : 0;
+    }
 }

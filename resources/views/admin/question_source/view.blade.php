@@ -54,7 +54,7 @@
                             {{ $plain !== '' ? $plain : '—' }}
                             @if($row->question_image)
                                 <div>
-                                    <img src="{{ question_media_url($row->question_image) }}" style="width:50px;">
+                                    {!! question_img_tag($row->question_image, ['style' => 'width:50px;']) !!}
                                 </div>
                             @endif
                         </td>

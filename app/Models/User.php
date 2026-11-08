@@ -85,4 +85,38 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->rankpro_id)) {
+                $user->rankpro_id = static::generateRankproId();
+            }
+        });
+    }
+
+    /**
+     * Sequential RankPro ID: RP/{2-digit year}/{4-digit sequence}, e.g. RP/26/0001.
+     */
+    public static function generateRankproId(): string
+    {
+        $prefix = 'RP/'.now()->format('y').'/';
+
+        $lastId = static::query()
+            ->where('rankpro_id', 'like', $prefix.'%')
+            ->orderByRaw("CAST(SUBSTRING_INDEX(rankpro_id, '/', -1) AS UNSIGNED) DESC")
+            ->value('rankpro_id');
+
+        $maxSeq = 0;
+        if (is_string($lastId) && preg_match('#/(\d+)$#', $lastId, $matches)) {
+            $maxSeq = (int) $matches[1];
+        }
+
+        do {
+            $maxSeq++;
+            $rankproId = $prefix.str_pad((string) $maxSeq, 4, '0', STR_PAD_LEFT);
+        } while (static::where('rankpro_id', $rankproId)->exists());
+
+        return $rankproId;
+    }
 }

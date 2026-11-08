@@ -51,6 +51,8 @@ php.ini
 # User uploads (keep folder)
 /public/uploads/*
 !/public/uploads/.gitkeep
+!/public/uploads/question/
+!/public/uploads/question/.gitkeep
 
 # OS
 .DS_Store

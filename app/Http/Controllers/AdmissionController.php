@@ -153,10 +153,6 @@ class AdmissionController extends Controller
         $user->save();
 
 
-        do {
-            $rankproId = random_int(10000000, 99999999);
-        } while (User::where('rankpro_id', $rankproId)->exists());
-
         $insertData = [];
         $insertData['first_name'] = $user->first_name;
         $insertData['last_name'] = $user->last_name;
@@ -167,7 +163,7 @@ class AdmissionController extends Controller
         $insertData['profile_img'] = $user->profile_img;
         $insertData['address'] = $user->address ?: session()->pull('pending_signup_address_'.$user->id);
         $insertData['class_name'] = $user->class_name ?: session()->pull('pending_signup_class_'.$user->id);
-        $insertData['rankpro_id'] = $rankproId;
+        $insertData['rankpro_id'] = User::generateRankproId();
         $insertData['status'] = 1;
 
         $createdUser = User::create($insertData);

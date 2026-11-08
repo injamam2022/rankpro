@@ -193,10 +193,10 @@
             <div class="q">
                 <div class="q-head">
                     <div class="q-no">{{ $q->paper_serial }}.</div>
-                    <div class="stem">{!! $q->question_text !!}</div>
+                    <div class="stem">{!! question_html_media($q->question_text) !!}</div>
                 </div>
                 @if(!empty($q->question_image))
-                    <div class="q-img"><img src="{{ asset('uploads/question/'.$q->question_image) }}" alt=""></div>
+                    <div class="q-img">{!! question_img_tag($q->question_image, ['alt' => '']) !!}</div>
                 @endif
                 <ul class="opts">
                     @foreach([1=>'option1',2=>'option2',3=>'option3',4=>'option4'] as $n => $field)
@@ -208,9 +208,9 @@
                             <span class="opt-label">{{ $optionLabels[$n] }}</span>
                             <div class="opt-body">
                                 @if($isImg && $val)
-                                    <div class="opt-img"><img src="{{ asset('uploads/question/'.$val) }}" alt=""></div>
+                                    <div class="opt-img">{!! question_img_tag($val, ['alt' => '']) !!}</div>
                                 @else
-                                    {!! $val !!}
+                                    {!! question_html_media($val) !!}
                                 @endif
                             </div>
                         </li>

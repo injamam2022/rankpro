@@ -33,13 +33,16 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
+    <link href="{{ asset('') }}web/css/redesign.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/style_a.css" rel="stylesheet">
     <link href="{{ asset('') }}web/css/form.css" rel="stylesheet">
+    @include('site.include.head_meta')
 </head>
 
 <!-- <body style="background: url(images/fullindex.jpg) no-repeat center top;"> -->
 
 <body>
+    @include('site.include.body_meta')
     <!-- Spinner Start -->
     <div id="spinner"
         class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
@@ -75,7 +78,7 @@
 
                   <form action="{{ route('password.update') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="user_id" value="{{ $user->id }}">
+                    <input type="hidden" name="token" value="{{ $token }}">
                     <div class="form-group">
                       <label for="password">New password <span class="req" aria-hidden="true">*</span></label>
                       <div class="auth-input has-toggle">
