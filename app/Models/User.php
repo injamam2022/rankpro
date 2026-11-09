@@ -124,4 +124,26 @@ class User extends Authenticatable
 
         return $rankproId;
     }
+
+    public function setFatherFullNameAttribute($value): void
+    {
+        $this->attributes['father_full_name'] = $this->sanitizeParentNameValue($value);
+    }
+
+    public function setMotherFullNameAttribute($value): void
+    {
+        $this->attributes['mother_full_name'] = $this->sanitizeParentNameValue($value);
+    }
+
+    private function sanitizeParentNameValue($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        $name = trim((string) $value);
+        if ($name === '' || filter_var($name, FILTER_VALIDATE_EMAIL)) {
+            return '';
+        }
+        return $name;
+    }
 }

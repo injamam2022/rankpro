@@ -681,10 +681,9 @@ class StudentsController extends Controller
 
     public function update_profile(Request $request){
 
-        // Only treat this as a password change when a new password is actually provided.
-        // Browsers often autofill "Current Password", which must not block a normal profile save.
-        $wantsPasswordChange = $request->filled('new_password')
-            || $request->filled('new_password_confirmation');
+        if ($request->input('update_section') === 'password') {
+            return $this->updateProfilePassword($request);
+        }
 
         $classAllowed = student_class_values();
         $currentClass = (string) (Auth::user()->class_name ?? '');
@@ -692,21 +691,14 @@ class StudentsController extends Controller
             $classAllowed[] = $currentClass;
         }
 
-        $rules = [
+        $request->validate([
             'first_name' => 'required',
             'class_name' => ['required', Rule::in($classAllowed)],
             'profileImage' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
             'father_full_name' => 'nullable|string|max:255',
             'father_mobile_number' => 'nullable|digits:10',
             'mother_full_name' => 'nullable|string|max:255',
-        ];
-
-        if ($wantsPasswordChange) {
-            $rules['current_password'] = 'required';
-            $rules['new_password'] = 'required|min:6|confirmed';
-        }
-
-        $request->validate($rules);
+        ]);
 
         $language_id = $this->getLanguageId();
 
@@ -718,20 +710,6 @@ class StudentsController extends Controller
             // $input = $request->all();
             // dd($input);
             $insertData = [];
-
-            if ($wantsPasswordChange) {
-                $currentPassword = (string) $request->current_password;
-                $passwordMatches = Hash::check($currentPassword, $loginCheck->password)
-                    || hash_equals((string) $loginCheck->password, md5($currentPassword));
-
-                if (!$passwordMatches) {
-                    return back()
-                        ->withErrors(['current_password' => 'Current password does not match.'])
-                        ->withInput($request->except(['current_password', 'new_password', 'new_password_confirmation', 'profileImage', 'cropped_profile_image', 'certificate']));
-                }
-
-                $insertData['password'] = Hash::make($request->new_password);
-            }
 
             $savedPhoto = $this->storeProfilePhoto($request, $user_id, $loginCheck);
             if ($savedPhoto) {
@@ -804,14 +782,41 @@ class StudentsController extends Controller
             $insertData['linkedin_link'] = $request->linkedin_link;
 
             $loginCheck->update($insertData);
-            if ($wantsPasswordChange) {
-                toastr()->success('Profile and password updated successfully.');
-            } else {
-                toastr()->success('Profile updated successfully.');
-            }
+            toastr()->success('Profile updated successfully.');
         }else{
             toastr()->warning('Something wrong please try again later');
         }
+
+        return redirect()->route('profile');
+    }
+
+    private function updateProfilePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $loginCheck = User::where('id', Auth::id())->first();
+        if (!$loginCheck) {
+            toastr()->warning('Something wrong please try again later');
+            return redirect()->route('profile');
+        }
+
+        $currentPassword = (string) $request->current_password;
+        $passwordMatches = Hash::check($currentPassword, $loginCheck->password)
+            || hash_equals((string) $loginCheck->password, md5($currentPassword));
+
+        if (!$passwordMatches) {
+            return back()
+                ->withErrors(['current_password' => 'Current password does not match.'])
+                ->withInput($request->except(['current_password', 'new_password', 'new_password_confirmation']));
+        }
+
+        $loginCheck->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+        toastr()->success('Password updated successfully.');
 
         return redirect()->route('profile');
     }

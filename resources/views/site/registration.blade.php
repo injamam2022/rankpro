@@ -103,7 +103,7 @@
                           <div class="col-md-6">
                             <div class="form-group">
                               <label for="email_id">Email <span class="req" aria-hidden="true">*</span></label>
-                              <input type="email" class="form-control" id="email_id" placeholder="Email" name="email_id" autocomplete="email" required>
+                              <input type="email" class="form-control" id="email_id" placeholder="Email" name="email_id" autocomplete="off" required>
                             </div>
                           </div>
                           <div class="col-md-6">

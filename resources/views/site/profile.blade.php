@@ -43,6 +43,14 @@
       .dangerBoader{
         border: 1px solid red !important;
       }
+      @keyframes rp-on-autofill {
+        from { opacity: 0.99; }
+        to { opacity: 1; }
+      }
+      #father_full_name:-webkit-autofill,
+      #mother_full_name:-webkit-autofill {
+        animation-name: rp-on-autofill;
+      }
       .profileCropModal .modal-dialog {
         max-width: 560px;
       }
@@ -232,8 +240,7 @@
 
                                   <form class="registrationForm" action="{{route('update_profile')}}" method="POST" enctype="multipart/form-data" autocomplete="off" onsubmit="return validationFun();">
                                     @csrf
-                                    <input type="text" name="prevent_autofill_user" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0;">
-                                    <input type="password" name="prevent_autofill_pass" autocomplete="current-password" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0;">
+                                    <input type="hidden" name="update_section" value="profile">
                                     <div class="formAvatar text-center">
                                       <div class="formAvatarImg" id="avatarClickArea" role="button" tabindex="0" title="Change profile picture" style="cursor:pointer;">
                                           @php
@@ -252,14 +259,14 @@
                                       <div class="col-md-6">
                                         <div class="form-group">
                                           <label for="first_name">First Name <span class="text-danger">*</span></label>
-                                          <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" value="{{$user->first_name}}">
+                                          <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" value="{{$user->first_name}}" autocomplete="given-name">
                                           <!-- <small class="form-text text-muted">We'll never share your email with anyone else.</small> -->
                                         </div>
                                       </div>
                                       <div class="col-md-6">
                                         <div class="form-group">
                                           <label for="text">Last Name <span class="text-danger">*</span></label>
-                                          <input type="text" class="form-control" id="last_name" placeholder="Last Name" name="last_name" value="{{$user->last_name}}">
+                                          <input type="text" class="form-control" id="last_name" placeholder="Last Name" name="last_name" value="{{$user->last_name}}" autocomplete="family-name">
                                         </div>
                                       </div>
                                       <div class="col-md-6">
@@ -273,8 +280,8 @@
                                       </div>
                                       <div class="col-md-6">
                                         <div class="form-group">
-                                          <label for="email_id">Email</label>
-                                          <input type="text" class="form-control" id="email_id" value="{{ $user->email_id }}" placeholder="Not set" readonly disabled>
+                                          <label for="student_email_display">Email</label>
+                                          <input type="text" class="form-control" id="student_email_display" value="{{ $user->email_id }}" placeholder="Not set" readonly disabled tabindex="-1" autocomplete="off">
                                         </div>
                                       </div>
                                       <div class="col-md-6">
@@ -337,7 +344,7 @@
                                               $fatherNameValue = '';
                                             }
                                           @endphp
-                                          <input type="text" class="form-control" id="father_full_name" name="father_full_name" placeholder="Father's Name" value="{{ $fatherNameValue }}" autocomplete="off">
+                                          <input type="text" class="form-control" id="father_full_name" name="father_full_name" placeholder="Father's Name" value="{{ $fatherNameValue }}" autocomplete="off" autocapitalize="words" data-lpignore="true" data-1p-ignore="true" data-form-type="other" readonly>
                                         </div>
                                       </div>
                                      <!--  <div class="col-md-6">
@@ -371,7 +378,7 @@
                                               $motherNameValue = '';
                                             }
                                           @endphp
-                                          <input type="text" class="form-control" id="mother_full_name" placeholder="Mother's Name" name="mother_full_name" value="{{ $motherNameValue }}" autocomplete="off">
+                                          <input type="text" class="form-control" id="mother_full_name" placeholder="Mother's Name" name="mother_full_name" value="{{ $motherNameValue }}" autocomplete="off" autocapitalize="words" data-lpignore="true" data-1p-ignore="true" data-form-type="other" readonly>
                                         </div>
                                       </div>
                                       <!-- <div class="col-md-6">
@@ -454,6 +461,14 @@
                                       </div> -->
                                     </div>
 
+                                    <div class="text-center">
+                                      <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                  </form>
+
+                                  <form class="registrationForm mt-4" action="{{route('update_profile')}}" method="POST" autocomplete="off" onsubmit="return validationPasswordFun();">
+                                    @csrf
+                                    <input type="hidden" name="update_section" value="password">
                                     <div class="mt-4 mb-2">
                                       <div class="dashboardTitle" style="font-size:18px;">Change Password</div>
                                       <div class="dashboardEmail" style="font-size:13px;">Leave blank if you do not want to change your password.</div>
@@ -486,7 +501,7 @@
                                     @enderror
 
                                     <div class="text-center">
-                                      <button type="submit" class="btn btn-primary">Save</button>
+                                      <button type="submit" class="btn btn-primary">Update Password</button>
                                     </div>
                                   </form>
                               </div>
@@ -894,14 +909,18 @@
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || '').trim());
       }
 
-      function clearAutofilledPasswordsIfUnchanged() {
-        var currentPassword = document.getElementById('current_password');
-        var newPassword = document.getElementById('new_password');
-        var confirmPassword = document.getElementById('new_password_confirmation');
-        if (!currentPassword || !newPassword || !confirmPassword) return;
-        if (!newPassword.value && !confirmPassword.value) {
-          currentPassword.value = '';
-        }
+      function parentNameFields() {
+        return ['father_full_name', 'mother_full_name']
+          .map(function (id) { return document.getElementById(id); })
+          .filter(Boolean);
+      }
+
+      function stripAutofilledParentNames() {
+        parentNameFields().forEach(function (nameEl) {
+          if (looksLikeEmail(nameEl.value)) {
+            nameEl.value = '';
+          }
+        });
       }
 
       function validationFun(){
@@ -909,18 +928,11 @@
 
         var successFlag = true;
         var data = {};
-        clearAutofilledPasswordsIfUnchanged();
+        stripAutofilledParentNames();
 
         if (committedProfileFile) {
           setProfileInputFile(committedProfileFile);
         }
-
-        ['father_full_name', 'mother_full_name'].forEach(function (id) {
-          var nameEl = document.getElementById(id);
-          if (nameEl && looksLikeEmail(nameEl.value)) {
-            nameEl.value = '';
-          }
-        });
 
         data.first_name = document.getElementById('first_name').value;
         if(!data.first_name){
@@ -1121,45 +1133,65 @@
           }
         }
 
+        return successFlag;
+      }
+
+      function validationPasswordFun() {
+        var successFlag = true;
         var currentPassword = document.getElementById('current_password');
         var newPassword = document.getElementById('new_password');
         var confirmPassword = document.getElementById('new_password_confirmation');
-        if (currentPassword && newPassword && confirmPassword) {
-          [currentPassword, newPassword, confirmPassword].forEach(function (el) {
-            el.classList.remove('dangerBoader');
-          });
-          var changingPassword = newPassword.value || confirmPassword.value;
-          if (changingPassword) {
-            if (!currentPassword.value) {
-              currentPassword.classList.add('dangerBoader');
-              successFlag = false;
-            }
-            if (!newPassword.value || newPassword.value.length < 6) {
-              newPassword.classList.add('dangerBoader');
-              successFlag = false;
-            }
-            if (!confirmPassword.value || confirmPassword.value !== newPassword.value) {
-              confirmPassword.classList.add('dangerBoader');
-              successFlag = false;
-            }
-          }
+        if (!currentPassword || !newPassword || !confirmPassword) return false;
+        [currentPassword, newPassword, confirmPassword].forEach(function (el) {
+          el.classList.remove('dangerBoader');
+        });
+        if (!currentPassword.value) {
+          currentPassword.classList.add('dangerBoader');
+          successFlag = false;
         }
-
+        if (!newPassword.value || newPassword.value.length < 6) {
+          newPassword.classList.add('dangerBoader');
+          successFlag = false;
+        }
+        if (!confirmPassword.value || confirmPassword.value !== newPassword.value) {
+          confirmPassword.classList.add('dangerBoader');
+          successFlag = false;
+        }
         return successFlag;
       }
 
       $(function () {
+        parentNameFields().forEach(function (nameEl) {
+          nameEl.addEventListener('focus', function () {
+            setTimeout(function () {
+              nameEl.removeAttribute('readonly');
+            }, 350);
+          });
+          nameEl.addEventListener('input', stripAutofilledParentNames);
+          nameEl.addEventListener('change', stripAutofilledParentNames);
+          nameEl.addEventListener('animationstart', function (event) {
+            if (event.animationName === 'rp-on-autofill') {
+              stripAutofilledParentNames();
+            }
+          });
+        });
+
+        stripAutofilledParentNames();
+        var autofillTries = 0;
+        var autofillTimer = setInterval(function () {
+          stripAutofilledParentNames();
+          autofillTries += 1;
+          if (autofillTries >= 20) {
+            clearInterval(autofillTimer);
+          }
+        }, 200);
+
         setTimeout(function () {
           ['current_password', 'new_password', 'new_password_confirmation'].forEach(function (id) {
             var el = document.getElementById(id);
             if (el) el.value = '';
           });
-          ['father_full_name', 'mother_full_name'].forEach(function (id) {
-            var nameEl = document.getElementById(id);
-            if (nameEl && looksLikeEmail(nameEl.value)) {
-              nameEl.value = '';
-            }
-          });
+          stripAutofilledParentNames();
         }, 250);
       });
     </script>
