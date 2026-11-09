@@ -67,7 +67,7 @@
     <div class="col-sm-12 mt-3 d-flex gap-4">
         <label><input type="checkbox" name="is_free" value="1" @checked(old('is_free', $details->is_free ?? false))> Free package</label>
         <label><input type="checkbox" name="includes_online" value="1" @checked(old('includes_online', $details->includes_online ?? false))> Includes Online</label>
-        <label><input type="checkbox" name="includes_omr" value="1" @checked(old('includes_omr', $details->includes_omr ?? false))> Includes OMR</label>
+        <label><input type="checkbox" name="includes_omr" value="1" @checked(old('includes_omr', $details->includes_omr ?? false))> Includes Offline</label>
     </div>
     <div class="col-sm-6 mt-3">
         <label class="form-label">Status</label>
@@ -95,7 +95,7 @@
 
     <div class="col-12 mt-4">
         <h5>Fulfilment modes &amp; prices</h5>
-        <p class="text-muted small">Use <code>bundle</code> for Online+OMR included. Use <code>choose_one</code> + centre/delivery for OMR Master style pricing.</p>
+        <p class="text-muted small">Use <code>bundle</code> for Online+Offline included. Use <code>choose_one</code> + centre/delivery for Offline Master style pricing.</p>
         <div id="modesWrap">
             @foreach($modes as $idx => $m)
                 <div class="border rounded p-3 mb-3 mode-row">
@@ -124,7 +124,7 @@
                             <label><input type="checkbox" name="modes[{{ $idx }}][requires_location]" value="1" @checked(!empty($m->requires_location))> Needs centre</label>
                             <label><input type="checkbox" name="modes[{{ $idx }}][requires_address]" value="1" @checked(!empty($m->requires_address))> Needs address</label>
                             <label><input type="checkbox" name="modes[{{ $idx }}][includes_online]" value="1" @checked(!empty($m->includes_online))> Online</label>
-                            <label><input type="checkbox" name="modes[{{ $idx }}][includes_omr]" value="1" @checked(!empty($m->includes_omr))> OMR</label>
+                            <label><input type="checkbox" name="modes[{{ $idx }}][includes_omr]" value="1" @checked(!empty($m->includes_omr))> Offline</label>
                         </div>
                     </div>
                 </div>
@@ -176,7 +176,7 @@ function addMode() {
                     <label><input type="checkbox" name="modes[${i}][requires_location]" value="1"> Needs centre</label>
                     <label><input type="checkbox" name="modes[${i}][requires_address]" value="1"> Needs address</label>
                     <label><input type="checkbox" name="modes[${i}][includes_online]" value="1"> Online</label>
-                    <label><input type="checkbox" name="modes[${i}][includes_omr]" value="1"> OMR</label>
+                    <label><input type="checkbox" name="modes[${i}][includes_omr]" value="1"> Offline</label>
                 </div>
             </div>
         </div>`);

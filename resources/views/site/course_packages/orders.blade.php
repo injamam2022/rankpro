@@ -52,13 +52,15 @@
                                 <ul class="small mb-0 mt-2 ps-3">
                                     @foreach($order->orderChapters as $line)
                                         <li>
-                                            {{ $line->chapter->subject->name ?? 'Subject' }} · {{ $line->chapter->name ?? 'Chapter' }}
+                                            {{ \App\Support\CoursePackageAccess::chapterExamLabel($line->chapter) }}
                                             — ₹{{ number_format($line->price, 0) }}
                                         </li>
                                     @endforeach
                                 </ul>
                             @elseif($order->package && $order->package->code === 'chapter_master' && $order->isPaid())
-                                <div class="small mt-1">All chapters included with this purchase.</div>
+                                <div class="small mt-1 text-warning">Chapters for this purchase are not recorded yet. They will appear here after admin confirms them.</div>
+                            @elseif($order->package && $order->package->code === 'mission_720' && $order->isPaid())
+                                <div class="small mt-1">Includes full Rank Chapter Master access.</div>
                             @endif
                             @if($order->location)
                                 <div class="small mt-1"><strong>Centre:</strong> {{ $order->location->location_name }}</div>

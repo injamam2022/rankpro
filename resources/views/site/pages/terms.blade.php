@@ -1,5 +1,5 @@
 <h2>1. Introduction and Acceptance of Terms</h2>
-<p>These Terms &amp; Conditions (“Terms”) govern access to and use of Rank Pro. Rank Pro is a sister company of Shikkha Educational Advisory Solutions LLP. The Services include the Rank Pro website, online test platform, dashboards, test series, mock examinations, OMR evaluation services, performance analytics, rank prediction features, leaderboards, community features, mentorship or educational sessions where offered, and related products and services (collectively, the “Services”).</p>
+<p>These Terms &amp; Conditions (“Terms”) govern access to and use of Rank Pro. Rank Pro is a sister company of Shikkha Educational Advisory Solutions LLP. The Services include the Rank Pro website, online test platform, dashboards, test series, mock examinations, Offline evaluation services, performance analytics, rank prediction features, leaderboards, community features, mentorship or educational sessions where offered, and related products and services (collectively, the “Services”).</p>
 <p>Rank Pro, “Platform”, “we”, “our” or “us” refers to the legal entity identified in Section 17 that owns and operates the Platform. Rank Pro is a sister company of Shikkha Educational Advisory Solutions LLP.</p>
 <p>“You”, “your”, “User” or “Student” refers to an individual accessing or using the Platform. A parent or legal guardian may also interact with Rank Pro in connection with a student's account or purchase, where applicable.</p>
 <p>Before registering for, purchasing or using the relevant Services, you should review these Terms and any applicable product-specific conditions. Where required, Rank Pro will obtain your affirmative acceptance of these Terms through an appropriate electronic mechanism.</p>
@@ -56,17 +56,17 @@
 <p>The applicable test instructions and product description will specify the relevant test format, number of tests, duration, marking scheme, maximum marks and other material conditions. Students are responsible for reviewing the instructions before attempting a test.</p>
 <p>A test series may have an access period, scheduled test dates or other restrictions disclosed before purchase. Purchasing one test series does not automatically entitle a student to every test or feature available on Rank Pro.</p>
 
-<h3>3.2 Online, Centre-Based and Home OMR Tests</h3>
+<h3>3.2 Online, Centre-Based and Home Offline Tests</h3>
 <p>Depending on the purchased product, Rank Pro may provide:</p>
 <p><strong>Online tests:</strong> Tests attempted through the Platform, with results or reports made available according to the applicable service.</p>
-<p><strong>Centre-based OMR tests:</strong> Physical assessments conducted at a designated centre, where offered. Applicable venue, schedule and participation conditions will be communicated for the relevant service.</p>
-<p><strong>Home OMR test series:</strong> Physical question papers or OMR materials supplied for home practice, where included in the purchased product. Applicable dispatch, delivery, submission and evaluation arrangements will be communicated through the relevant product description or service instructions.</p>
+<p><strong>Centre-based Offline tests:</strong> Physical assessments conducted at a designated centre, where offered. Applicable venue, schedule and participation conditions will be communicated for the relevant service.</p>
+<p><strong>Home Offline test series:</strong> Physical question papers or Offline materials supplied for home practice, where included in the purchased product. Applicable dispatch, delivery, submission and evaluation arrangements will be communicated through the relevant product description or service instructions.</p>
 <p><strong>Hybrid test series:</strong> A combination of online, home-based or centre-based assessments, as specified in the purchased product.</p>
 <p>The precise combination of services, number of papers and tests, delivery arrangements and access conditions will be determined by the product description applicable at the time of purchase.</p>
 
-<h3>3.3 OMR Evaluation and Performance Reports</h3>
-<p>Rank Pro may provide digital OMR evaluation, uploaded OMR processing, test history, answer analysis and performance reports.</p>
-<p>Students must follow the applicable instructions for filling in, photographing, scanning or uploading OMR sheets.</p>
+<h3>3.3 Offline Evaluation and Performance Reports</h3>
+<p>Rank Pro may provide digital Offline evaluation, uploaded Offline processing, test history, answer analysis and performance reports.</p>
+<p>Students must follow the applicable instructions for filling in, photographing, scanning or uploading Offline sheets.</p>
 <p>Incorrectly filled, incomplete, damaged, improperly photographed or unreadable sheets may prevent accurate evaluation. Rank Pro may request a clearer submission or additional information where the service permits.</p>
 <p>Where a student believes that an evaluation contains an error, the student may contact support with the relevant test details. Rank Pro will review the issue based on the information available and the applicable service arrangements.</p>
 <p>No manual re-evaluation, replacement test or particular correction outcome is guaranteed unless required by applicable law or expressly provided under the relevant service policy.</p>
@@ -144,7 +144,7 @@
 <p>Where payment has been successfully completed but the purchased service has not been activated or supplied, Rank Pro will investigate the issue and take appropriate corrective action, including a refund where required by applicable law or the circumstances of the transaction.</p>
 
 <h3>5.4 Physical Materials and Delivery Issues</h3>
-<p>For purchases involving physical question papers, OMR sheets or other printed materials, issues relating to non-delivery, damage or incorrect fulfilment must be reported through the designated support channel with the relevant order details.</p>
+<p>For purchases involving physical question papers, Offline sheets or other printed materials, issues relating to non-delivery, damage or incorrect fulfilment must be reported through the designated support channel with the relevant order details.</p>
 <p>Rank Pro will review the circumstances and determine the appropriate corrective action in accordance with the applicable purchase terms and law. Nothing in this Section excludes a refund or other remedy required by applicable law.</p>
 
 <h3>5.5 Refund Request Procedure</h3>
@@ -222,7 +222,7 @@
 
 <h2>10. Privacy and Data Protection</h2>
 <p>Rank Pro collects and processes personal information in connection with account registration, test participation, evaluation, performance analytics, purchases, customer support, platform security and the delivery of its services, in accordance with its <a href="{{ route('privacy') }}">Privacy Policy</a> and applicable law.</p>
-<p>Depending on the services used, information may include account and contact details, academic information, test responses, scores, OMR submissions, purchase records, support communications and relevant technical information.</p>
+<p>Depending on the services used, information may include account and contact details, academic information, test responses, scores, Offline submissions, purchase records, support communications and relevant technical information.</p>
 <p>Users should review the Rank Pro <a href="{{ route('privacy') }}">Privacy Policy</a> for details of the categories of information collected, purposes of processing, relevant service providers, retention practices and available privacy rights.</p>
 
 <h3>10.1 Use of Student Data and Performance Information</h3>
@@ -278,11 +278,11 @@
 
 <h3>11.2 Student's Technical Responsibilities</h3>
 <p>Students are responsible for maintaining a compatible device, suitable internet connectivity, supported software and any other technical requirements communicated for the relevant service.</p>
-<p>Students must follow the applicable test instructions and take reasonable steps to ensure that their devices, connectivity and software are suitable before beginning a test or uploading an OMR sheet.</p>
+<p>Students must follow the applicable test instructions and take reasonable steps to ensure that their devices, connectivity and software are suitable before beginning a test or uploading an Offline sheet.</p>
 <p>Technical difficulties arising from a student's device, internet connection, unsupported software, incorrect usage or failure to follow instructions will not automatically entitle the student to a retest, extension, score adjustment or refund, subject to applicable law.</p>
 
 <h3>11.3 Technical Issues and Reporting</h3>
-<p>Where a technical issue affects a test attempt, score, OMR upload, payment or booked session, the student must report the issue through the designated support channel as soon as reasonably practicable.</p>
+<p>Where a technical issue affects a test attempt, score, Offline upload, payment or booked session, the student must report the issue through the designated support channel as soon as reasonably practicable.</p>
 <p>The student should provide relevant information, which may include the test or order reference, the time of the incident, a description of the problem and supporting screenshots or other evidence, where available.</p>
 <p>Rank Pro may request additional information reasonably necessary to verify the issue and investigate its cause.</p>
 

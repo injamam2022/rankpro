@@ -964,7 +964,7 @@ class StudentsController extends Controller
             ->limit(40)
             ->get()
             ->map(function ($row) {
-                $mode = ((int) $row->type === 2) ? 'OMR' : 'CBT';
+                $mode = ((int) $row->type === 2) ? 'Offline' : 'CBT';
                 $label = trim(($row->name ?: 'Mock').($row->exam_code ? ' · '.$row->exam_code : '').' ('.$mode.')');
                 return ['id' => $row->id, 'label' => $label];
             })

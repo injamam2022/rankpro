@@ -54,7 +54,7 @@ class CoursePackageController extends Controller
             $chapterMasterLegacy = Auth::check() && CoursePackageAccess::chapterMasterLegacyFull();
             if (!$chapterMasterLegacy) {
                 $ownedIds = Auth::check() ? CoursePackageAccess::ownedChapterIds() : [];
-                $chapterGroups = CoursePackageAccess::chapterCatalog($ownedIds);
+                $chapterGroups = CoursePackageAccess::chapterCatalog($ownedIds, true);
                 foreach ($chapterGroups as $group) {
                     foreach ($group['chapters'] as $chapter) {
                         if (!$chapter['owned']) {
@@ -110,6 +110,7 @@ class CoursePackageController extends Controller
                     ->with('error', $picked['error']);
             }
             $lineChapters = $picked['chapters'];
+            session(['cm_checkout_chapter_ids' => $lineChapters->pluck('id')->map(fn ($id) => (int) $id)->all()]);
         }
 
         // Prefer config (works with config:cache). Fall back to env for uncached local/dev.
@@ -241,6 +242,7 @@ class CoursePackageController extends Controller
 
                 return $order;
             });
+            session()->forget('cm_checkout_chapter_ids');
         } catch (QueryException $e) {
             if ($package->code === 'chapter_master') {
                 return response()->json([
@@ -345,8 +347,12 @@ class CoursePackageController extends Controller
     private function chapterMasterSelection(Request $request): array
     {
         $raw = $request->input('chapter_ids', []);
-        if (!is_array($raw)) {
-            $raw = preg_split('/\s*,\s*/', (string) $raw) ?: [];
+        if (!is_array($raw) || $raw === []) {
+            $csv = (string) $request->input('chapter_ids_csv', '');
+            $raw = $csv !== '' ? preg_split('/\s*,\s*/', $csv) : [];
+        }
+        if ((!is_array($raw) || $raw === []) && $request->hasSession()) {
+            $raw = (array) $request->session()->get('cm_checkout_chapter_ids', []);
         }
 
         $ids = array_values(array_unique(array_filter(array_map('intval', $raw))));

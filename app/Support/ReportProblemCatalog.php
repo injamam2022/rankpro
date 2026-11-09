@@ -23,9 +23,9 @@ class ReportProblemCatalog
             ],
             [
                 'id' => 'faq-3',
-                'category' => 'OMR vs Online CBT',
-                'question' => 'What is the difference between Online CBT and Offline OMR mock modes?',
-                'answer' => 'Online CBT mode simulates digital test practice with instantaneous bubbling and timer alarms. Offline OMR mode simulates the physical NTA exam hall experience where you print or bubble the 200-question circular response sheet, training your manual bubbling speed (~12 mins cost).',
+                'category' => 'Offline vs Online CBT',
+                'question' => 'What is the difference between Online CBT and Offline mock modes?',
+                'answer' => 'Online CBT mode simulates digital test practice with instantaneous bubbling and timer alarms. Offline mode simulates the physical NTA exam hall experience where you print or bubble the 200-question circular response sheet, training your manual bubbling speed (~12 mins cost).',
                 'helpful' => 185,
             ],
             [
@@ -58,7 +58,7 @@ class ReportProblemCatalog
             'All',
             'Mock Exam Simulation & CBT',
             'Scoring & Negative Marking',
-            'OMR vs Online CBT',
+            'Offline vs Online CBT',
         ];
     }
 
@@ -70,7 +70,7 @@ class ReportProblemCatalog
                 'Question Diagram / Image Not Displaying',
                 'Answer Option Selection Not Registering',
                 'Accidental or Premature Auto-Submission',
-                'OMR Response Sheet Bubble Discrepancy',
+                'Offline Response Sheet Bubble Discrepancy',
             ],
             'Question & Solution Discrepancy' => [
                 'Wrong Correct Option in Official Answer Key',

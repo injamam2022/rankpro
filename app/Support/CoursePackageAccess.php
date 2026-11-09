@@ -43,14 +43,35 @@ class CoursePackageAccess
 
     public static function hasChapterMaster(?int $userId = null): bool
     {
-        return self::chapterMasterLegacyFull($userId) || count(self::ownedChapterIds($userId)) > 0;
+        return self::chapterMasterFullAccess($userId) || count(self::ownedChapterIds($userId)) > 0;
     }
 
     /**
-     * Orders placed before per-chapter checkout have no chapter rows.
-     * Those buyers keep every chapter.
+     * Entire Chapter Master (every PCB chapter):
+     * Rank Pro Mission 720, or an admin grant of Chapter Master.
+     * A ₹49 Chapter Master order only unlocks the chapters on that order.
      */
+    public static function chapterMasterFullAccess(?int $userId = null): bool
+    {
+        $userId = $userId ?: Auth::id();
+        if (!$userId) {
+            return false;
+        }
+
+        if (self::hasPackage('mission_720', $userId)) {
+            return true;
+        }
+
+        return self::adminGrantedFullChapterMaster($userId);
+    }
+
+    /** @deprecated Use chapterMasterFullAccess() */
     public static function chapterMasterLegacyFull(?int $userId = null): bool
+    {
+        return self::chapterMasterFullAccess($userId);
+    }
+
+    public static function adminGrantedFullChapterMaster(?int $userId = null): bool
     {
         $userId = $userId ?: Auth::id();
         if (!$userId) {
@@ -62,7 +83,78 @@ class CoursePackageAccess
             ->whereIn('payment_status', ['SUCCESS', 'FREE'])
             ->whereHas('package', fn ($q) => $q->where('code', 'chapter_master')->where('status', 1))
             ->whereDoesntHave('orderChapters')
+            ->where(function ($q) {
+                $q->where('payment_status', 'FREE')
+                    ->orWhere('transaction_id', 'ADMIN-GRANT')
+                    ->orWhere('final_amount', '<=', 0);
+            })
             ->exists();
+    }
+
+    /** Paid Chapter Master order that never stored the chapters they picked. */
+    public static function pendingChapterMasterOrder(?int $userId = null): ?CoursePackageOrder
+    {
+        $userId = $userId ?: Auth::id();
+        if (!$userId || self::chapterMasterFullAccess($userId)) {
+            return null;
+        }
+
+        return CoursePackageOrder::query()
+            ->with('package')
+            ->where('user_id', $userId)
+            ->whereIn('payment_status', ['SUCCESS', 'FREE'])
+            ->whereHas('package', fn ($q) => $q->where('code', 'chapter_master')->where('status', 1))
+            ->whereDoesntHave('orderChapters')
+            ->latest('id')
+            ->first();
+    }
+
+    public static function chapterMasterFullSource(?int $userId = null): ?string
+    {
+        $userId = $userId ?: Auth::id();
+        if (!$userId) {
+            return null;
+        }
+        if (self::hasPackage('mission_720', $userId)) {
+            return 'mission_720';
+        }
+        if (self::adminGrantedFullChapterMaster($userId)) {
+            return 'admin';
+        }
+
+        return null;
+    }
+
+    public static function chapterExamLabel($chapter): string
+    {
+        if (!$chapter) {
+            return 'Chapter';
+        }
+        $name = $chapter->name ?? 'Chapter';
+        $level = (int) ($chapter->class_level ?? 0);
+        if ($level === 11) {
+            $name .= ' (Class 11)';
+        } elseif ($level === 12) {
+            $name .= ' (Class 12)';
+        }
+        $subject = $chapter->subject->name ?? 'Subject';
+
+        return $subject.' · '.$name;
+    }
+
+    public static function ownedChapterRows(?int $userId = null)
+    {
+        $userId = $userId ?: Auth::id();
+        if (!$userId) {
+            return collect();
+        }
+
+        return CoursePackageOrderChapter::query()
+            ->with(['chapter.subject'])
+            ->where('user_id', $userId)
+            ->whereHas('order', fn ($q) => $q->whereIn('payment_status', ['SUCCESS', 'FREE']))
+            ->orderBy('id')
+            ->get();
     }
 
     public static function ownedChapterIds(?int $userId = null): array
@@ -87,7 +179,7 @@ class CoursePackageAccess
         if ($chapterId < 1) {
             return false;
         }
-        if (self::chapterMasterLegacyFull($userId)) {
+        if (self::chapterMasterFullAccess($userId)) {
             return true;
         }
 
@@ -99,7 +191,7 @@ class CoursePackageAccess
      *
      * @param  array<int>  $ownedIds
      */
-    public static function chapterCatalog(array $ownedIds = []): array
+    public static function chapterCatalog(array $ownedIds = [], bool $examReadyOnly = false): array
     {
         $ownedLookup = array_flip($ownedIds);
         $hasClass = Schema::hasColumn('chapters', 'class_level');
@@ -129,7 +221,7 @@ class CoursePackageAccess
 
         $bySubject = $chapters->groupBy('subject_id');
 
-        return $subjects->map(function ($subject) use ($bySubject, $ownedLookup) {
+        return $subjects->map(function ($subject) use ($bySubject, $ownedLookup, $examReadyOnly) {
             $rows = ($bySubject->get($subject->id) ?? collect())->map(function ($chapter) use ($ownedLookup) {
                 $name = $chapter->name;
                 $level = (int) ($chapter->class_level ?? 0);
@@ -145,6 +237,8 @@ class CoursePackageAccess
                     'questions' => \App\Models\Question_source::chapterMasterDisplayCount((int) $chapter->id),
                     'owned' => isset($ownedLookup[(int) $chapter->id]),
                 ];
+            })->when($examReadyOnly, function ($rows) {
+                return $rows->filter(fn ($chapter) => $chapter['owned'] || $chapter['questions'] > 0);
             })->values()->all();
 
             return [
@@ -250,14 +344,25 @@ class CoursePackageAccess
             return null;
         }
 
-        if ($package->code === 'chapter_master' && self::chapterMasterLegacyFull($userId)) {
-            return CoursePackageOrder::query()
+        if ($package->code === 'chapter_master' && self::chapterMasterFullAccess($userId)) {
+            $existing = CoursePackageOrder::query()
                 ->where('user_id', $userId)
                 ->whereIn('payment_status', ['SUCCESS', 'FREE'])
                 ->where('course_package_id', $package->id)
                 ->whereDoesntHave('orderChapters')
                 ->latest('id')
                 ->first();
+            if ($existing) {
+                return $existing;
+            }
+            if (self::hasPackage('mission_720', $userId)) {
+                return CoursePackageOrder::query()
+                    ->where('user_id', $userId)
+                    ->whereIn('payment_status', ['SUCCESS', 'FREE'])
+                    ->whereHas('package', fn ($q) => $q->where('code', 'mission_720'))
+                    ->latest('id')
+                    ->first();
+            }
         }
 
         if ($package->code !== 'chapter_master' && self::hasPackage($package->code, $userId)) {
@@ -401,13 +506,7 @@ class CoursePackageAccess
             return false;
         }
 
-        return CoursePackageOrder::query()
-            ->where('user_id', $userId)
-            ->whereIn('payment_status', ['SUCCESS', 'FREE'])
-            ->whereHas('package', function ($q) {
-                $q->whereIn('code', self::onlinePracticeCodes())->where('status', 1);
-            })
-            ->exists();
+        return self::hasChapterMaster($userId);
     }
 
     public static function hasAnyPremiumPackage(?int $userId = null): bool

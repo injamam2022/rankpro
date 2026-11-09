@@ -102,7 +102,7 @@ class Upcoming_examController extends Controller
         }
         $value->difficulty_label = !empty($value->is_proctored) ? 'Advanced Challenger' : 'NTA Standard';
         $value->series_label = ((int) ($value->type ?? 0) === 2)
-            ? 'RANKPRO OFFLINE OMR SERIES'
+            ? 'RANKPRO OFFLINE SERIES'
             : 'RANKPRO NEET ELITE SERIES 2027';
     }
 

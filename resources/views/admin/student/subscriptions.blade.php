@@ -24,13 +24,27 @@
                     <div class="col-md-6">
                         <label class="d-block border rounded-3 p-3 h-100" style="cursor:pointer;">
                             <div class="d-flex align-items-start gap-2">
-                                <input type="checkbox" name="packages[]" value="{{ $package->code }}" class="mt-1" @checked($state['has'])>
+                                <input type="checkbox" name="packages[]" value="{{ $package->code }}" class="mt-1"
+                                       @checked($state['has'] || !empty($state['included']))
+                                       @disabled(!empty($state['included']) && $package->code === 'chapter_master')>
                                 <div>
                                     <div class="fw-semibold">{{ $package->name }}</div>
                                     <div class="small text-muted">{{ $package->tagline }}</div>
                                     <div class="small mt-1">
-                                        <span class="badge {{ $state['has'] ? 'bg-success' : 'bg-light text-dark border' }}">{{ $state['label'] }}</span>
+                                        <span class="badge {{ ($state['has'] || !empty($state['included'])) ? 'bg-success' : 'bg-light text-dark border' }}">{{ $state['label'] }}</span>
                                     </div>
+                                    @if($package->code === 'mission_720' && $state['has'])
+                                        <div class="small text-muted mt-1">Unlocks entire Rank Chapter Master for this student.</div>
+                                    @endif
+                                    @if(!empty($state['included']))
+                                        <div class="small text-muted mt-1">Entire Chapter Master is enabled with Rank Pro Mission 720.</div>
+                                    @elseif(($state['chapters'] ?? collect())->count())
+                                        <ul class="small mb-0 mt-2 ps-3">
+                                            @foreach($state['chapters'] as $line)
+                                                <li>{{ \App\Support\CoursePackageAccess::chapterExamLabel($line->chapter) }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
                                 </div>
                             </div>
                         </label>

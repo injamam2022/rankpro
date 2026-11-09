@@ -53,7 +53,14 @@
             <div class="rounded-3 d-grid place-items-center text-white" style="width:42px;height:42px;background:{{ $meta['color'] }};place-items:center;display:grid"><i class="{{ $meta['icon'] }}"></i></div>
             <div>
               <div class="fw-semibold" style="font-size:1.2rem">{{ $subject->name }}</div>
-              <div class="small text-muted">Chapter Question sets only · up to {{ $questionsPerChapter }} Qs / purchased chapter</div>
+              <div class="small text-muted">
+                @if(!empty($fullAccess))
+                  Full Chapter Master access · up to {{ $questionsPerChapter }} Qs / chapter
+                @else
+                  Only chapters you purchased · up to {{ $questionsPerChapter }} Qs / chapter
+                  · <a href="{{ $chapterBuyUrl }}">Add more</a>
+                @endif
+              </div>
             </div>
           </div>
 
@@ -156,7 +163,13 @@
       }
       html += '</div></div>';
     });
-    listEl.innerHTML = shown ? html : '<div class="cm-empty">No chapters match your search.</div>';
+    if (!shown) {
+      listEl.innerHTML = q
+        ? '<div class="cm-empty">No chapters match your search.</div>'
+        : '<div class="cm-empty">No purchased chapters in this subject. <a href="'+buyUrl+'">Add chapters</a></div>';
+      return;
+    }
+    listEl.innerHTML = html;
   }
 
   listEl.addEventListener('click', function (e) {

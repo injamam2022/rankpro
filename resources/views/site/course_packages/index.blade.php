@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    @include('site.include.seo', ['override' => ['title' => 'Course Packages | RankPro', 'description' => 'NEET test series packages — Online, Centre OMR, and Home Delivery.']])
+    @include('site.include.seo', ['override' => ['title' => 'Course Packages | RankPro', 'description' => 'NEET test series packages — Online, Centre Offline, and Home Delivery.']])
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <link rel="shortcut icon" href="{{ asset('') }}web/images/favicon.ico" type="image/x-icon">
@@ -72,7 +72,7 @@
                         <div class="cpg-card__badges">
                             @if($package->is_free)<span class="cpg-chip cpg-chip--free">Free</span>@endif
                             @if($package->includes_online)<span class="cpg-chip">Online</span>@endif
-                            @if($package->includes_omr)<span class="cpg-chip cpg-chip--omr">OMR</span>@endif
+                            @if($package->includes_omr)<span class="cpg-chip cpg-chip--omr">Offline</span>@endif
                             @if($package->mode_selection === 'choose_one')<span class="cpg-chip cpg-chip--choose">Centre or Home</span>@endif
                         </div>
                     </div>

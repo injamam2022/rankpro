@@ -47,7 +47,7 @@
                 <div class="cpg-card__badges mb-3">
                     @if($package->is_free)<span class="cpg-chip cpg-chip--free">Free</span>@endif
                     @if($package->includes_online)<span class="cpg-chip">Online</span>@endif
-                    @if($package->includes_omr)<span class="cpg-chip cpg-chip--omr">OMR</span>@endif
+                    @if($package->includes_omr)<span class="cpg-chip cpg-chip--omr">Offline</span>@endif
                     @if($package->mode_selection === 'choose_one')<span class="cpg-chip cpg-chip--choose">Centre or Home</span>@endif
                 </div>
                 <h1 class="cpg-detail__name">{{ $package->name }}</h1>
@@ -63,9 +63,13 @@
                     @endforeach
                 </ul>
 
+                @if($package->code === 'mission_720')
+                    <p class="cpg-cart-hint">This package unlocks <strong>entire Rank Chapter Master</strong> — every Physics, Chemistry and Biology chapter exam — plus the Mission 720 series tests.</p>
+                @endif
+
                 @if($package->code === 'chapter_master' && !$chapterMasterLegacy)
                     <h2 class="cpg-detail__section-title">Choose chapters</h2>
-                    <p class="cpg-cart-hint">₹{{ number_format($chapterUnitPrice, 0) }} per chapter. Select up to {{ \App\Support\CoursePackageAccess::CHAPTER_PICK_LIMIT }} chapters in this payment. You can buy more later. Chapters you already own stay unlocked.</p>
+                    <p class="cpg-cart-hint">₹{{ number_format($chapterUnitPrice, 0) }} per chapter. Select up to {{ \App\Support\CoursePackageAccess::CHAPTER_PICK_LIMIT }} chapters to give exam. After payment those chapters open on your dashboard and on the admin order automatically.</p>
                     @if(count($chapterGroups))
                         <div class="cpg-cart-search">
                             <i class="fas fa-search"></i>

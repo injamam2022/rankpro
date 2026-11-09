@@ -70,10 +70,12 @@ class StudentController extends Controller
         foreach ($packages as $package) {
             $want = in_array($package->code, $selected, true);
             $has = $this->subscriptionState($user->id, $package)['has'];
+            $keepChapterMaster = $package->code === 'chapter_master'
+                && in_array('mission_720', $selected, true);
             if ($want && !$has) {
                 CoursePackageAccess::grantOnlineAccess((int) $user->id, $package);
                 $granted[] = $package->name;
-            } elseif (!$want && $has) {
+            } elseif (!$want && $has && !$keepChapterMaster) {
                 CoursePackageAccess::revokeOnlineAccess((int) $user->id, $package);
                 $revoked[] = $package->name;
             }
@@ -100,14 +102,25 @@ class StudentController extends Controller
             ->get();
 
         if ($package->code === 'chapter_master') {
-            $full = CoursePackageAccess::chapterMasterLegacyFull($userId);
-            $chapterCount = count(CoursePackageAccess::ownedChapterIds($userId));
+            $fromMission = CoursePackageAccess::hasPackage('mission_720', $userId);
+            $adminFull = CoursePackageAccess::adminGrantedFullChapterMaster($userId);
+            $chapterRows = CoursePackageAccess::ownedChapterRows($userId);
+            $chapterCount = $chapterRows->count();
+
+            $label = 'Not assigned';
+            if ($fromMission) {
+                $label = 'Full access (included with Rank Pro Mission 720)';
+            } elseif ($adminFull) {
+                $label = $orders->contains('transaction_id', 'ADMIN-GRANT') ? 'Full access (admin)' : 'Full access';
+            } elseif ($chapterCount > 0) {
+                $label = $chapterCount.' chapter'.($chapterCount === 1 ? '' : 's').' purchased';
+            }
 
             return [
-                'has' => $full,
-                'label' => $full
-                    ? ($orders->contains('transaction_id', 'ADMIN-GRANT') ? 'Full access (admin)' : 'Full access')
-                    : ($chapterCount > 0 ? $chapterCount.' chapter'.($chapterCount === 1 ? '' : 's').' purchased' : 'Not assigned'),
+                'has' => $adminFull,
+                'included' => $fromMission,
+                'label' => $label,
+                'chapters' => $fromMission || $adminFull ? collect() : $chapterRows,
             ];
         }
 

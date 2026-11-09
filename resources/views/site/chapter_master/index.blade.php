@@ -45,23 +45,32 @@
 
           <div class="dashboardTitle mb-1">Rank <span>Chapter Master</span></div>
           @include('site.include.series_package_tabs')
-          <p class="text-muted mb-3">Tests use <strong>premium questions only</strong> (up to {{ $questionsPerChapter }} per chapter you purchased).
-            @if(!empty($legacyFull))
+          <p class="text-muted mb-3">Tests use <strong>premium questions only</strong> (up to {{ $questionsPerChapter }} per chapter).
+            @if(!empty($fullAccess) && ($fullAccessSource ?? '') === 'mission_720')
+              Rank Pro Mission 720 has unlocked every Chapter Master exam.
+            @elseif(!empty($fullAccess))
               You have full chapter access.
             @else
-              {{ (int) ($ownedChapterCount ?? 0) }} chapter{{ (int) ($ownedChapterCount ?? 0) === 1 ? '' : 's' }} unlocked.
-              <a href="{{ route('course_packages.show', 'rank-chapter-master') }}">Add chapters</a>
+              Showing only the {{ (int) ($ownedChapterCount ?? 0) }} chapter{{ (int) ($ownedChapterCount ?? 0) === 1 ? '' : 's' }} you purchased.
+              <a href="{{ route('course_packages.show', 'rank-chapter-master') }}">Add more chapters</a>
             @endif
           </p>
 
-          @foreach($subjects as $card)
+          @forelse($subjects as $card)
             @php $s = $card['subject']; @endphp
             <a class="cm-card" href="{{ route('chapter_master.subject', $s->id) }}">
               <div class="cm-icon" style="background:{{ $card['meta']['color'] }}"><i class="{{ $card['meta']['icon'] }}"></i></div>
               <div class="flex-grow-1">
                 <div class="fw-semibold">{{ $s->name }}</div>
                 <div class="small text-muted">
-                  {{ $card['chapters_ready'] }} chapter{{ $card['chapters_ready'] == 1 ? '' : 's' }} ready · {{ $card['available'] }} chapter Qs
+                  @if(!empty($fullAccess))
+                    {{ $card['chapters_ready'] }} chapter{{ $card['chapters_ready'] == 1 ? '' : 's' }} ready · {{ $card['available'] }} chapter Qs
+                  @else
+                    {{ $card['owned_count'] }} purchased chapter{{ $card['owned_count'] == 1 ? '' : 's' }}
+                    @if($card['chapters_ready'])
+                      · {{ $card['chapters_ready'] }} ready · {{ $card['available'] }} chapter Qs
+                    @endif
+                  @endif
                 </div>
               </div>
               @if($card['ready'])
@@ -71,7 +80,11 @@
               @endif
               <i class="fas fa-chevron-right text-muted"></i>
             </a>
-          @endforeach
+          @empty
+            <div class="alert alert-light border">No purchased chapters to show yet.
+              <a href="{{ route('course_packages.show', 'rank-chapter-master') }}">Choose chapters</a>
+            </div>
+          @endforelse
 
           @if($attempts->count())
             <h5 class="mt-4 mb-3">Recent chapter tests</h5>

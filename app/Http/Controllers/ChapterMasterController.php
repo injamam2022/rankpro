@@ -48,19 +48,33 @@ class ChapterMasterController extends Controller
             ] + $tabState);
         }
 
-        $subjects = $this->activeSubjects()->map(function (Subject $subject) {
+        $fullAccess = CoursePackageAccess::chapterMasterFullAccess();
+        $ownedIds = $fullAccess ? [] : CoursePackageAccess::ownedChapterIds();
+
+        $subjects = $this->activeSubjects()->map(function (Subject $subject) use ($fullAccess, $ownedIds) {
             $key = strtolower($subject->name);
-            $available = $this->premiumCount((int) $subject->id);
-            $chaptersReady = $this->chaptersWithPremium((int) $subject->id);
+            $chapterIds = Chapter::where('subject_id', $subject->id)->where('status', 1)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id);
+            if (!$fullAccess) {
+                $chapterIds = $chapterIds->filter(fn ($id) => in_array($id, $ownedIds, true))->values();
+            }
+
+            $chaptersReady = (int) $chapterIds
+                ->filter(fn ($id) => Question_source::chapterMasterDisplayCount($id, self::QUESTIONS_PER_CHAPTER) > 0)
+                ->count();
+            $available = (int) $chapterIds
+                ->sum(fn ($id) => Question_source::chapterMasterDisplayCount($id, self::QUESTIONS_PER_CHAPTER));
 
             return [
                 'subject' => $subject,
                 'meta' => $this->subjectIcons[$key] ?? ['color' => '#5b4bb7', 'icon' => 'fas fa-book'],
                 'available' => $available,
                 'chapters_ready' => $chaptersReady,
-                'ready' => $available > 0,
+                'owned_count' => $chapterIds->count(),
+                'ready' => $chaptersReady > 0,
             ];
-        });
+        })->filter(fn ($card) => $fullAccess || $card['owned_count'] > 0)->values();
 
         $attempts = CustomTest::with('examUser')
             ->where('user_id', Auth::id())
@@ -69,14 +83,14 @@ class ChapterMasterController extends Controller
             ->limit(12)
             ->get();
 
-        $legacyFull = CoursePackageAccess::chapterMasterLegacyFull();
-
         return view('site.chapter_master.index', [
             'subjects' => $subjects,
             'attempts' => $attempts,
             'questionsPerChapter' => self::QUESTIONS_PER_CHAPTER,
-            'legacyFull' => $legacyFull,
-            'ownedChapterCount' => $legacyFull ? null : count(CoursePackageAccess::ownedChapterIds()),
+            'legacyFull' => $fullAccess,
+            'fullAccess' => $fullAccess,
+            'fullAccessSource' => CoursePackageAccess::chapterMasterFullSource(),
+            'ownedChapterCount' => $fullAccess ? null : count($ownedIds),
             'activePackageTab' => 'chapter_master',
         ] + $tabState);
     }
@@ -89,6 +103,18 @@ class ChapterMasterController extends Controller
         }
 
         $subject = Subject::where('id', $subjectId)->where('status', 1)->firstOrFail();
+        $fullAccess = CoursePackageAccess::chapterMasterFullAccess();
+        if (!$fullAccess) {
+            $ownedInSubject = Chapter::where('subject_id', $subject->id)
+                ->where('status', 1)
+                ->whereIn('id', CoursePackageAccess::ownedChapterIds())
+                ->exists();
+            if (!$ownedInSubject) {
+                return redirect()->route('chapter_master')
+                    ->with('error', 'You have not purchased chapters in this subject yet.');
+            }
+        }
+
         $key = strtolower($subject->name);
         $buyPackage = CoursePackageAccess::chapterMasterPackage();
 
@@ -96,6 +122,7 @@ class ChapterMasterController extends Controller
             'subject' => $subject,
             'meta' => $this->subjectIcons[$key] ?? ['color' => '#5b4bb7', 'icon' => 'fas fa-book'],
             'questionsPerChapter' => self::QUESTIONS_PER_CHAPTER,
+            'fullAccess' => $fullAccess,
             'chapterBuyUrl' => $buyPackage
                 ? route('course_packages.show', $buyPackage->slug)
                 : route('course_packages'),
@@ -144,10 +171,14 @@ class ChapterMasterController extends Controller
             ->pluck('total', 'topic_id');
 
         $topicsByChapter = $topics->groupBy('chapter_id');
-        $legacyFull = CoursePackageAccess::chapterMasterLegacyFull();
-        $ownedLookup = $legacyFull ? [] : array_flip(CoursePackageAccess::ownedChapterIds());
+        $fullAccess = CoursePackageAccess::chapterMasterFullAccess();
+        $ownedLookup = $fullAccess ? [] : array_flip(CoursePackageAccess::ownedChapterIds());
 
-        $payload = $chapters->map(function ($chapter) use ($topicsByChapter, $topicCounts, $legacyFull, $ownedLookup) {
+        if (!$fullAccess) {
+            $chapters = $chapters->filter(fn ($chapter) => isset($ownedLookup[(int) $chapter->id]))->values();
+        }
+
+        $payload = $chapters->map(function ($chapter) use ($topicsByChapter, $topicCounts) {
             $chapterTopics = ($topicsByChapter->get($chapter->id) ?? collect())->map(function ($topic) use ($topicCounts) {
                 $q = (int) ($topicCounts[$topic->id] ?? 0);
                 return [
@@ -165,7 +196,7 @@ class ChapterMasterController extends Controller
                 'name' => $chapter->name,
                 'questions' => $chapterQuestions,
                 'coming_soon' => $chapterQuestions < 1,
-                'owned' => $legacyFull || isset($ownedLookup[(int) $chapter->id]),
+                'owned' => true,
                 'topics' => $chapterTopics,
             ];
         })->values();
@@ -174,6 +205,7 @@ class ChapterMasterController extends Controller
             'subject' => ['id' => $subject->id, 'name' => $subject->name],
             'chapters' => $payload,
             'target_questions' => self::QUESTIONS_PER_CHAPTER,
+            'full_access' => $fullAccess,
         ]);
     }
 

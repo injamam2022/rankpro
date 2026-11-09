@@ -93,13 +93,13 @@
             <div class="pr-card__head">
                 <div class="pr-card__title">
                     <i class="fas fa-flask"></i>
-                    Online CBT vs Offline OMR Comparative Matrix
+                    Online CBT vs Offline Comparative Matrix
                 </div>
                 <span class="pr-pill pr-pill--purple">Exam Format Analysis</span>
             </div>
             <div class="pr-matrix">
                 @foreach([$online, $offline] as $mode)
-                    <div class="pr-mode {{ ($mode['title'] ?? '') === 'Offline OMR' ? 'pr-mode--omr' : 'pr-mode--cbt' }}">
+                    <div class="pr-mode {{ ($mode['title'] ?? '') === 'Offline' ? 'pr-mode--omr' : 'pr-mode--cbt' }}">
                         <div class="pr-mode__head">
                             <strong>{{ $mode['title'] ?? '' }}</strong>
                             <span>{{ $mode['badge'] ?? '' }}</span>

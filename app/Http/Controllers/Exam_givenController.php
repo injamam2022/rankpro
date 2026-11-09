@@ -672,7 +672,7 @@ class Exam_givenController extends Controller
         }
 
         $data['questions'] = $payload;
-        $data['exam_mode_label'] = ((int) $data['exam_user']->type === 2) ? 'Offline OMR' : 'Online CBT';
+        $data['exam_mode_label'] = ((int) $data['exam_user']->type === 2) ? 'Offline' : 'Online CBT';
         $data['back_url'] = route('common_confusion', array_filter([
             'exam_type' => $data['exam_type'],
             'subject_id' => $data['subject_id'],

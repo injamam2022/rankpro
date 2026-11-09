@@ -219,13 +219,10 @@
                                         <option value="">Select package first</option>
                                     </select>
                                 </div>
-                                <div class="col-md-5">
-                                    <label class="form-label">Available from <span class="text-danger">*</span></label>
-                                    <input type="datetime-local" name="available_from" id="paper_assign_available_from" class="form-control" required>
-                                </div>
-                                <div class="col-md-5">
-                                    <label class="form-label">Available until <span class="text-danger">*</span></label>
-                                    <input type="datetime-local" name="available_until" id="paper_assign_available_until" class="form-control" required>
+                                <div class="col-md-4">
+                                    <label class="form-label">Available from</label>
+                                    <input type="date" name="available_from" id="paper_assign_available_from" class="form-control">
+                                    <div class="form-text">Auto-filled from the scheduled test. Change it if you want another open date.</div>
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">Assign</button>
@@ -269,7 +266,6 @@
     var packageEl = document.getElementById('paper_assign_package_id');
     var scheduleEl = document.getElementById('paper_assign_schedule_id');
     var fromEl = document.getElementById('paper_assign_available_from');
-    var untilEl = document.getElementById('paper_assign_available_until');
     if (!packageEl || !scheduleEl) return;
     var schedulesUrl = @json(route('admin.course_package.exam_assignments.schedules'));
     var scheduleMeta = {};
@@ -307,14 +303,12 @@
 
     scheduleEl.addEventListener('change', function () {
         var row = scheduleMeta[String(this.value)];
-        if (!row || !fromEl || !untilEl) return;
-        if (row.suggested_from) fromEl.value = row.suggested_from;
-        if (row.suggested_until) untilEl.value = row.suggested_until;
+        if (!row || !fromEl) return;
+        fromEl.value = row.suggested_from || row.test_date || '';
     });
 
     packageEl.addEventListener('change', function () {
         if (fromEl) fromEl.value = '';
-        if (untilEl) untilEl.value = '';
         loadSchedules(this.value);
     });
 })();

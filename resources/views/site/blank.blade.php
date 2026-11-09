@@ -115,7 +115,7 @@
                                                     <th>Topics</th>
                                                     <th>Rank</th>
                                                     <th>Score</th>
-                                                    <th>OMR</th>
+                                                    <th>Offline</th>
                                                 </tr>
                                             </thead>
                                 
@@ -246,7 +246,7 @@
                                                     <th>Topics</th>
                                                     <th>Rank</th>
                                                     <th>Score</th>
-                                                    <th>OMR</th>
+                                                    <th>Offline</th>
                                                 </tr>
                                             </thead>
                                 

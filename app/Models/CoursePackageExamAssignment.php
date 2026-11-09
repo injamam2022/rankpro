@@ -41,53 +41,43 @@ class CoursePackageExamAssignment extends Model
         return $query->where('status', 1);
     }
 
-    /** Paper can be started by purchasers right now. */
+    /** Paper can be started by purchasers from the exam date onward. */
     public function isAvailableNow(?Carbon $at = null): bool
     {
-        $at = $at ?: now();
-
-        if ($this->available_from && $at->lt($this->available_from)) {
-            return false;
-        }
-
-        if ($this->available_until && $at->gt($this->available_until)) {
-            return false;
-        }
-
-        return true;
+        return $this->windowStatus($at) === 'available';
     }
 
-    /** upcoming | available | expired */
+    /** upcoming | available */
     public function windowStatus(?Carbon $at = null): string
     {
-        $at = $at ?: now();
+        $at = ($at ?: now())->copy()->startOfDay();
+        $from = $this->examDate();
 
-        if ($this->available_from && $at->lt($this->available_from)) {
+        if ($from && $at->lt($from)) {
             return 'upcoming';
-        }
-
-        if ($this->available_until && $at->gt($this->available_until)) {
-            return 'expired';
         }
 
         return 'available';
     }
 
+    public function examDate(): ?Carbon
+    {
+        if ($this->available_from) {
+            return $this->available_from->copy()->startOfDay();
+        }
+
+        $scheduleDate = $this->schedule?->test_date;
+        if ($scheduleDate) {
+            return Carbon::parse($scheduleDate)->startOfDay();
+        }
+
+        return null;
+    }
+
     public function availabilityLabel(): string
     {
-        $from = optional($this->available_from)->format('d M Y, h:i A');
-        $until = optional($this->available_until)->format('d M Y, h:i A');
+        $from = optional($this->examDate())->format('d M Y');
 
-        if ($from && $until) {
-            return $from.' → '.$until;
-        }
-        if ($from) {
-            return 'From '.$from;
-        }
-        if ($until) {
-            return 'Until '.$until;
-        }
-
-        return 'Always open (no window set)';
+        return $from ? 'Available from '.$from : 'Date not set';
     }
 }

@@ -45,18 +45,7 @@ class CoursePackageExamAssignmentController extends Controller
             ->get()
             ->map(function (CourseSchedule $s) {
                 $date = optional($s->test_date)->format('d M Y') ?: 'No date';
-                $label = trim(($s->test_type ?: 'Test').' · '.$date.($s->section ? ' · '.ucfirst($s->section) : ''));
-
-                $from = null;
-                if ($s->test_date) {
-                    $time = $this->parseScheduleStartTime($s->timing);
-                    $from = Carbon::parse($s->test_date->format('Y-m-d').' '.$time)->format('Y-m-d\TH:i');
-                }
-
-                $until = null;
-                if ($from) {
-                    $until = Carbon::parse(str_replace('T', ' ', $from))->addDay()->format('Y-m-d\TH:i');
-                }
+                $label = $date.' — '.trim(($s->test_type ?: 'Test').($s->section ? ' ('.ucfirst($s->section).')' : ''));
 
                 return [
                     'id' => $s->id,
@@ -64,9 +53,7 @@ class CoursePackageExamAssignmentController extends Controller
                     'section' => $s->section,
                     'test_type' => $s->test_type,
                     'test_date' => optional($s->test_date)->toDateString(),
-                    'timing' => $s->timing,
-                    'suggested_from' => $from,
-                    'suggested_until' => $until,
+                    'suggested_from' => optional($s->test_date)->format('Y-m-d'),
                 ];
             })
             ->values();
@@ -80,12 +67,7 @@ class CoursePackageExamAssignmentController extends Controller
             'course_package_id' => ['required', 'integer', 'exists:course_packages,id'],
             'course_schedule_id' => ['required', 'integer', 'exists:course_schedules,id'],
             'question_paper_id' => ['required', 'integer', 'exists:question_papers,id'],
-            'available_from' => ['required', 'date'],
-            'available_until' => ['required', 'date', 'after:available_from'],
-        ], [
-            'available_from.required' => 'Set when the exam becomes available to purchasers.',
-            'available_until.required' => 'Set until when the exam stays available.',
-            'available_until.after' => 'Available until must be after available from.',
+            'available_from' => ['nullable', 'date'],
         ]);
 
         $package = CoursePackage::whereIn('code', CoursePackageAccess::seriesPackageCodes())
@@ -94,6 +76,13 @@ class CoursePackageExamAssignmentController extends Controller
         $allowedIds = CoursePackageAccess::schedulesQueryForPackage($package)->pluck('id')->all();
         if (!in_array((int) $data['course_schedule_id'], array_map('intval', $allowedIds), true)) {
             toastr()->error('Selected schedule does not belong to this package.');
+            return back()->withInput();
+        }
+
+        $schedule = CourseSchedule::findOrFail($data['course_schedule_id']);
+        $from = $data['available_from'] ?: optional($schedule->test_date)->toDateString();
+        if (!$from) {
+            toastr()->error('This scheduled test has no exam date. Set the date on the test schedule first.');
             return back()->withInput();
         }
 
@@ -112,13 +101,13 @@ class CoursePackageExamAssignmentController extends Controller
             ],
             [
                 'question_paper_id' => $data['question_paper_id'],
-                'available_from' => Carbon::parse($data['available_from']),
-                'available_until' => Carbon::parse($data['available_until']),
+                'available_from' => Carbon::parse($from)->startOfDay(),
+                'available_until' => null,
                 'status' => 1,
             ]
         );
 
-        toastr()->success('Paper assigned with availability dates. Purchasers can attempt only inside that window.');
+        toastr()->success('Paper assigned. Purchasers can attempt it from '.$schedule->test_date?->format('d M Y').'.');
 
         if ($request->filled('redirect_to_paper')) {
             return redirect()->route('admin.question_paper.view', ['id' => $data['question_paper_id']]);
@@ -141,28 +130,5 @@ class CoursePackageExamAssignmentController extends Controller
         $row->update(['status' => $row->status ? 0 : 1]);
         toastr()->success('Assignment status updated.');
         return redirect()->route('admin.course_package.exam_assignments');
-    }
-
-    private function parseScheduleStartTime(?string $timing): string
-    {
-        $timing = trim((string) $timing);
-        if ($timing === '') {
-            return '00:00:00';
-        }
-
-        // Examples: "2:00 PM - 5:00 PM", "14:00-17:00", "2 PM"
-        if (preg_match('/(\d{1,2}(:\d{2})?\s*(AM|PM))/i', $timing, $m)) {
-            try {
-                return Carbon::parse($m[1])->format('H:i:s');
-            } catch (\Throwable $e) {
-                // fall through
-            }
-        }
-
-        if (preg_match('/(\d{1,2}:\d{2})/', $timing, $m)) {
-            return strlen($m[1]) === 5 ? $m[1].':00' : $m[1];
-        }
-
-        return '00:00:00';
     }
 }

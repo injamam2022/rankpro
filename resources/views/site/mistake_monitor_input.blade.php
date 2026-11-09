@@ -47,7 +47,7 @@
 
                             <div class="mt-top">
                                 <a class="mt-back" href="{{ $back_url }}"><i class="fas fa-arrow-left"></i> Back to Mistake Monitor</a>
-                                <span class="pr-pill {{ ($exam_mode_label ?? '') === 'Offline OMR' ? 'pr-pill--green' : 'pr-pill--blue' }}">{{ $exam_mode_label }}</span>
+                                <span class="pr-pill {{ ($exam_mode_label ?? '') === 'Offline' ? 'pr-pill--green' : 'pr-pill--blue' }}">{{ $exam_mode_label }}</span>
                             </div>
 
                             <div class="pr-card mt-hero">

@@ -87,7 +87,7 @@ class CoursePackageOrder extends Model
             'online' => 'Online',
             'centre' => 'Centre / Offline',
             'delivery' => 'Home Delivery',
-            'bundle' => 'Online + OMR',
+            'bundle' => 'Online + Offline',
             default => $this->mode_label ?: '—',
         };
     }

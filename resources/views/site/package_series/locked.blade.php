@@ -26,7 +26,7 @@
         <div class="ps-lock">
           <div class="ps-lock__icon"><i class="fas fa-lock"></i></div>
           <h1 class="h4 mb-2">{{ isset($focusPackage) ? $focusPackage->name : 'Series Tests' }}</h1>
-          <p class="text-muted mb-4">Purchase a course package like Rank Builder to unlock the scheduled online tests (and OMR where included). Premium question bank only.</p>
+          <p class="text-muted mb-4">Purchase a course package like Rank Builder to unlock the scheduled online tests (and Offline where included). Premium question bank only.</p>
           @foreach(($featured ?? collect()) as $p)
             <a href="{{ route('course_packages.show', $p->slug) }}" class="btn btn-primary mb-2 d-inline-block">
               {{ $p->name }} — {{ $p->formattedPrice() }}

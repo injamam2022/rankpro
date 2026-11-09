@@ -217,7 +217,7 @@
                         'free' => false,
                         'features' => [
                             '18 tests: 12 unit, 4 review, 2 semi-major',
-                            'Online and OMR testing',
+                            'Online and Offline testing',
                             'Subject, chapter and topic analysis',
                             '8 custom tests included',
                             'Individual and combined progress reports',
@@ -234,7 +234,7 @@
                         'free' => false,
                         'features' => [
                             '12 part-syllabus mock tests',
-                            'Online and OMR testing',
+                            'Online and Offline testing',
                             'Accuracy and performance tracking',
                             '15 custom tests included',
                             'Individual and combined progress reports',
@@ -251,6 +251,7 @@
                         'price' => '6,999',
                         'free' => false,
                         'features' => [
+                            'Full Rank Chapter Master (all chapters)',
                             '85 chapter-wise tests across PCB',
                             '18 part-syllabus + 12 full-syllabus mocks',
                             'Weekly centre-based tests',
@@ -287,7 +288,7 @@
                     </div>
                 @endforeach
 
-                {{-- OMR Master (Centre / Home) --}}
+                {{-- Offline Master (Centre / Home) --}}
                 <div class="pr__slide">
                     <article class="pr__card pr__card--omr" id="prOmrCard">
                         <div class="pr__omr-head">
@@ -301,10 +302,10 @@
                                     <path d="M18.2 15.3l1.8-2.2"/>
                                 </svg>
                             </div>
-                            <h3 class="pr__name">OMR Master</h3>
+                            <h3 class="pr__name">Offline Master</h3>
                         </div>
 
-                        <div class="pr__omr-opts" role="tablist" aria-label="OMR Master delivery option">
+                        <div class="pr__omr-opts" role="tablist" aria-label="Offline Master delivery option">
                             <button type="button" class="pr__omr-opt is-active" data-omr-opt="centre" role="tab" aria-selected="true">
                                 <span class="pr__omr-opt-label">Centre</span>
                                 <span class="pr__omr-opt-price">&#8377;4,999</span>
@@ -317,7 +318,7 @@
 
                         <div class="pr__omr-banner">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
-                            <strong>30 Physical OMR Tests</strong>
+                            <strong>30 Physical Offline Tests</strong>
                         </div>
 
                         <ul class="pr__features">
@@ -1186,7 +1187,7 @@
                 }
             })();
 
-            // ===== Pricing slider + OMR toggle =====
+            // ===== Pricing slider + Offline toggle =====
             (function(){
                 var $slider = $("#prSlider");
                 if ($slider.length && $.fn.slick) {

@@ -33,7 +33,7 @@ class ProgressReportStats
             'trend_up' => false,
             'history' => [],
             'online' => self::emptyModeStats('Online CBT', 'Digital'),
-            'offline' => self::emptyModeStats('Offline OMR', 'Physical'),
+            'offline' => self::emptyModeStats('Offline', 'Physical'),
             'subjects' => [
                 'biology' => ['score' => 0, 'max' => 360],
                 'chemistry' => ['score' => 0, 'max' => 180],
@@ -86,7 +86,7 @@ class ProgressReportStats
                 'date' => $row->created_at ? date('M j, Y', strtotime($row->created_at)) : '',
                 'score' => $score,
                 'max' => $maxMark,
-                'mode' => ((int) $row->exam_type === 2) ? 'Offline OMR' : 'Online CBT',
+                'mode' => ((int) $row->exam_type === 2) ? 'Offline' : 'Online CBT',
                 'percentile' => number_format($pctile, 1).'%',
                 'width' => max(6, min(100, $width)),
                 'is_focus' => (int) $row->exam_user_id === (int) $focus->exam_user_id,
@@ -197,14 +197,14 @@ class ProgressReportStats
             'avg_max' => 720,
             'accuracy' => 0,
             'time_label' => '—',
-            'extra_label' => $title === 'Online CBT' ? 'Review Efficiency' : 'OMR Bubbling Cost',
+            'extra_label' => $title === 'Online CBT' ? 'Review Efficiency' : 'Offline Bubbling Cost',
             'extra_value' => '—',
         ];
     }
 
     protected static function modeStats($userId, int $type, $rows, $subjectId): array
     {
-        $title = $type === 2 ? 'Offline OMR' : 'Online CBT';
+        $title = $type === 2 ? 'Offline' : 'Online CBT';
         $badge = $type === 2 ? 'Physical' : 'Digital';
         if ($rows->isEmpty()) {
             return self::emptyModeStats($title, $badge);
@@ -248,7 +248,7 @@ class ProgressReportStats
             $extraLabel = 'Review Efficiency';
             $extraValue = $reviewed > 0 ? 'Fast (+'.$reviewed.' Qs reviewed)' : 'No marked reviews';
         } else {
-            $extraLabel = 'OMR Bubbling Cost';
+            $extraLabel = 'Offline Bubbling Cost';
             $extraValue = $mins >= 12 ? '12 mins' : max(8, (int) round($mins * 0.06)).' mins';
         }
 

@@ -247,7 +247,7 @@
                 <div class="eg-chooser__actions">
                     <a href="#" class="eg-chooser__btn eg-chooser__btn--omr" id="egOmrLink">
                         <i class="fas fa-search"></i>
-                        <span>OMR</span>
+                        <span>Offline</span>
                         <span class="eg-chooser__hint">Answer sheet view</span>
                     </a>
                     <a href="#" class="eg-chooser__btn eg-chooser__btn--action" id="egActionLink">

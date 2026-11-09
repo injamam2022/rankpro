@@ -60,7 +60,7 @@
         <div class="pr-card rp-faq-tools">
             <div class="rp-faq-search">
                 <i class="fas fa-search"></i>
-                <input type="search" id="faqSearch" placeholder="Search FAQs (e.g. negative marking, OMR bubbling, timer freeze)...">
+                <input type="search" id="faqSearch" placeholder="Search FAQs (e.g. negative marking, Offline bubbling, timer freeze)...">
             </div>
             <div class="rp-faq-topics">
                 <span>Topic:</span>

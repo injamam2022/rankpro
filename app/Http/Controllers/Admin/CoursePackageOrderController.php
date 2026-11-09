@@ -10,7 +10,7 @@ class CoursePackageOrderController extends Controller
 {
     public function list()
     {
-        $data['list'] = CoursePackageOrder::with(['user', 'package', 'location'])
+        $data['list'] = CoursePackageOrder::with(['user', 'package', 'location', 'orderChapters.chapter.subject'])
             ->orderByDesc('id')
             ->get();
 

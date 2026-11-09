@@ -69,10 +69,12 @@ class PackageSeriesController extends Controller
         $order = CoursePackageAccess::ownedSeriesOrders()
             ->first(fn ($o) => (int) $o->course_package_id === (int) $package->id);
 
-        $schedules = CoursePackageAccess::schedulesQueryForPackage($package)->get();
+        $schedules = CoursePackageAccess::schedulesQueryForPackage($package)
+            ->paginate(10)
+            ->withQueryString();
 
         $assignments = CoursePackageExamAssignment::active()
-            ->with('questionPaper')
+            ->with(['questionPaper', 'schedule'])
             ->where('course_package_id', $package->id)
             ->whereIn('course_schedule_id', $schedules->pluck('id'))
             ->get()
@@ -87,7 +89,7 @@ class PackageSeriesController extends Controller
                 return (string) data_get($t->selection, 'schedule_id', '');
             });
 
-        $rows = $schedules->map(function (CourseSchedule $s) use ($attempts, $package, $assignments) {
+        $rows = $schedules->through(function (CourseSchedule $s) use ($attempts, $package, $assignments) {
             $key = (string) $s->id;
             $attemptList = $attempts->get($key, collect());
             $latest = $attemptList->first();
@@ -108,28 +110,31 @@ class PackageSeriesController extends Controller
                 $status = 'expired';
             } elseif ($window === 'upcoming' || ($testDay && $testDay->gt($today))) {
                 $status = 'upcoming';
+            } elseif (!$assignedPaper) {
+                $status = 'waiting';
             }
 
             $coverage = collect($s->subjects ?? [])
                 ->map(function ($row) {
                     $sub = trim((string) ($row['subject'] ?? ''));
                     $topics = trim((string) ($row['topics'] ?? ''));
-                    if ($sub === '' && $topics !== '') {
-                        return $topics;
-                    }
-                    if ($topics === '') {
-                        return $sub;
+                    if ($sub === '' && $topics === '') {
+                        return null;
                     }
 
-                    return $sub.': '.$topics;
+                    return [
+                        'subject' => $sub,
+                        'topics' => $topics,
+                    ];
                 })
                 ->filter()
                 ->values()
                 ->all();
 
             $canStart = (bool) $package->includes_online
+                && (bool) $assignedPaper
                 && in_array($status, ['available'], true)
-                && (!$assignment || $assignment->isAvailableNow());
+                && $assignment->isAvailableNow();
 
             return [
                 'schedule' => $s,
@@ -165,7 +170,7 @@ class PackageSeriesController extends Controller
 
         if (!$package->includes_online) {
             return redirect()->route('package_series.show', $slug)
-                ->with('error', 'This package is OMR / offline only. Online CBT is not included.');
+                ->with('error', 'This package is Offline only. Online CBT is not included.');
         }
 
         $data = $request->validate([
@@ -206,8 +211,8 @@ class PackageSeriesController extends Controller
             if (!$assignment->isAvailableNow()) {
                 $window = $assignment->windowStatus();
                 $msg = $window === 'upcoming'
-                    ? 'This exam opens on '.optional($assignment->available_from)->format('d M Y, h:i A').'.'
-                    : 'This exam window closed on '.optional($assignment->available_until)->format('d M Y, h:i A').'.';
+                    ? 'This exam opens on '.optional($assignment->examDate())->format('d M Y').'.'
+                    : 'This exam is not open yet.';
 
                 return redirect()->route('package_series.show', $slug)->with('error', $msg);
             }
@@ -232,84 +237,8 @@ class PackageSeriesController extends Controller
                 ->with('success', 'Online series test ready. Start when you are prepared.');
         }
 
-        $picked = $this->pickQuestionsForSchedule($schedule);
-        $questionPlan = $picked['plan'];
-        $allIds = $picked['question_ids'];
-
-        if (count($allIds) < self::MIN_QUESTIONS_TO_START) {
-            return redirect()->route('package_series.show', $slug)
-                ->with('error', 'Coming soon — this test paper is not assigned yet, and premium questions for the syllabus are not ready. Please check back later.');
-        }
-
-        $duration = max(30, (int) ceil(count($allIds) * 1.0));
-        $marksPerQ = function_exists('custom_test_marks_per_question')
-            ? custom_test_marks_per_question()
-            : 4;
-
-        $custom = DB::transaction(function () use (
-            $package, $schedule, $questionPlan, $allIds, $testName, $duration, $marksPerQ
-        ) {
-            $totalCount = count($allIds);
-            $paper = Question_paper::create([
-                'name' => $testName.' - '.now()->format('d M Y H:i'),
-                'no_of_question' => $totalCount,
-                'totals_marks_for_exam' => $totalCount * $marksPerQ,
-                'total_time_for_exam' => $duration,
-                'marks_per_question' => $marksPerQ,
-                'time_per_question' => max(1, (int) floor(($duration * 60) / max(1, $totalCount))),
-                'negative_marking_applicable' => 1,
-                'negative_marking_per_question' => 1,
-                'hard_level' => 0,
-                'medium_level' => 0,
-                'easy_level' => 0,
-                'status' => 1,
-                'is_deleted' => 0,
-            ]);
-
-            $n = 1;
-            $planMeta = [];
-            foreach ($questionPlan as $subjectId => $info) {
-                $ids = $info['ids'];
-                if (empty($ids)) {
-                    continue;
-                }
-                $paperSubject = Question_paper_subject::create([
-                    'question_paper_id' => $paper->id,
-                    'subject_id' => $subjectId,
-                    'total_no_of_question' => count($ids),
-                    'status' => 1,
-                ]);
-                foreach ($ids as $qid) {
-                    Question_paper_question::create([
-                        'question_number' => $n++,
-                        'question_id' => $qid,
-                        'question_paper_id' => $paper->id,
-                        'question_paper_subject_id' => $paperSubject->id,
-                        'status' => 1,
-                    ]);
-                }
-                $planMeta[$subjectId] = [
-                    'question_count' => count($ids),
-                    'name' => $info['name'],
-                    'selection' => $info['selection'],
-                ];
-            }
-
-            return $this->persistSeriesCustomTest(
-                $package,
-                $schedule,
-                $paper,
-                $testName,
-                $totalCount,
-                $duration,
-                $marksPerQ,
-                $planMeta,
-                false
-            );
-        });
-
-        return redirect()->route('custom_test.ready', $custom->id)
-            ->with('success', 'Online series test ready. Start when you are prepared.');
+        return redirect()->route('package_series.show', $slug)
+            ->with('error', 'This series exam is not assigned yet. RankPro admin will attach the paper from Assign Series Papers.');
     }
 
     /**

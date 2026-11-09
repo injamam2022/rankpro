@@ -529,7 +529,7 @@
                         $detail = trim(strip_tags((string) ($value->description ?? '')));
                         if ($detail === '') {
                             $detail = $examMode === 2
-                                ? 'Pen & Paper OMR Physical Center Mock'
+                                ? 'Pen & Paper Offline Physical Center Mock'
                                 : ($isLive ? 'Live mock window currently open' : 'Scheduled RankPro mock examination');
                         }
                         if (mb_strlen($detail) > 90) {

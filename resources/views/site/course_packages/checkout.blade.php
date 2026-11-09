@@ -71,6 +71,7 @@
                     @foreach($lineChapters as $chapter)
                         <input type="hidden" name="chapter_ids[]" value="{{ $chapter->id }}">
                     @endforeach
+                    <input type="hidden" name="chapter_ids_csv" value="{{ $lineChapters->pluck('id')->implode(',') }}">
                     @if($mode->requires_location)
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Select centre *</label>
@@ -170,6 +171,7 @@ function collectForm() {
             data[k] = v;
         }
     });
+    data.chapter_ids_csv = data.chapter_ids.join(',');
     data.final_price = finalPrice;
     data.total_discount = 0;
     data.coupon_discount = 0;

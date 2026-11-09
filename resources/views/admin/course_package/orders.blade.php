@@ -24,7 +24,21 @@
                 <tr>
                     <td>{{ $row->order_number }}</td>
                     <td>{{ trim(($row->user->first_name ?? '').' '.($row->user->last_name ?? '')) }}<br><small>{{ $row->user->email_id ?? '' }}</small></td>
-                    <td>{{ $row->package->name ?? '—' }}</td>
+                    <td>
+                        {{ $row->package->name ?? '—' }}
+                        @if(($row->package->code ?? '') === 'chapter_master')
+                            @if($row->orderChapters->count())
+                                <div class="small text-muted mt-1">
+                                    {{ $row->orderChapters->count() }} chapter{{ $row->orderChapters->count() === 1 ? '' : 's' }}:
+                                    {{ $row->orderChapters->map(fn ($line) => \App\Support\CoursePackageAccess::chapterExamLabel($line->chapter))->join(', ') }}
+                                </div>
+                            @elseif($row->isPaid())
+                                <div class="small text-danger mt-1">No chapters recorded</div>
+                            @endif
+                        @elseif(($row->package->code ?? '') === 'mission_720' && $row->isPaid())
+                            <div class="small text-muted mt-1">Includes full Chapter Master</div>
+                        @endif
+                    </td>
                     <td>{{ $row->modeBadge() }}</td>
                     <td>₹{{ number_format($row->final_amount, 2) }}</td>
                     <td>{{ $row->payment_status }}</td>

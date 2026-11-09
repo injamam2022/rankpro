@@ -22,7 +22,6 @@ use App\Models\Question;
 use App\Models\Question_detail;
 use App\Models\Question_paper;
 use App\Models\Exam_user;
-use App\Models\Exam_status;
 use App\Models\Exam_proctoring_event;
 use App\Models\CustomTest;
 use Illuminate\Support\Facades\Schema;
@@ -175,16 +174,31 @@ class Online_examController extends Controller
     public function view(Request $request)
     {
         $exam = Exam::where('id', $request->id)->where('is_deleted', 0)->firstOrFail();
-        $list = Exam_status::select([
-                'exam_statuses.type',
-                'exam_statuses.created_at',
+        $list = Exam_user::select([
+                'exam_users.id',
+                'exam_users.user_id',
+                'exam_users.total_number',
+                'exam_users.total_mark',
+                'exam_users.total_right_answer',
+                'exam_users.percentage',
+                'exam_users.rank',
+                'exam_users.created_at',
                 'users.first_name',
                 'users.last_name',
                 'users.email_id',
+                'exam_statuses.type as response_type',
             ])
-            ->leftJoin('users', 'exam_statuses.user_id', '=', 'users.id')
-            ->where('exam_statuses.exam_id', $exam->id)
-            ->orderByDesc('exam_statuses.id')
+            ->leftJoin('users', 'exam_users.user_id', '=', 'users.id')
+            ->leftJoin('exam_statuses', function ($join) {
+                $join->on('exam_statuses.user_id', '=', 'exam_users.user_id')
+                    ->on('exam_statuses.exam_id', '=', 'exam_users.exam_id')
+                    ->whereRaw('exam_statuses.id = (
+                        select max(es2.id) from exam_statuses es2
+                        where es2.exam_id = exam_users.exam_id and es2.user_id = exam_users.user_id
+                    )');
+            })
+            ->where('exam_users.exam_id', $exam->id)
+            ->orderByDesc('exam_users.id')
             ->get();
 
         return view('admin.online_exam.view', [

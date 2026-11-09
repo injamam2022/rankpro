@@ -51,7 +51,7 @@
                             <td>{{$row->exam_code}}</td>
                             <td>{{$row->name}}</td>
                             <td>
-                                <a href="{{ route('admin.online_exam.proctoring', ['id' => $row->id]) }}" title="Students who started this exam" style="text-decoration: none;">
+                                <a href="{{ route('admin.online_exam.view', ['id' => $row->id]) }}" title="Students who appeared for this exam" style="text-decoration: none;">
                                     <span class="btn btn-info btn-sm">{{ (int) ($row->attempted_students_count ?? 0) }}</span>
                                 </a>
                             </td>
@@ -89,7 +89,7 @@
                                     <a href="{{route('admin.online_exam.end',['id'=>$row->id])}}" class="btn btn-danger btn-sm mr-1" onclick="return confirm('Do you realy want to end exam?');"><i class="material-icons">stop</i></a>
                                 @endif
                                 <a href="{{route('admin.online_exam.proctoring',['id'=>$row->id])}}" class="btn btn-warning btn-sm mr-1" title="Proctoring log"><i class="material-icons">videocam</i></a>
-                                <a href="{{route('admin.online_exam.view',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1" title="Accept / Reject log"><i class="material-icons">visibility</i></a>
+                                <a href="{{route('admin.online_exam.view',['id'=>$row->id])}}" class="btn btn-success btn-sm mr-1" title="Students who appeared"><i class="material-icons">visibility</i></a>
                             </td>
                         </tr>
                     @endforeach

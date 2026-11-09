@@ -85,17 +85,17 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_title">OMR Title</label>
+                            <label class="form-label" for="result_title">Offline Title</label>
                             <textarea class="form-control" id="result_title" name="result_title">{{ old('result_title') }}</textarea>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_description">OMR Description</label>
+                            <label class="form-label" for="result_description">Offline Description</label>
                             <textarea class="form-control" id="result_description" name="result_description">{{ old('result_description') }}</textarea>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-sm-6">
-                            <label class="form-label" for="result_declaration">OMR Declaration</label>
+                            <label class="form-label" for="result_declaration">Offline Declaration</label>
                             <textarea class="form-control" id="result_declaration" name="result_declaration">{{ old('result_declaration') }}</textarea>
                         </div>
                     </div>

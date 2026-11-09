@@ -27,6 +27,7 @@
         .ps-badge--in_progress{background:#fff7ed;color:#c2410c}
         .ps-badge--completed{background:#f1f5f9;color:#475569}
         .ps-badge--expired{background:#fef2f2;color:#b91c1c}
+        .ps-badge--waiting{background:#fff7ed;color:#c2410c}
         .ps-cov{font-size:.82rem;color:#64748b;margin-top:.35rem;line-height:1.45}
         .ps-actions{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
         .ps-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
@@ -42,6 +43,8 @@
         .ps-pay__feats{list-style:none;padding:0;margin:0 0 1.1rem;text-align:left}
         .ps-pay__feats li{font-size:.88rem;color:#334155;margin-bottom:.4rem;display:flex;gap:.5rem}
         .ps-pay__feats i{color:#16a34a;margin-top:.2rem}
+        .ps-cov strong{color:#101828;font-weight:700}
+        .ps-wrap .pagination{justify-content:center;margin-top:1.1rem}
     </style>
     @include('site.include.head_meta')
 </head>
@@ -65,11 +68,15 @@
             <p class="text-muted mb-3">This tab stays visible for every student. Pay below, or get admin access, to start these tests.</p>
             @include('site.include.series_pay_panel', ['payPackage' => $package, 'payMode' => $payMode ?? null])
           @else
-          <p class="text-muted mb-2">{{ $package->tagline }} · Premium questions only. Tests with an admin-assigned paper are ready to start; others use the schedule syllabus when the bank is filled.</p>
+          <p class="text-muted mb-2">{{ $package->tagline }} · Series exams start only after admin assigns the paper.
+            @if($package->code === 'mission_720')
+              Rank Pro Mission 720 also unlocks <strong>entire Rank Chapter Master</strong> — open that tab for every chapter exam.
+            @endif
+          </p>
 
           <div class="ps-meta">
             @if($package->includes_online)<span class="ps-chip ps-chip--on"><i class="fas fa-laptop mr-1"></i> Online CBT unlocked</span>@endif
-            @if($package->includes_omr)<span class="ps-chip ps-chip--omr"><i class="fas fa-file-alt mr-1"></i> OMR included</span>@endif
+            @if($package->includes_omr)<span class="ps-chip ps-chip--omr"><i class="fas fa-file-alt mr-1"></i> Offline included</span>@endif
             @if($order)
               <span class="ps-chip">{{ $order->modeBadge() }}</span>
               <span class="ps-chip">Fulfillment: {{ str_replace('_', ' ', $order->fulfillment_status) }}</span>
@@ -78,13 +85,13 @@
 
           @if($package->includes_omr)
             <div class="alert alert-light border small mb-3">
-              <strong>OMR:</strong>
+              <strong>Offline:</strong>
               @if(($order->mode_code ?? '') === 'centre')
                 Appear at your selected centre on the scheduled date/time.
               @elseif(($order->mode_code ?? '') === 'delivery')
                 Physical papers ship to your address — track status under My Orders.
               @else
-                Online + OMR both included. Use <strong>Start online test</strong> below for CBT; OMR follows the same schedule at centre / as arranged by RankPro.
+                Online + Offline both included. Use <strong>Start online test</strong> below for CBT; Offline follows the same schedule at centre / as arranged by RankPro.
               @endif
             </div>
           @endif
@@ -99,19 +106,21 @@
                     <span class="ps-badge ps-badge--{{ $row['status'] }}">{{ str_replace('_', ' ', $row['status']) }}</span>
                   </div>
                   <div class="small text-muted mt-1">
-                    {{ optional($s->test_date)->format('d M Y') }} · {{ $s->timing }}
-                    @if($s->section)<span>· {{ ucfirst($s->section) }} syllabus</span>@endif
+                    {{ optional($s->test_date)->format('d M Y') }}
                     @if(!empty($row['has_assigned_paper']))
                       <span class="ps-chip ps-chip--on ms-1">Paper ready</span>
                     @endif
                   </div>
-                  @if(!empty($row['availability_label']))
-                    <div class="small text-muted mt-1"><i class="far fa-calendar-alt"></i> Available: {{ $row['availability_label'] }}</div>
-                  @endif
                   @if(!empty($row['coverage']))
                     <div class="ps-cov">
                       @foreach($row['coverage'] as $line)
-                        <div>{{ $line }}</div>
+                        <div>
+                          @if(is_array($line))
+                            @if(!empty($line['subject']))<strong>{{ $line['subject'] }}:</strong> @endif{{ $line['topics'] ?? '' }}
+                          @else
+                            {{ $line }}
+                          @endif
+                        </div>
                       @endforeach
                     </div>
                   @endif
@@ -136,13 +145,13 @@
                       <input type="hidden" name="schedule_id" value="{{ $s->id }}">
                       <button type="submit" class="btn btn-sm btn-primary">Start online test</button>
                     </form>
+                  @elseif($row['status'] === 'waiting')
+                    <span class="btn btn-sm btn-outline-secondary disabled">Waiting for assigned paper</span>
                   @elseif($row['status'] === 'upcoming')
-                    <span class="btn btn-sm btn-outline-secondary disabled">Opens on schedule</span>
-                  @elseif($row['status'] === 'expired')
-                    <span class="btn btn-sm btn-outline-secondary disabled">Window closed</span>
+                    <span class="btn btn-sm btn-outline-secondary disabled">Opens {{ optional($s->test_date)->format('d M Y') }}</span>
                   @endif
                   @if($package->includes_omr)
-                    <span class="small text-muted">OMR on schedule</span>
+                    <span class="small text-muted">Offline on schedule</span>
                   @endif
                 </div>
               </div>
@@ -150,6 +159,10 @@
           @empty
             <div class="alert alert-light border">No tests on the schedule yet. Contact RankPro admin.</div>
           @endforelse
+
+          @if(method_exists($rows, 'hasPages') && $rows->hasPages())
+            <div class="d-flex justify-content-center">{{ $rows->links() }}</div>
+          @endif
 
           <div class="mt-3">
             <a href="{{ route('my_orders') }}" class="small">← My Orders</a>
