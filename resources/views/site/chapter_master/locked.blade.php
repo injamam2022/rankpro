@@ -40,9 +40,11 @@
       <div class="dashboardLeft dashboardLeftOff">@include('site.include.student_left_menu')</div>
       <div class="dashboardRight"><div class="dashboardRightBody">
         <div class="cm-wrap">
-          <div class="dashboardTitle mb-1">Series <span>Tests</span></div>
+          <div class="dashboardTitle mb-1">Rank Pro <span>Chapter Master</span></div>
           @include('site.include.series_package_tabs')
-          <h2 class="h5 mb-3">Rank Chapter Master</h2>
+          <h2 class="h5 mb-2">Rank Pro Chapter Master</h2>
+          <p class="text-muted mb-3">Access to 45 premium questions which identify your strengths and weaknesses chapter-wise for NEET Ready.</p>
+          <p class="mb-3"><a href="{{ route('plans') }}">Open pricing</a></p>
           @include('site.include.series_pay_panel', ['payPackage' => $package ?? null, 'payMode' => $payMode ?? null])
         </div>
       </div></div>

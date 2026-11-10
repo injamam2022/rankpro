@@ -39,9 +39,9 @@ class Exam_homeController extends Controller
     public function getToperResultList($type,$exam_type,$subject_id){
         $return = Exam_result::select([
                         DB::raw('count(*) as total_question'),
-                        DB::raw('COUNT(CASE WHEN (exam_results.result != 0 AND exam_results.result != -1) THEN 1 END) as right_answer'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN exam_results.result > 0 THEN exam_results.id END) as right_answer'),
                         DB::raw('COUNT(CASE WHEN (exam_results.result = 0 AND exam_results.answer = 0) THEN 1 END) as skip_answer'),
-                        DB::raw('COUNT(CASE WHEN ((exam_results.result = 0 OR exam_results.result = -1) AND exam_results.answer != 0) THEN 1 END) as wrong_answer'),
+                        DB::raw("COUNT(DISTINCT CASE WHEN exam_results.result < 0 OR (exam_results.result = 0 AND exam_results.answer IS NOT NULL AND exam_results.answer != '' AND exam_results.answer != 0) THEN exam_results.id END) as wrong_answer"),
                         DB::raw('SUM(result) as total_mark'),
                         'exam_results.user_id'
                     ])
@@ -78,9 +78,9 @@ class Exam_homeController extends Controller
     public function getAvgResultList($type,$exam_type,$subject_id){
         $sub = Exam_result::select([
                         DB::raw('count(*) as total_question'),
-                        DB::raw('COUNT(CASE WHEN (exam_results.result != 0 AND exam_results.result != -1) THEN 1 END) as right_answer'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN exam_results.result > 0 THEN exam_results.id END) as right_answer'),
                         DB::raw('COUNT(CASE WHEN (exam_results.result = 0 AND exam_results.answer = 0) THEN 1 END) as skip_answer'),
-                        DB::raw('COUNT(CASE WHEN ((exam_results.result = 0 OR exam_results.result = -1) AND exam_results.answer != 0) THEN 1 END) as wrong_answer'),
+                        DB::raw("COUNT(DISTINCT CASE WHEN exam_results.result < 0 OR (exam_results.result = 0 AND exam_results.answer IS NOT NULL AND exam_results.answer != '' AND exam_results.answer != 0) THEN exam_results.id END) as wrong_answer"),
                         DB::raw('SUM(result) as total_mark'),
                         DB::raw('COALESCE(exams.totals_marks_for_exam, question_papers.totals_marks_for_exam) as totals_marks_for_exam')
                     ])
@@ -118,9 +118,9 @@ class Exam_homeController extends Controller
     public function getYourResultList($type,$exam_type,$subject_id){
         $return = Exam_result::select([
                         DB::raw('count(*) as total_question'),
-                        DB::raw('COUNT(CASE WHEN (exam_results.result != 0 AND exam_results.result != -1) THEN 1 END) as right_answer'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN exam_results.result > 0 THEN exam_results.id END) as right_answer'),
                         DB::raw('COUNT(CASE WHEN (exam_results.result = 0 AND exam_results.answer = 0) THEN 1 END) as skip_answer'),
-                        DB::raw('COUNT(CASE WHEN ((exam_results.result = 0 OR exam_results.result = -1) AND exam_results.answer != 0) THEN 1 END) as wrong_answer'),
+                        DB::raw("COUNT(DISTINCT CASE WHEN exam_results.result < 0 OR (exam_results.result = 0 AND exam_results.answer IS NOT NULL AND exam_results.answer != '' AND exam_results.answer != 0) THEN exam_results.id END) as wrong_answer"),
                         DB::raw('SUM(result) as total_mark')
                     ])
                         ->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
@@ -492,11 +492,11 @@ class Exam_homeController extends Controller
     public function progressReportQuestionLevel($question_type,$type,$exam_type,$subject_id){
 
         if($question_type == 1){
-            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result > 0) THEN 1 END) as result')]);
+            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN exam_results.result > 0 THEN 1 END) as result')]);
         }else if($question_type == 2){
-            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result < 1) THEN 1 END) as result')]);         
+            $details = Exam_result::select([DB::raw("count(*) as total"),DB::raw("COUNT(CASE WHEN exam_results.result < 0 OR (exam_results.result = 0 AND exam_results.answer IS NOT NULL AND exam_results.answer != '' AND exam_results.answer != 0) THEN 1 END) as result")]);
         }else{
-            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result < 1) THEN 1 END) as result')]);
+            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN exam_results.result > 0 THEN 1 END) as result')]);
         }
         $details = $details->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')
                                 ->leftJoin('question_paper_questions', 'question_paper_questions.id', '=', 'exam_results.exam_question_id')
@@ -531,11 +531,11 @@ class Exam_homeController extends Controller
 
     public function progressReportAnswerType($question_type,$type,$exam_type,$subject_id,$total_count){
         if($question_type == 1){
-            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result > 0) THEN 1 END) as result')]);
+            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN exam_results.result > 0 THEN 1 END) as result')]);
         }else if($question_type == 2){
-            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result < 1) THEN 1 END) as result')]);         
+            $details = Exam_result::select([DB::raw("count(*) as total"),DB::raw("COUNT(CASE WHEN exam_results.result < 0 OR (exam_results.result = 0 AND exam_results.answer IS NOT NULL AND exam_results.answer != '' AND exam_results.answer != 0) THEN 1 END) as result")]);
         }else{
-            $details = Exam_result::select([DB::raw('count(*) as total'),DB::raw('COUNT(CASE WHEN (exam_results.result < 1) THEN 1 END) as result')]);
+            $details = Exam_result::select([DB::raw("count(*) as total"),DB::raw("COUNT(CASE WHEN exam_results.answer IS NULL OR exam_results.answer = '' OR exam_results.answer = 0 THEN 1 END) as result")]);
         }
 
         $details = $details->leftJoin('exams', 'exams.id', '=', 'exam_results.exam_id')

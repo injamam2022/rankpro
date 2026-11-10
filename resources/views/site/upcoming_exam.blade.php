@@ -408,12 +408,10 @@
                                                     </div>
                                                     <h3 class="ge-mock__name">{{ $sch->test_type ?: $paper->name }}</h3>
                                                     <p class="ge-mock__desc">
-                                                        {{ optional($sch->test_date)->format('d M Y') ?: 'Date TBA' }}
-                                                        @if($sch->timing)
-                                                            <span> · {{ $sch->timing }}</span>
-                                                        @endif
                                                         @if($sch->section)
-                                                            <span> · {{ ucfirst($sch->section) }} syllabus</span>
+                                                            {{ ucfirst($sch->section) }} syllabus
+                                                        @else
+                                                            Full syllabus
                                                         @endif
                                                     </p>
                                                     <div class="ge-mock__meta">
@@ -421,9 +419,6 @@
                                                         <span>Questions: <strong>{{ $paper->no_of_question ?? '—' }}</strong></span>
                                                         <span>Marks: <strong>{{ $paper->totals_marks_for_exam ?? '—' }}</strong></span>
                                                     </div>
-                                                    @if(!empty($row->availability_label))
-                                                        <div class="small text-muted">Available: {{ $row->availability_label }}</div>
-                                                    @endif
                                                     <div class="ge-mock__foot">
                                                         @if($row->can_resume && $row->attempt)
                                                             <span class="ge-status"><span class="ge-status__dot is-ready"></span> {{ $status === 'ready' ? 'Ready to start' : 'In progress' }}</span>
@@ -431,17 +426,10 @@
                                                                 <i class="fas fa-play"></i> {{ $status === 'ready' ? 'Start Exam' : 'Resume' }}
                                                             </a>
                                                         @elseif($status === 'completed' && $row->attempt)
-                                                            <span class="ge-status"><span class="ge-status__dot is-done"></span> Completed</span>
-                                                            <div class="d-flex gap-2 flex-wrap">
-                                                                <a href="{{ route('custom_test.analysis', $row->attempt->id) }}" class="ge-btn ge-btn--ghost ge-btn--sm">View analysis</a>
-                                                                @if($pkg->includes_online && $row->can_start)
-                                                                    <form method="post" action="{{ route('package_series.start', $pkg->slug) }}">
-                                                                        @csrf
-                                                                        <input type="hidden" name="schedule_id" value="{{ $sch->id }}">
-                                                                        <button type="submit" class="ge-btn ge-btn--pink ge-btn--sm">Retake</button>
-                                                                    </form>
-                                                                @endif
-                                                            </div>
+                                                            <span class="ge-status"><span class="ge-status__dot is-done"></span> Completed · one attempt</span>
+                                                            <a href="{{ route('custom_test.download', $row->attempt->id) }}" class="ge-btn ge-btn--pink ge-btn--sm" target="_blank">
+                                                                <i class="fas fa-file-download"></i> Download paper
+                                                            </a>
                                                         @elseif($row->can_start)
                                                             <span class="ge-status"><span class="ge-status__dot is-ready"></span> Ready now</span>
                                                             <form method="post" action="{{ route('package_series.start', $pkg->slug) }}">

@@ -36,10 +36,6 @@
     $amount = $isChapterCart ? ($unitPrice * $lineChapters->count()) : (float) $mode->price;
     $tax = (float) ($package->tax ?? 0);
     $final = $amount + $tax;
-    $payDescription = $package->name;
-    if ($isChapterCart) {
-        $payDescription .= ' · '.$lineChapters->count().' chapter'.($lineChapters->count() === 1 ? '' : 's');
-    }
 @endphp
 
 <main class="cpg">
@@ -131,7 +127,7 @@
                     <div class="cpg-sum-total"><span>Total</span><span id="priceFinal">₹{{ number_format($final, 2) }}</span></div>
                     <button type="button" class="cpg-btn" id="payBtn" onclick="startPay()">Pay ₹{{ number_format($final, 2) }}</button>
                     <a href="{{ route('course_packages.show', $package->slug) }}" class="d-block text-center mt-3" style="color:#6b6577;text-decoration:none;font-weight:600;font-size:13px;">Cancel</a>
-                    <div class="cpg-secure"><i class="fas fa-lock"></i> Secure payment via Razorpay</div>
+                    <div class="cpg-secure"><i class="fas fa-lock"></i> Secure payment via ICICI Bank</div>
                 </div>
             </div>
         </div>
@@ -156,7 +152,6 @@
 <script src="{{ asset('') }}web/bootstrap-5.0.2/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('') }}web/lib/wow/wow.min.js"></script>
 <script src="{{ asset('') }}web/js/main.js"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 const finalPrice = {{ $final }};
 const placeUrl = @json(route('course_packages.place_order', $package->slug));
@@ -182,44 +177,7 @@ function collectForm() {
 function startPay() {
     const form = document.getElementById('cpOrderForm');
     if (!form.reportValidity()) return;
-
-    if (finalPrice <= 0) {
-        saveOrder(collectForm());
-        return;
-    }
-
-    const razorpayKey = @json($razorpayKey ?? '');
-    if (!razorpayKey) {
-        alert('Payment gateway is not configured on this server (missing RAZORPAY_KEY in .env). Ask admin to set RAZORPAY_KEY and run: php artisan config:clear');
-        return;
-    }
-
-    if (typeof Razorpay === 'undefined') {
-        alert('Unable to load Razorpay. Check your internet connection or ad blocker, then try again.');
-        return;
-    }
-
-    const options = {
-        key: razorpayKey,
-        amount: Math.round(finalPrice * 100),
-        currency: "INR",
-        name: @json($razorpayName ?? 'RankPro'),
-        description: @json($payDescription),
-        handler: function (response) {
-            const data = collectForm();
-            data.razorpay_payment_id = response.razorpay_payment_id;
-            data.razorpay_order_id = response.razorpay_order_id;
-            data.razorpay_signature = response.razorpay_signature;
-            saveOrder(data);
-        },
-        prefill: {
-            name: @json(trim((Auth::user()->first_name ?? '').' '.(Auth::user()->last_name ?? ''))),
-            email: @json(Auth::user()->email_id ?? ''),
-            contact: @json(Auth::user()->mobile_number ?? ''),
-        },
-        theme: { color: "#f20b81" }
-    };
-    new Razorpay(options).open();
+    saveOrder(collectForm());
 }
 
 function saveOrder(data) {

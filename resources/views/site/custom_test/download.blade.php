@@ -73,22 +73,16 @@
             page-break-inside: avoid;
         }
         .q:last-child { border-bottom: 0; }
-        .q-head {
-            display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: start;
-            margin-bottom: 8px;
+        .q-head, .opt-row { width: 100%; border-collapse: collapse; margin: 0 0 8px; }
+        .q-no, .opt-label { width: 36px; vertical-align: top; font-weight: 800; color: var(--brand); padding: 0 8px 0 0; }
+        .opt-label { font-weight: 700; color: #344054; }
+        .stem, .opt-body { vertical-align: top; color: #101828; }
+        .stem p, .opt-body p { margin: 0 0 6px; }
+        .stem img, .q-img img, .opt-img img, .stem table img, .opt-body img {
+            max-width: 100% !important; height: auto !important; display: block; margin: 8px 0;
         }
-        .q-no { font-weight: 800; color: var(--brand); }
-        .stem { color: #101828; }
-        .stem p { margin: 0 0 6px; }
-        .stem img, .q-img img, .opt-img img {
-            max-width: 100%; height: auto; display: block; margin: 8px 0;
-        }
-        .stem table { max-width: 100%; border-collapse: collapse; margin: 8px 0; }
+        .stem table, .opt-body table { max-width: 100%; border-collapse: collapse; margin: 8px 0; }
         .opts { list-style: none; margin: 0; padding: 0; }
-        .opts li {
-            display: grid; grid-template-columns: 28px 1fr; gap: 8px;
-            margin: 0 0 6px; align-items: flex-start;
-        }
         .opt-label {
             font-weight: 700; color: #344054; min-width: 28px;
         }
@@ -128,7 +122,10 @@
         @media print {
             .toolbar { display: none !important; }
             body { padding: 0; }
-            .cover, .q, .explain { break-inside: avoid; }
+            .cover, .q, .explain { break-inside: avoid; page-break-inside: avoid; }
+            .subject-banner { display: table; width: 100%; }
+            .subject-banner span { display: table-cell; vertical-align: middle; }
+            img { max-width: 100% !important; height: auto !important; }
             a { color: inherit; text-decoration: none; }
         }
     </style>
@@ -147,7 +144,7 @@
 
 <div class="toolbar">
     <button type="button" onclick="window.print()">Print / Save PDF</button>
-    <a href="{{ route('custom_test.ready', $custom->id) }}">Back</a>
+    <a href="{{ route('custom_test.analysis', $custom->id) }}">Back</a>
 </div>
 
 <div class="paper">
@@ -191,10 +188,12 @@
 
         @foreach($group['questions'] as $q)
             <div class="q">
-                <div class="q-head">
-                    <div class="q-no">{{ $q->paper_serial }}.</div>
-                    <div class="stem">{!! question_html_media($q->question_text) !!}</div>
-                </div>
+                <table class="q-head">
+                    <tr>
+                        <td class="q-no">{{ $q->paper_serial }}.</td>
+                        <td class="stem">{!! question_html_media($q->question_text) !!}</td>
+                    </tr>
+                </table>
                 @if(!empty($q->question_image))
                     <div class="q-img">{!! question_img_tag($q->question_image, ['alt' => '']) !!}</div>
                 @endif
@@ -205,14 +204,18 @@
                             $val = data_get($q, $field);
                         @endphp
                         <li>
-                            <span class="opt-label">{{ $optionLabels[$n] }}</span>
-                            <div class="opt-body">
+                            <table class="opt-row">
+                                <tr>
+                            <td class="opt-label">{{ $optionLabels[$n] }}</td>
+                            <td class="opt-body">
                                 @if($isImg && $val)
                                     <div class="opt-img">{!! question_img_tag($val, ['alt' => '']) !!}</div>
                                 @else
                                     {!! question_html_media($val) !!}
                                 @endif
-                            </div>
+                            </td>
+                                </tr>
+                            </table>
                         </li>
                     @endforeach
                 </ul>

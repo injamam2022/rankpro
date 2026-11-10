@@ -196,7 +196,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
     <!-- Template Javascript -->
     <script src="{{ asset('') }}web/js/main.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         $(document).ready(function(){
           $(".couponText").click(function(){
@@ -308,47 +307,7 @@
         }
 
         function checkout(){
-            console.log(finalPrice);
-                var options = {
-                  "key": "{{ config('services.razorpay.key') }}",
-                  "amount": finalPrice*100,
-                  "currency": "INR",
-                  "name": "{{ config('services.razorpay.name') }}",
-                  "description": "{{ config('services.razorpay.description') }}",
-                  "image": "{{asset('')}}img/logo.png",
-                  "handler": (response) => {
-                        g_data.razorpay_payment_id = response.razorpay_payment_id;
-                        g_data.razorpay_order_id = response.razorpay_order_id;
-                        g_data.razorpay_signature = response.razorpay_signature;
-
-                        saveData(g_data);
-
-                   },
-                  "prefill": {
-                      "name": "{{Auth::user()->first_name}} {{Auth::user()->last_name}}",
-                      "email": "{{Auth::user()->email_id}}",
-                      "contact": "{{Auth::user()->mobile_number}}"
-                  },
-                  "notes": {
-                      "": ""
-                  },
-                  "theme": {
-                      "color": "#3399cc"
-                  }
-              };
-              var razorpay = new Razorpay(options);
-              razorpay.open();
-
-              razorpay.on('payment.success', function(resp) {
-                alert("Payment success.");
-                alert(resp.razorpay_payment_id);
-                alert(resp.razorpay_order_id);
-                alert(resp.razorpay_signature);
-              }); // will pass payment ID, order ID, and Razorpay signature to success handler.
-
-              razorpay.on('payment.error', function(resp) {
-                alert(resp.error.description);
-              }); // will pass error object to error handler
+            saveData(g_data);
         }
 
         function saveData(rData){
@@ -362,10 +321,14 @@
                 },
                 success: function(response) {
                     console.log(response);
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                        return;
+                    }
                     if (response.success) {
                         $("#successPopup").modal("show");
                     } else {
-                        alert("Something went wrong. Please try again.");
+                        alert(response.message || "Something went wrong. Please try again.");
                     }
                 },
                 error: function(xhr) {

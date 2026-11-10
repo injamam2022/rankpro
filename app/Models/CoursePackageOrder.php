@@ -31,6 +31,7 @@ class CoursePackageOrder extends Model
         'payment_status',
         'transaction_id',
         'gateway_order_id',
+        'gateway_meta',
         'admin_notes',
     ];
 
@@ -40,6 +41,7 @@ class CoursePackageOrder extends Model
         'coupon_discount' => 'float',
         'tax' => 'float',
         'final_amount' => 'float',
+        'gateway_meta' => 'array',
     ];
 
     protected static function booted(): void

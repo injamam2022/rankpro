@@ -28,6 +28,7 @@ use App\Models\Coupon;
 use App\Models\Subject;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Services\IciciGateway;
 use App\Models\Location;
 use App\Models\Exam;
 use App\Models\Language;
@@ -183,19 +184,9 @@ class HomeController extends Controller
         $insertData["location"] = $request->location;
         $insertData["starting_date"] = $request->startingDate;
         $insertData["test_series_id"] = $request->test_id;
-        $insertData["transaction_id"] = $request->razorpay_payment_id;
-        $insertData["order_id"] = $request->razorpay_order_id;
-        // $insertData["razorpay_signature"] = $request->razorpay_signature;
-        $insertData["payment_status"] = "SUCCESS";
         $insertData["type"] = 2;
 
-
-        Payment::create($insertData);
-
-        return response()->json([
-            'success' => 1,
-            'message' => 'Coupon applied successfully.'
-        ], 200);
+        return $this->startIciciPayment($insertData, (float) $request->final_price);
     }
 
     public function new_light(){
@@ -379,19 +370,44 @@ class HomeController extends Controller
         $insertData["location"] = $request->location;
         $insertData["starting_date"] = $request->startingDate;
         $insertData["ranker_id"] = $request->test_id;
-        $insertData["transaction_id"] = $request->razorpay_payment_id;
-        $insertData["order_id"] = $request->razorpay_order_id;
-        // $insertData["razorpay_signature"] = $request->razorpay_signature;
-        $insertData["payment_status"] = "SUCCESS";
         $insertData["type"] = 1;
 
+        return $this->startIciciPayment($insertData, (float) $request->final_price);
+    }
 
-        Payment::create($insertData);
+    private function startIciciPayment(array $insertData, float $amount)
+    {
+        $amount = round(max(0, $amount), 2);
+        if ($amount <= 0) {
+            $insertData['amount'] = 0;
+            $insertData['payment_status'] = 'SUCCESS';
+            Payment::create($insertData);
+
+            return response()->json(['success' => 1, 'message' => 'Order placed.']);
+        }
+
+        $gateway = app(IciciGateway::class);
+        $txn = $gateway->newTxnNo();
+        $insertData['amount'] = $amount;
+        $insertData['payment_amount'] = $amount;
+        $insertData['payment_status'] = 'PENDING';
+        $insertData['order_id'] = $txn;
+        $payment = Payment::create($insertData);
+
+        try {
+            $bankUrl = $gateway->startSale($txn, $amount, Auth::user());
+        } catch (\Throwable $e) {
+            $payment->payment_status = 'FAILED';
+            $payment->save();
+
+            return response()->json(['success' => 0, 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json([
             'success' => 1,
-            'message' => 'Coupon applied successfully.'
-        ], 200);
+            'message' => 'Redirecting to ICICI Bank.',
+            'redirect' => $bankUrl,
+        ]);
     }
 
     public function contact(Request $request){

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CoursePackageOrder;
+use App\Models\CoursePackageOrderChapter;
 use Illuminate\Http\Request;
 
 class CoursePackageOrderController extends Controller
@@ -15,6 +16,17 @@ class CoursePackageOrderController extends Controller
             ->get();
 
         return view('admin.course_package.orders', $data);
+    }
+
+    public function chapterPurchases()
+    {
+        $data['rows'] = CoursePackageOrderChapter::query()
+            ->with(['order.user', 'order.package', 'chapter.subject'])
+            ->whereHas('order')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('admin.course_package.chapter_purchases', $data);
     }
 
     public function detail(Request $request)

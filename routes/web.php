@@ -10,6 +10,7 @@
     use App\Http\Controllers\ExamsController;
     use App\Http\Controllers\CustomTestController;
     use App\Http\Controllers\CoursePackageController;
+    use App\Http\Controllers\IciciPaymentController;
     use App\Http\Controllers\ChapterMasterController;
 
     //Sourav Start
@@ -233,6 +234,10 @@
     Route::get('/course-packages/{slug}/checkout', [CoursePackageController::class, 'checkout'])->name('course_packages.checkout')->middleware(['verifyMembership']);
     Route::post('/course-packages/{slug}/place-order', [CoursePackageController::class, 'placeOrder'])->name('course_packages.place_order')->middleware(['verifyMembership']);
 
+    Route::match(['get', 'post'], '/payment/icici/return', [IciciPaymentController::class, 'returned'])->name('icici.return');
+    Route::post('/payment/icici/advice', [IciciPaymentController::class, 'advice'])->name('icici.advice');
+    Route::get('/payment/icici/result/{txn}', [IciciPaymentController::class, 'result'])->name('icici.result');
+
     Route::get('/chapter-master', [ChapterMasterController::class, 'index'])->name('chapter_master')->middleware(['verifyMembership']);
     Route::get('/chapter-master/subject/{subjectId}', [ChapterMasterController::class, 'subject'])->name('chapter_master.subject')->middleware(['verifyMembership']);
     Route::get('/chapter-master/subject/{subjectId}/data', [ChapterMasterController::class, 'chaptersData'])->name('chapter_master.chapters_data')->middleware(['verifyMembership']);
@@ -450,6 +455,7 @@
         Route::get('/course-package/delete', [AdminCoursePackageController::class, 'delete'])->name('course_package.delete');
         Route::get('/course-package/change', [AdminCoursePackageController::class, 'change'])->name('course_package.change');
         Route::get('/course-package/orders', [AdminCoursePackageOrderController::class, 'list'])->name('course_package.orders');
+        Route::get('/course-package/chapter-purchases', [AdminCoursePackageOrderController::class, 'chapterPurchases'])->name('course_package.chapter_purchases');
         Route::get('/course-package/order-detail', [AdminCoursePackageOrderController::class, 'detail'])->name('course_package.order_detail');
         Route::post('/course-package/order-fulfillment', [AdminCoursePackageOrderController::class, 'updateFulfillment'])->name('course_package.order_fulfillment');
         Route::get('/course-schedule', [AdminCourseScheduleController::class, 'list'])->name('course_schedule');

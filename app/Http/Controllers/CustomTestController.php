@@ -597,6 +597,14 @@ class CustomTestController extends Controller
         if (!$custom->question_paper_id) {
             abort(404);
         }
+        $examUser = $custom->exam_user_id
+            ? Exam_user::where('id', $custom->exam_user_id)->where('user_id', Auth::id())->first()
+            : null;
+        $finished = in_array((string) $custom->status, ['completed', 'submitted', 'finished'], true)
+            || ($examUser && $examUser->percentage !== null && $examUser->percentage !== '');
+        if (!$finished) {
+            abort(403, 'The question paper is available after you complete the test.');
+        }
 
         $rows = Question_paper_question::query()
             ->select([

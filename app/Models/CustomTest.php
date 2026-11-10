@@ -45,6 +45,28 @@ class CustomTest extends Model
         return $this->belongsTo(Exam_user::class, 'exam_user_id');
     }
 
+    /**
+     * The student has submitted this attempt. Status "attempted" alone is not enough:
+     * that value is also set when the test is started.
+     */
+    public function isFinished(): bool
+    {
+        if (in_array((string) $this->status, ['completed', 'submitted', 'finished'], true)) {
+            return true;
+        }
+
+        $examUser = $this->relationLoaded('examUser') ? $this->examUser : $this->examUser()->first();
+        if (!$examUser) {
+            return false;
+        }
+
+        if (in_array((string) ($examUser->proctoring_status ?? ''), ['completed', 'cancelled', 'auto_submitted'], true)) {
+            return true;
+        }
+
+        return $examUser->percentage !== null && $examUser->percentage !== '';
+    }
+
     public static function examIdQuery()
     {
         return static::query()->whereNotNull('exam_id')->select('exam_id');

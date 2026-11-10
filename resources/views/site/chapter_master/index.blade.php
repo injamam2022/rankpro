@@ -43,18 +43,15 @@
           @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
           @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
-          <div class="dashboardTitle mb-1">Rank <span>Chapter Master</span></div>
+          <div class="dashboardTitle mb-1">Rank Pro <span>Chapter Master</span></div>
           @include('site.include.series_package_tabs')
-          <p class="text-muted mb-3">Tests use <strong>premium questions only</strong> (up to {{ $questionsPerChapter }} per chapter).
-            @if(!empty($fullAccess) && ($fullAccessSource ?? '') === 'mission_720')
-              Rank Pro Mission 720 has unlocked every Chapter Master exam.
-            @elseif(!empty($fullAccess))
-              You have full chapter access.
-            @else
-              Showing only the {{ (int) ($ownedChapterCount ?? 0) }} chapter{{ (int) ($ownedChapterCount ?? 0) === 1 ? '' : 's' }} you purchased.
-              <a href="{{ route('course_packages.show', 'rank-chapter-master') }}">Add more chapters</a>
-            @endif
-          </p>
+          <p class="text-muted mb-2">Access to 45 premium questions which identify your strengths and weaknesses chapter-wise for NEET Ready.</p>
+          <p class="mb-3"><a href="{{ route('plans') }}">Open pricing</a></p>
+          @if(empty($fullAccess))
+            <p class="text-muted mb-3">Showing only the {{ (int) ($ownedChapterCount ?? 0) }} chapter{{ (int) ($ownedChapterCount ?? 0) === 1 ? '' : 's' }} you purchased.</p>
+          @elseif(($fullAccessSource ?? '') === 'mission_720')
+            <p class="text-muted mb-3">Rank Pro Mission 720 has unlocked every Chapter Master exam.</p>
+          @endif
 
           @forelse($subjects as $card)
             @php $s = $card['subject']; @endphp
@@ -82,7 +79,7 @@
             </a>
           @empty
             <div class="alert alert-light border">No purchased chapters to show yet.
-              <a href="{{ route('course_packages.show', 'rank-chapter-master') }}">Choose chapters</a>
+              <a href="{{ route('plans') }}">Open pricing</a>
             </div>
           @endforelse
 

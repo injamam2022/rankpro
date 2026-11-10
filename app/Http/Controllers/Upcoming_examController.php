@@ -40,7 +40,11 @@ class Upcoming_examController extends Controller
             ->where('exams.is_deleted', 0)
             ->where('exams.status', 1)
             ->where(function ($q) {
-                $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
+                $q->whereNull('exams.exam_code')->orWhere(function ($code) {
+                    $code->where('exams.exam_code', 'not like', 'CT-%')
+                        ->where('exams.exam_code', 'not like', 'PS-%')
+                        ->where('exams.exam_code', 'not like', 'CM-%');
+                });
             })
             ->when(filled($examType), function ($query) use ($examType) {
                 $query->where('exams.type', $examType);
@@ -132,8 +136,12 @@ class Upcoming_examController extends Controller
             ->where(function ($q) {
                 $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
             })
-            ->whereNotNull('exam_users.percentage')
-            ->where('exam_users.percentage', '!=', '')
+            ->where(function ($q) {
+                $q->where(function ($inner) {
+                    $inner->whereNotNull('exam_users.percentage')
+                        ->where('exam_users.percentage', '!=', '');
+                })->orWhereIn('exam_users.proctoring_status', ['completed', 'cancelled', 'auto_submitted']);
+            })
             ->orderByDesc('exam_users.id')
             ->get();
         $attemptedByExam = $attempted->keyBy('exam_id');
@@ -181,8 +189,13 @@ class Upcoming_examController extends Controller
             : 'No upcoming slot';
 
         // 1) Paginate distinct exam IDs only (accurate total, 8 per page).
+        $attemptedIds = $attemptedByExam->keys()->filter()->map(fn ($id) => (int) $id)->unique()->values()->all();
         $idPaginator = $this->portalExamBaseQuery($subject_id, $exam_type, $search)
-            ->select('exams.id')
+            ->when($attemptedIds !== [], function ($query) use ($attemptedIds) {
+                $query->whereNotIn('exams.id', $attemptedIds);
+            })
+            ->select('exams.id', 'exams.exam_date')
+            ->distinct()
             ->orderBy('exams.exam_date', 'ASC')
             ->orderBy('exams.id', 'ASC')
             ->paginate(8)
@@ -246,7 +259,7 @@ class Upcoming_examController extends Controller
                 ->orderByDesc('id')
                 ->get();
 
-            $attempts = CustomTest::query()
+            $attempts = CustomTest::with('examUser')
                 ->where('user_id', Auth::id())
                 ->orderByDesc('id')
                 ->get()
@@ -263,11 +276,11 @@ class Upcoming_examController extends Controller
                 $window = $row->windowStatus();
 
                 $status = 'available';
-                if ($latest && in_array($latest->status, ['completed', 'submitted', 'finished'], true)) {
+                if ($latest && $latest->isFinished()) {
                     $status = 'completed';
                 } elseif ($latest && $latest->status === 'ready') {
                     $status = 'ready';
-                } elseif ($latest && in_array($latest->status, ['in_progress', 'started'], true)) {
+                } elseif ($latest && in_array($latest->status, ['in_progress', 'started', 'attempted'], true)) {
                     $status = 'in_progress';
                 } elseif ($window === 'expired') {
                     $status = 'expired';
@@ -289,7 +302,11 @@ class Upcoming_examController extends Controller
                         && $row->isAvailableNow(),
                     'can_resume' => $latest && in_array($status, ['ready', 'in_progress'], true),
                 ];
-            })->filter(fn ($row) => $row->package && $row->schedule && $row->paper)->values();
+            })->filter(function ($row) {
+                return $row->package && $row->schedule && $row->paper;
+            })->unique(function ($row) {
+                return $row->package->id.':'.$row->schedule->id.':'.($row->paper->id ?? 0);
+            })->values();
         }
 
         $data['series_assigned_exams'] = $seriesAssigned;

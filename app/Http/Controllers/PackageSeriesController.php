@@ -100,11 +100,11 @@ class PackageSeriesController extends Controller
             $window = $assignment ? $assignment->windowStatus() : null;
 
             $status = 'available';
-            if ($latest && in_array($latest->status, ['completed', 'submitted', 'finished'], true)) {
+            if ($latest && $latest->isFinished()) {
                 $status = 'completed';
             } elseif ($latest && $latest->status === 'ready') {
                 $status = 'ready';
-            } elseif ($latest && in_array($latest->status, ['in_progress', 'started'], true)) {
+            } elseif ($latest && in_array($latest->status, ['in_progress', 'started', 'attempted'], true)) {
                 $status = 'in_progress';
             } elseif ($window === 'expired') {
                 $status = 'expired';
@@ -186,17 +186,24 @@ class PackageSeriesController extends Controller
                 ->with('error', 'This test is not part of your package schedule.');
         }
 
-        $existing = CustomTest::where('user_id', Auth::id())
-            ->where('status', 'ready')
+        $prior = CustomTest::with('examUser')
+            ->where('user_id', Auth::id())
+            ->orderByDesc('id')
             ->get()
-            ->first(function (CustomTest $t) use ($schedule, $package) {
+            ->filter(function (CustomTest $t) use ($schedule, $package) {
                 return (int) data_get($t->selection, 'schedule_id') === (int) $schedule->id
-                    && data_get($t->selection, 'package_code') === $package->code;
+                    && (string) data_get($t->selection, 'package_code') === (string) $package->code;
             });
 
-        if ($existing) {
-            return redirect()->route('custom_test.ready', $existing->id)
-                ->with('success', 'Your test is already ready. Start when you are prepared.');
+        if ($prior->first(fn (CustomTest $t) => $t->isFinished())) {
+            return redirect()->route('package_series.show', $slug)
+                ->with('error', 'This series test can be taken only once. Download the paper from the schedule.');
+        }
+
+        $open = $prior->first(fn (CustomTest $t) => in_array((string) $t->status, ['ready', 'in_progress', 'started', 'attempted'], true));
+        if ($open) {
+            return redirect()->route('custom_test.resume', $open->id)
+                ->with('success', 'Continue the series test you already started.');
         }
 
         $testName = $package->name.' — '.$schedule->test_type;

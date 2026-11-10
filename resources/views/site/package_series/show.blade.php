@@ -28,7 +28,10 @@
         .ps-badge--completed{background:#f1f5f9;color:#475569}
         .ps-badge--expired{background:#fef2f2;color:#b91c1c}
         .ps-badge--waiting{background:#fff7ed;color:#c2410c}
-        .ps-cov{font-size:.82rem;color:#64748b;margin-top:.35rem;line-height:1.45}
+        .ps-cov{margin-top:.9rem}
+        .ps-cov__block{margin:0 0 .85rem}
+        .ps-cov__head{font-weight:700;color:#101828;margin:0 0 .35rem;font-size:.92rem}
+        .ps-cov__body{margin:0;color:#475467;font-size:.84rem;line-height:1.6}
         .ps-actions{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
         .ps-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
         .ps-tab{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .9rem;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#334155;font-size:.82rem;font-weight:600;text-decoration:none}
@@ -61,7 +64,7 @@
           @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
           @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
-          <div class="dashboardTitle mb-1">Series <span>Tests</span></div>
+          <div class="dashboardTitle mb-1">Rank Pro <span>Series</span></div>
           @include('site.include.series_package_tabs')
           <h2 class="h5 mb-1">{{ $package->name }}</h2>
           @if(empty($unlocked))
@@ -105,20 +108,22 @@
                     <div class="fw-semibold">{{ $s->test_type }}</div>
                     <span class="ps-badge ps-badge--{{ $row['status'] }}">{{ str_replace('_', ' ', $row['status']) }}</span>
                   </div>
-                  <div class="small text-muted mt-1">
-                    {{ optional($s->test_date)->format('d M Y') }}
-                    @if(!empty($row['has_assigned_paper']))
-                      <span class="ps-chip ps-chip--on ms-1">Paper ready</span>
-                    @endif
-                  </div>
+                  @if(!empty($row['has_assigned_paper']))
+                    <div class="small text-muted mt-1"><span class="ps-chip ps-chip--on">Paper ready</span></div>
+                  @endif
                   @if(!empty($row['coverage']))
                     <div class="ps-cov">
                       @foreach($row['coverage'] as $line)
-                        <div>
-                          @if(is_array($line))
-                            @if(!empty($line['subject']))<strong>{{ $line['subject'] }}:</strong> @endif{{ $line['topics'] ?? '' }}
-                          @else
-                            {{ $line }}
+                        @php
+                          $subjectHeading = is_array($line) ? trim((string) ($line['subject'] ?? '')) : '';
+                          $topicBody = is_array($line) ? trim((string) ($line['topics'] ?? '')) : trim((string) $line);
+                        @endphp
+                        <div class="ps-cov__block">
+                          @if($subjectHeading !== '')
+                            <div class="ps-cov__head">{{ $subjectHeading }}</div>
+                          @endif
+                          @if($topicBody !== '')
+                            <p class="ps-cov__body">{{ $topicBody }}</p>
                           @endif
                         </div>
                       @endforeach
@@ -131,14 +136,8 @@
                       {{ $row['status'] === 'ready' ? 'Start exam' : 'Resume' }}
                     </a>
                   @elseif($row['status'] === 'completed' && $row['attempt'])
+                    <a href="{{ route('custom_test.download', $row['attempt']->id) }}" class="btn btn-sm btn-primary" target="_blank">Download paper</a>
                     <a href="{{ route('custom_test.analysis', $row['attempt']->id) }}" class="btn btn-sm btn-outline-secondary">View analysis</a>
-                    @if($package->includes_online && $row['can_start_online'])
-                      <form method="post" action="{{ route('package_series.start', $package->slug) }}" class="d-inline">
-                        @csrf
-                        <input type="hidden" name="schedule_id" value="{{ $s->id }}">
-                        <button type="submit" class="btn btn-sm btn-outline-primary">Retake online</button>
-                      </form>
-                    @endif
                   @elseif($row['can_start_online'])
                     <form method="post" action="{{ route('package_series.start', $package->slug) }}" class="d-inline">
                       @csrf

@@ -393,6 +393,7 @@
                                 <nav class="drawer-menu-nested nav">
                                     <a class="nav-link {{ request()->is('admin/course-package') && !request()->is('admin/course-package/orders*') && !request()->is('admin/course-package/order*') && !request()->is('admin/course-package/exam-assignments*') ? ' active' : '' }} {{ request()->is('admin/course-package/add') || request()->is('admin/course-package/edit') ? ' active' : '' }}" href="{{ route('admin.course_package') }}">Packages</a>
                                     <a class="nav-link {{ request()->is('admin/course-package/orders') || request()->is('admin/course-package/order-detail') ? ' active' : '' }}" href="{{ route('admin.course_package.orders') }}">Package Orders</a>
+                                    <a class="nav-link {{ request()->is('admin/course-package/chapter-purchases') ? ' active' : '' }}" href="{{ route('admin.course_package.chapter_purchases') }}">Chapter Purchases</a>
                                     <a class="nav-link {{ request()->is('admin/course-schedule') || request()->is('admin/course-schedule/*') ? ' active' : '' }}" href="{{ route('admin.course_schedule') }}">Test Schedule</a>
                                     <a class="nav-link {{ request()->is('admin/course-package/exam-assignments*') ? ' active' : '' }}" href="{{ route('admin.course_package.exam_assignments') }}">Assign Series Papers</a>
                                     <a class="nav-link {{ request()->is('admin/premium-bank') ? ' active' : '' }}" href="{{ route('admin.premium_bank') }}">Premium Bank</a>
@@ -479,6 +480,7 @@
                                             <a class="nav-link {{ request()->is('admin/payment/ranker') ? ' active' : '' }} {{ request()->is('admin/payment/ranker_detail') ? ' active' : '' }}" href="{{route('admin.payment.ranker')}}">Ranker</a>
                                         @endif
                                         <a class="nav-link {{ request()->is('admin/course-package/orders') || request()->is('admin/course-package/order-detail') ? ' active' : '' }}" href="{{ route('admin.course_package.orders') }}">Course Package Orders</a>
+                                        <a class="nav-link {{ request()->is('admin/course-package/chapter-purchases') ? ' active' : '' }}" href="{{ route('admin.course_package.chapter_purchases') }}">Chapter Purchases</a>
                                         @if(false && isUserPermitted('payment-new-light-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/payment/new_light') ? ' active' : '' }} {{ request()->is('admin/payment/new_light_detail') ? ' active' : '' }}" href="{{route('admin.payment.new_light')}}">New Light</a>
                                         @endif

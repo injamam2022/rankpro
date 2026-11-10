@@ -457,7 +457,7 @@ class ExamsController extends Controller
         if ((string) $user_exam_detail->exam_type === 'CUSTOM') {
             CustomTest::where('exam_user_id', $exam_user_id)
                 ->where('user_id', $user_id)
-                ->update(['status' => 'attempted']);
+                ->update(['status' => 'completed']);
         }
 
         echo 1; exit;

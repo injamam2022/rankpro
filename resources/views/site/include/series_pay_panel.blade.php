@@ -17,7 +17,7 @@
         </ul>
     @endif
     @if($payPackage->code === 'chapter_master')
-        <a href="{{ route('course_packages.show', $payPackage->slug) }}" class="btn btn-primary px-4">Choose chapters &amp; pay</a>
+        <a href="{{ route('plans') }}" class="btn btn-primary px-4">Open pricing</a>
     @elseif($payMode)
         <form action="{{ route('course_packages.checkout', $payPackage->slug) }}" method="get" class="d-inline">
             <input type="hidden" name="mode_id" value="{{ $payMode->id }}">

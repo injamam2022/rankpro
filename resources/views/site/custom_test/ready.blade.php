@@ -126,9 +126,6 @@
                             </div>
                         </div>
 
-                        <a class="ct-download" href="{{ route('custom_test.download', $custom->id) }}" target="_blank">
-                            <i class="far fa-file-alt"></i> Download test
-                        </a>
                     </div>
                 </div>
             </div>

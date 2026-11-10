@@ -29,6 +29,11 @@ class StudentController extends Controller
     public function list(){
         $data = [];
         $data['list'] = User::orderByDesc('id')->get();
+        $data['fees_by_user'] = CoursePackageOrder::query()
+            ->select('user_id', DB::raw('SUM(final_amount) as fees_paid'))
+            ->whereIn('payment_status', ['SUCCESS', 'FREE'])
+            ->groupBy('user_id')
+            ->pluck('fees_paid', 'user_id');
         $codes = CoursePackageAccess::assignableOnlineCodes();
         $data['subscriptions'] = CoursePackageOrder::query()
             ->with('package:id,code,name')

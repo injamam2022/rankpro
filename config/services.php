@@ -47,4 +47,15 @@ return [
         'description' => env('RAZORPAY_DESCRIPTION', 'RankPro'),
     ],
 
+    /*
+    | ICICI Bank Orange PG (UAT defaults). Switch the URLs for production.
+    */
+    'icici' => [
+        'merchant_id' => env('ICICI_MERCHANT_ID'),
+        'aggregator_id' => env('ICICI_AGGREGATOR_ID'),
+        'secret' => env('ICICI_SECRET_KEY'),
+        'sale_url' => env('ICICI_SALE_URL', 'https://pgpayuat.icicibank.com/tsp/pg/api/v2/initiateSale'),
+        'command_url' => env('ICICI_COMMAND_URL', 'https://pgpayuat.icici.bank.in/tsp/pg/api/command'),
+    ],
+
 ];

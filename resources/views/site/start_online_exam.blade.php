@@ -896,7 +896,7 @@
   </div>
 </section>
 <footer><div class="container-fluid"><ul class="bottom-footer list-unstyled mb-0"><li class="d-inline-block">&copy; Copyright <span id="footerYear"></span> RankPro. All Rights Reserved.</li><li class="d-inline-block mx-4">|</li><li class="d-inline-block">Developed by <a href="http://zabingo.com/" target="_blank">Zabingo Softwares (www.zabingo.com)</a></li></ul></div></footer>
-<div id="retest" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST <img class="closeModel img-fluid" onclick="cancalTestModalClick();" src="{{ asset('') }}exam/img/close.png" alt="Close"></div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul>@if(empty($exam_detail->is_proctored))<button type="button" class="orengeButton" onclick="saveTestModalClick();">Save</button>@endif<button type="button" class="orengeButton js-end-test-btn" style="background-color:#ff0000;" onclick="endTestModalClick();">End Test</button></div></div></div></div></div>
+<div id="retest" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST <img class="closeModel img-fluid" onclick="cancalTestModalClick();" src="{{ asset('') }}exam/img/close.png" alt="Close"></div><div class="card-body whiteBody"><ul><li>You cannot go back while this test is in progress. End the test to submit your answers.</li><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul>@if(empty($exam_detail->is_proctored))<button type="button" class="orengeButton" onclick="saveTestModalClick();">Save</button>@endif<button type="button" class="orengeButton js-end-test-btn" style="background-color:#ff0000;" onclick="endTestModalClick();">End Test</button></div></div></div></div></div>
 <div id="exam_end_timer" class="modalStyle"><div class="modal-background"><div class="login_card retest"><div class="card modal"><div class="card-header greenHeader">END TEST</div><div class="card-body whiteBody"><ul><li>Questions may have negative marks, be careful while attempting a question.</li><li>Keep an eye on timer, you need to finish it before time ends if there is time limit.</li><li>Questions can be multiple choice or single choice, need to answer appropriately.</li><li>Time is calculated once you start the test, if you leave in middle that time will be considered as well.</li></ul><button type="button" class="orengeButton js-end-test-btn" onclick="endTestModalClick();">End Test</button></div></div></div></div></div>
 
     <script type="text/javascript">
@@ -949,6 +949,32 @@
         if (event.persisted) {
           window.location.reload();
         }
+      });
+
+      function openEndTestDisclaimer() {
+        var modal = document.getElementById('retest');
+        if (!modal) return;
+        modal.classList.remove('out');
+        modal.classList.add('myFade');
+        document.body.classList.add('modal-active');
+      }
+
+      history.pushState({ examLock: true }, '', window.location.href);
+      window.addEventListener('popstate', function () {
+        if (sessionStorage.getItem(window.examEndedStorageKey) === '1') {
+          window.location.replace(window.examAfterEndUrl);
+          return;
+        }
+        history.pushState({ examLock: true }, '', window.location.href);
+        openEndTestDisclaimer();
+      });
+      document.addEventListener('click', function (event) {
+        var link = event.target && event.target.closest ? event.target.closest('a') : null;
+        if (!link) return;
+        var href = link.getAttribute('href') || '';
+        if (!href || href === '#' || href.indexOf('javascript:') === 0 || link.getAttribute('target') === '_blank') return;
+        event.preventDefault();
+        openEndTestDisclaimer();
       });
     </script>
 

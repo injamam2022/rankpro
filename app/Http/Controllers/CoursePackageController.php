@@ -9,6 +9,7 @@ use App\Models\CoursePackageOrder;
 use App\Models\CoursePackageOrderChapter;
 use App\Models\CourseSchedule;
 use App\Models\Location;
+use App\Services\IciciGateway;
 use App\Support\CoursePackageAccess;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -113,16 +114,10 @@ class CoursePackageController extends Controller
             session(['cm_checkout_chapter_ids' => $lineChapters->pluck('id')->map(fn ($id) => (int) $id)->all()]);
         }
 
-        // Prefer config (works with config:cache). Fall back to env for uncached local/dev.
-        $razorpayKey = config('services.razorpay.key') ?: env('RAZORPAY_KEY');
-        $razorpayName = config('services.razorpay.name') ?: env('RAZORPAY_NAME', 'RankPro');
-
         return view('site.course_packages.checkout', compact(
             'package',
             'mode',
             'locations',
-            'razorpayKey',
-            'razorpayName',
             'lineChapters',
             'unitPrice'
         ));
@@ -190,10 +185,7 @@ class CoursePackageController extends Controller
             $fulfillment = 'access_granted';
         }
 
-        $paymentStatus = $final <= 0 ? 'FREE' : 'SUCCESS';
-        if ($final > 0 && empty($request->razorpay_payment_id)) {
-            return response()->json(['success' => 0, 'message' => 'Payment details missing.'], 422);
-        }
+        $paymentStatus = $final <= 0 ? 'FREE' : 'PENDING';
 
         $modeLabel = $mode->label;
         if ($package->code === 'chapter_master') {
@@ -225,19 +217,24 @@ class CoursePackageController extends Controller
                     'shipping_city' => $request->shipping_city,
                     'shipping_state' => $request->shipping_state,
                     'shipping_pincode' => $request->shipping_pincode,
-                    'fulfillment_status' => $fulfillment,
+                    'fulfillment_status' => $final <= 0 ? $fulfillment : 'pending',
                     'payment_status' => $paymentStatus,
-                    'transaction_id' => $request->razorpay_payment_id,
-                    'gateway_order_id' => $request->razorpay_order_id,
+                    'gateway_meta' => [
+                        'fulfillment' => $fulfillment,
+                        'chapter_ids' => $lineChapters->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+                        'unit_price' => $unitPrice,
+                    ],
                 ]);
 
-                foreach ($lineChapters as $chapter) {
-                    CoursePackageOrderChapter::create([
-                        'course_package_order_id' => $order->id,
-                        'user_id' => Auth::id(),
-                        'chapter_id' => $chapter->id,
-                        'price' => $unitPrice,
-                    ]);
+                if ($final <= 0) {
+                    foreach ($lineChapters as $chapter) {
+                        CoursePackageOrderChapter::create([
+                            'course_package_order_id' => $order->id,
+                            'user_id' => Auth::id(),
+                            'chapter_id' => $chapter->id,
+                            'price' => $unitPrice,
+                        ]);
+                    }
                 }
 
                 return $order;
@@ -251,6 +248,28 @@ class CoursePackageController extends Controller
                 ], 422);
             }
             throw $e;
+        }
+
+        if ($final > 0) {
+            $gateway = app(IciciGateway::class);
+            $txn = $gateway->newTxnNo();
+            $order->gateway_order_id = $txn;
+            $order->save();
+            try {
+                $bankUrl = $gateway->startSale($txn, $final, Auth::user());
+            } catch (\Throwable $e) {
+                $order->payment_status = 'FAILED';
+                $order->save();
+
+                return response()->json(['success' => 0, 'message' => $e->getMessage()], 422);
+            }
+
+            return response()->json([
+                'success' => 1,
+                'message' => 'Redirecting to ICICI Bank.',
+                'order_id' => $order->id,
+                'redirect' => $bankUrl,
+            ]);
         }
 
         $redirect = route('my_orders');

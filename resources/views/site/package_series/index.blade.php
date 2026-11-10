@@ -29,7 +29,7 @@
       <div class="dashboardLeft dashboardLeftOff">@include('site.include.student_left_menu')</div>
       <div class="dashboardRight"><div class="dashboardRightBody">
         <div class="ps-wrap">
-          <div class="dashboardTitle mb-1">My <span>Series Tests</span></div>
+          <div class="dashboardTitle mb-1">Rank Pro <span>Series</span></div>
           <p class="text-muted mb-3">Open a purchased package to view the schedule and start online exams.</p>
           @foreach($orders as $order)
             @php $p = $order->package; @endphp

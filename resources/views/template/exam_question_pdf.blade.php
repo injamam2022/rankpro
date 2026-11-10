@@ -22,21 +22,20 @@
             text-transform: uppercase; letter-spacing: 0.4px; margin: 0 0 6px;
             page-break-after: avoid;
         }
-        .q-block { padding: 5px 0 6px; border-bottom: 1px solid #eceff3; margin: 0; }
-        .q-head-table { width: 100%; border-collapse: collapse; }
-        .q-num { width: 26px; vertical-align: top; font-weight: bold; font-size: 12px; padding: 0 6px 0 0; }
-        .q-content { vertical-align: top; font-size: 12px; }
+        .q-block { padding: 8px 0 10px; border-bottom: 1px solid #eceff3; margin: 0; page-break-inside: avoid; }
+        .q-head-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .q-num { width: 32px; vertical-align: top; font-weight: bold; font-size: 12px; padding: 0 8px 0 0; line-height: 1.45; }
+        .q-content { vertical-align: top; font-size: 12px; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
         .q-content p, .q-content div, .opt-body p, .opt-body div { margin: 0; padding: 0; }
         .q-content table, .opt-body table { width: auto; max-width: 100%; }
-        .q-content img { vertical-align: middle; }
-        .q-diagram { max-width: 88%; max-height: 170px; height: auto; display: block; margin: 6px 0 4px; }
-        .options-grid { width: 100%; border-collapse: collapse; margin: 5px 0 0 26px; }
-        .opt-cell { width: 50%; vertical-align: top; padding: 2px 12px 2px 0; }
-        .opt-inner { width: 100%; border-collapse: collapse; }
-        .opt-num { width: 24px; vertical-align: top; font-weight: bold; font-size: 11px; color: #334155; padding-right: 4px; }
-        .opt-body { vertical-align: top; font-size: 11px; color: #1e293b; }
-        .opt-body img { vertical-align: middle; }
-        .opt-diagram { max-width: 95%; max-height: 100px; height: auto; display: block; margin: 2px 0; }
+        .q-content img, .opt-body img { max-width: 100% !important; height: auto !important; vertical-align: middle; }
+        .q-diagram { max-width: 100%; max-height: 180px; height: auto; display: block; margin: 8px 0 6px; }
+        .options-grid { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 8px 0 0 0; }
+        .opt-cell { width: 50%; vertical-align: top; padding: 3px 10px 3px 0; }
+        .opt-inner { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .opt-num { width: 28px; vertical-align: top; font-weight: bold; font-size: 11px; color: #334155; padding-right: 6px; line-height: 1.4; }
+        .opt-body { vertical-align: top; font-size: 11px; color: #1e293b; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; }
+        .opt-diagram { max-width: 100%; max-height: 110px; height: auto; display: block; margin: 2px 0; }
         .ft { font-size: 8.5px; color: #737373; padding-top: 4px; }
     </style>
 </head>

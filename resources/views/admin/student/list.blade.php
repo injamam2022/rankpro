@@ -24,9 +24,13 @@
             <thead>
                 <tr>
                     <th data-type="number" data-sort="desc">ID</th>
+                    <th>RankPro ID</th>
                     <th>Name</th>
+                    <th>Class</th>
                     <th>Email</th>
                     <th>Phone Number</th>
+                    <th>Enrollment</th>
+                    <th>Fees</th>
                     <th>Address</th>
                     <th>Icon</th>
                     <th>Status</th>
@@ -38,9 +42,13 @@
                     @foreach ($list as $key=>$row)
                         <tr>
                             <td>{{$row->id}}</td>
+                            <td>{{ $row->rankpro_id ?: '—' }}</td>
                             <td>{{$row->first_name}} {{$row->last_name}}</td>
+                            <td>{{ $row->class_name ?: '—' }}</td>
                             <td>{{$row->email_id}}</td>
                             <td>{{$row->mobile_number}}</td>
+                            <td>{{ optional($row->created_at)->format('d M Y, h:i A') ?: '—' }}</td>
+                            <td>₹{{ number_format((float) (($fees_by_user ?? collect())->get($row->id) ?? 0), 2) }}</td>
                             <td>{{$row->address}}</td>
                             <td>
                                 @if($row->profile_img)

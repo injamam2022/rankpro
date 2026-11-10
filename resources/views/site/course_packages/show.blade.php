@@ -151,7 +151,7 @@
                         @if($package->is_free)
                             Free Custom Test segment — non-premium questions.
                         @else
-                            Premium segment · secure Razorpay checkout
+                            Premium segment · secure ICICI Bank checkout
                         @endif
                     </div>
                 @endif
@@ -226,7 +226,7 @@
                         <a href="{{ route('login') }}" class="cpg-btn" @if($package->code === 'chapter_master' && !$chapterMasterLegacy) id="cpCartLogin" @endif>{{ $package->is_free ? 'Login to give exam' : 'Login to purchase' }}</a>
                     @endif
                     @unless($package->is_free)
-                        <div class="cpg-secure"><i class="fas fa-lock"></i> Secure payment via Razorpay</div>
+                        <div class="cpg-secure"><i class="fas fa-lock"></i> Secure payment via ICICI Bank</div>
                     @endunless
                 </form>
             </aside>
