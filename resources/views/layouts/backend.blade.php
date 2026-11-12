@@ -495,6 +495,7 @@
                                     {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}
                                     {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}
+                                    {{ request()->is('admin/reported-question') ? ' active' : '' }} {{ request()->is('admin/reported-question/*') ? ' active' : '' }}
 
                                     " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseQuestion" aria-expanded="false" aria-controls="collapseQuestion">
                                         <div class="nav-link-icon"><i class="material-icons">menu_book</i></div>
@@ -508,6 +509,7 @@
                                         <a class="nav-link {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}" href="{{route('admin.question.upload')}}">Question Upload</a>
                                         <a class="nav-link {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}" href="{{route('admin.question_paper')}}">Question Bank</a>
                                         <a class="nav-link {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}" href="{{ route('admin.custom_test_bank') }}">Custom Test Bank</a>
+                                        <a class="nav-link {{ request()->is('admin/reported-question') ? ' active' : '' }} {{ request()->is('admin/reported-question/*') ? ' active' : '' }}" href="{{ route('admin.reported_question') }}">Reported Questions</a>
                                     </nav>
                                 </div>
                             @endif
@@ -525,6 +527,7 @@
                                     {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}
                                     {{ request()->is('admin/question-paper') ? ' active' : '' }} {{ request()->is('admin/question-paper/*') ? ' active' : '' }}
                                     {{ request()->is('admin/custom-test-bank') ? ' active' : '' }} {{ request()->is('admin/custom-test-bank/*') ? ' active' : '' }}
+                                    {{ request()->is('admin/reported-question') ? ' active' : '' }} {{ request()->is('admin/reported-question/*') ? ' active' : '' }}
 
                                     " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseQuestion" aria-expanded="false" aria-controls="collapseQuestion">
                                         <div class="nav-link-icon"><i class="material-icons">menu_book</i></div>
@@ -554,6 +557,7 @@
                                         @if(isUserPermitted('question-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/question') ? ' active' : '' }} {{ request()->is('admin/question/*') ? ' active' : '' }}" href="{{route('admin.question')}}">Question</a>
                                             <a class="nav-link {{ request()->is('admin/premium-bank') ? ' active' : '' }}" href="{{ route('admin.premium_bank') }}">Premium Bank</a>
+                                            <a class="nav-link {{ request()->is('admin/reported-question') ? ' active' : '' }} {{ request()->is('admin/reported-question/*') ? ' active' : '' }}" href="{{ route('admin.reported_question') }}">Reported Questions</a>
                                         @endif
                                         @if(isUserPermitted('question-upload-list', 'list'))
                                             <a class="nav-link {{ request()->is('admin/question-upload') ? ' active' : '' }} {{ request()->is('admin/question-upload/*') ? ' active' : '' }}" href="{{route('admin.question.upload')}}">Question Upload</a>

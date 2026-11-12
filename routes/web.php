@@ -61,6 +61,7 @@
     use App\Http\Controllers\Admin\Question_typeController;
     use App\Http\Controllers\Admin\Question_sourceController;
     use App\Http\Controllers\Admin\QuestionController;
+    use App\Http\Controllers\Admin\ReportedQuestionController;
     use App\Http\Controllers\Admin\Question_paperController;
 
     use App\Http\Controllers\Admin\CouponController;
@@ -489,6 +490,9 @@
         Route::get('/question/change', [QuestionController::class, 'change'])->name('question.change');
         Route::get('/question/change-segment', [QuestionController::class, 'changeSegment'])->name('question.change_segment');
         Route::get('/premium-bank', [QuestionController::class, 'premiumBank'])->name('premium_bank');
+
+        Route::get('/reported-question', [ReportedQuestionController::class, 'list'])->name('reported_question');
+        Route::get('/reported-question/clear', [ReportedQuestionController::class, 'clear'])->name('reported_question.clear');
 
         Route::get('/question-upload', [QuestionController::class, 'upload'])->name('question.upload');
         Route::get('/question-upload/sample', [QuestionController::class, 'upload_sample'])->name('question.upload_sample');
