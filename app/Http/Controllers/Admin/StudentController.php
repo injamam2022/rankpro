@@ -215,6 +215,16 @@ class StudentController extends Controller
                             'first_name' => 'required'
                         ]);
 
+        $rankproId = trim((string) $request->rankpro_id);
+        if ($rankproId === '') {
+            toastr()->warning('RankPro ID is required.');
+            return back()->withInput();
+        }
+        if (User::where('rankpro_id', $rankproId)->where('id', '!=', $request->id)->exists()) {
+            toastr()->warning('RankPro ID already exists for another student.');
+            return back()->withInput();
+        }
+
         $input = $request->all();
         $loginCheck = User::where('id',$request->id)->first();
 
@@ -276,6 +286,7 @@ class StudentController extends Controller
 
             $insertData['first_name'] = $request->first_name;
             $insertData['last_name'] = $request->last_name;
+            $insertData['rankpro_id'] = $rankproId;
             $insertData['address'] = $request->address;
             $insertData['class_name'] = $request->class_name;
             $insertData['mobile_number'] = $request->mobile_number;

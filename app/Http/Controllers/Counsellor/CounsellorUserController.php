@@ -132,6 +132,16 @@ class CounsellorUserController extends Controller
                             'first_name' => 'required'
                         ]);
 
+        $rankproId = trim((string) $request->rankpro_id);
+        if ($rankproId === '') {
+            toastr()->warning('RankPro ID is required.');
+            return back()->withInput();
+        }
+        if (User::where('rankpro_id', $rankproId)->where('id', '!=', $request->id)->exists()) {
+            toastr()->warning('RankPro ID already exists for another student.');
+            return back()->withInput();
+        }
+
         $input = $request->all();
         $loginCheck = User::where('id',$request->id)->first();
 
@@ -194,6 +204,7 @@ class CounsellorUserController extends Controller
             $insertData['user_tag_id'] = $request->user_tag_id;
             $insertData['first_name'] = $request->first_name;
             $insertData['last_name'] = $request->last_name;
+            $insertData['rankpro_id'] = $rankproId;
             $insertData['address'] = $request->address;
             $insertData['mobile_number'] = $request->mobile_number;
             $insertData['is_whatsapp'] = ($request->is_whatsapp)?1:0;

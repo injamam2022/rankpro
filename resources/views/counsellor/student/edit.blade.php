@@ -35,6 +35,10 @@
                             <input class="form-control" id="last_name" type="text" name="last_name" placeholder=""  value="{{$details->last_name}}" />
                         </div>
                         <div class="col-sm-6">
+                            <label class="form-label" for="rankpro_id">RankPro ID <span class="text-danger">*</span></label>
+                            <input class="form-control" id="rankpro_id" type="text" name="rankpro_id" placeholder="RP/27/0001" value="{{ old('rankpro_id', $details->rankpro_id) }}" />
+                        </div>
+                        <div class="col-sm-6">
                             <label class="form-label" for="image">Profile Icon (Image Size: W- 193 px, H- 193 px) (Type: PNG,JPG,JPEG)</label>
                             <div class="d-flex align-items-center">
                                 <input class="form-control" id="profile_img" type="file" name="profile_img" >
@@ -202,6 +206,14 @@
                 document.getElementById('last_name').classList.remove('dangerBoader');
             }else{
                 document.getElementById('last_name').classList.add('dangerBoader');
+                successFlag = false;
+            }
+
+            data.rankpro_id = document.getElementById('rankpro_id').value;
+            if(data.rankpro_id){
+                document.getElementById('rankpro_id').classList.remove('dangerBoader');
+            }else{
+                document.getElementById('rankpro_id').classList.add('dangerBoader');
                 successFlag = false;
             }
 
