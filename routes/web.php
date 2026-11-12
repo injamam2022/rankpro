@@ -110,6 +110,7 @@
     use App\Http\Controllers\Counsellor\CounsellorUserController;
     use App\Http\Controllers\Counsellor\CounsellorDashboardController;
     use App\Http\Controllers\Counsellor\CounsellorProfileController;
+    use App\Http\Controllers\Counsellor\CounsellorPaymentController;
 
     // Counsellor End
 
@@ -856,6 +857,12 @@
 
         Route::get('/student-upload', [CounsellorUserController::class, 'upload'])->name('student.upload');
         Route::post('/student-upload/save', [CounsellorUserController::class, 'upload_save'])->name('student.upload_save');
+
+        Route::get('/payment/ranker', [CounsellorPaymentController::class, 'ranker'])->name('payment.ranker');
+        Route::get('/payment/ranker_detail', [CounsellorPaymentController::class, 'rankerDetail'])->name('payment.ranker_detail');
+        Route::get('/payment/orders', [CounsellorPaymentController::class, 'coursePackageOrders'])->name('payment.orders');
+        Route::get('/payment/order-detail', [CounsellorPaymentController::class, 'coursePackageOrderDetail'])->name('payment.order_detail');
+        Route::get('/payment/chapter-purchases', [CounsellorPaymentController::class, 'chapterPurchases'])->name('payment.chapter_purchases');
     });
 
 

@@ -112,7 +112,21 @@
                                         <a class="nav-link {{ request()->is('counsellor/student-upload') ? ' active' : '' }} {{ request()->is('counsellor/student-upload/*') ? ' active' : '' }}" href="{{route('counsellor.student.upload')}}">Student Upload</a>
                                 </nav>
                             </div>
-                            
+
+                            <a class="nav-link collapsed
+                                {{ request()->is('counsellor/payment*') ? ' active' : '' }}
+                                " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapsePayment" aria-expanded="false" aria-controls="collapsePayment">
+                                    <div class="nav-link-icon"><i class="material-icons">payments</i></div>
+                                    Payment
+                                    <div class="drawer-collapse-arrow"><i class="material-icons">expand_more</i></div>
+                            </a>
+                            <div class="collapse {{ request()->is('counsellor/payment*') ? 'show' : '' }}" id="collapsePayment" aria-labelledby="headingPayment" data-bs-parent="#drawerAccordion">
+                                <nav class="drawer-menu-nested nav">
+                                    <a class="nav-link {{ request()->is('counsellor/payment/ranker*') ? ' active' : '' }}" href="{{ route('counsellor.payment.ranker') }}">Ranker</a>
+                                    <a class="nav-link {{ request()->is('counsellor/payment/orders') || request()->is('counsellor/payment/order-detail') ? ' active' : '' }}" href="{{ route('counsellor.payment.orders') }}">Course Package Orders</a>
+                                    <a class="nav-link {{ request()->is('counsellor/payment/chapter-purchases') ? ' active' : '' }}" href="{{ route('counsellor.payment.chapter_purchases') }}">Chapter Purchases</a>
+                                </nav>
+                            </div>
                             
                             <div class="drawer-menu-divider d-sm-none"></div>
 
