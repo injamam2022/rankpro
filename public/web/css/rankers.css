@@ -12,8 +12,15 @@
   margin-top: 0px;
   border-radius: 16px;
   border: 2px solid;
-  width: 316px;
+  width: min(316px, 100%);
+  max-width: 100%;
   margin-right: 20px;
+  box-sizing: border-box;
+}
+@media (max-width: 575px) {
+  .rankerBanner .rankersblockSlider {
+    margin-right: 0;
+  }
 }
 .rankerBanner .rankersblockSlider h5,
 .rankerBanner .rankersblockSlider .rankersblockSliderText {
@@ -139,8 +146,16 @@
 .rankerRanks .rankersblock {
   border-radius: 24px;
   width: 564px !important;
+  max-width: 100%;
   margin-right: 0px;
   background-position: center;
+  box-sizing: border-box;
+}
+@media (max-width: 767px) {
+  .rankerRanks .rankersblock {
+    width: 100% !important;
+    max-width: 100%;
+  }
 }
 .rankerRanks .rankers-carousel {
   display: flex;

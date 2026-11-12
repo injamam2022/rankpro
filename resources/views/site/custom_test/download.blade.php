@@ -73,21 +73,32 @@
             page-break-inside: avoid;
         }
         .q:last-child { border-bottom: 0; }
-        .q-head, .opt-row { width: 100%; border-collapse: collapse; margin: 0 0 8px; }
-        .q-no, .opt-label { width: 36px; vertical-align: top; font-weight: 800; color: var(--brand); padding: 0 8px 0 0; }
-        .opt-label { font-weight: 700; color: #344054; }
-        .stem, .opt-body { vertical-align: top; color: #101828; }
-        .stem p, .opt-body p { margin: 0 0 6px; }
-        .stem img, .q-img img, .opt-img img, .stem table img, .opt-body img {
-            max-width: 100% !important; height: auto !important; display: block; margin: 8px 0;
+        .q-head, .opt-row { width: 100%; border-collapse: collapse; margin: 0 0 8px; table-layout: auto; }
+        .q-no {
+            width: 1%; white-space: nowrap; vertical-align: top;
+            font-weight: 800; color: var(--brand); padding: 0 8px 0 0; line-height: 1.45;
+        }
+        .stem, .opt-body { vertical-align: top; color: #101828; width: 99%; }
+        .stem p, .opt-body p, .stem div, .opt-body div { margin: 0 0 6px; padding: 0; }
+        /* Formula glyphs are tiny <img>s — keep them inline with the sentence. */
+        .stem img, .opt-body img, .stem table img, .opt-body table img {
+            max-width: 100%; height: auto; vertical-align: middle;
+            display: inline-block; margin: 0 2px;
+        }
+        .q-img, .opt-img { margin: 8px 0; }
+        .q-img img, .opt-img img {
+            max-width: 100% !important; max-height: 220px; height: auto !important;
+            display: block; margin: 0;
         }
         .stem table, .opt-body table { max-width: 100%; border-collapse: collapse; margin: 8px 0; }
         .opts { list-style: none; margin: 0; padding: 0; }
         .opt-label {
-            font-weight: 700; color: #344054; min-width: 28px;
+            width: 1%; white-space: nowrap; vertical-align: top;
+            font-weight: 700; color: #344054; padding: 0 8px 0 0; line-height: 1.45;
         }
         .opt-body { min-width: 0; }
         .opt-body p { margin: 0; }
+        .raw-html-embed { display: inline; margin: 0; padding: 0; }
 
         .section-break {
             page-break-before: always; margin-top: 28px; padding-top: 8px;
@@ -274,5 +285,19 @@
         <div>{{ $studentMeta }}</div>
     </div>
 </div>
+<script>
+(function () {
+    document.querySelectorAll('.stem img, .opt-body img').forEach(function (img) {
+        if (img.closest('.q-img, .opt-img')) return;
+        var w = parseInt(img.getAttribute('width') || '0', 10);
+        var h = parseInt(img.getAttribute('height') || '0', 10);
+        if (w > 240 || h > 90) {
+            img.style.display = 'block';
+            img.style.margin = '8px 0';
+            img.style.maxHeight = '220px';
+        }
+    });
+})();
+</script>
 </body>
 </html>

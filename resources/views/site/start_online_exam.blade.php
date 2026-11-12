@@ -32,7 +32,7 @@
             color:#17233b;
         }
         #header {
-            height:72px;
+            height:76px;
             margin:0 !important;
             padding:0 !important;
             background:#fff;
@@ -113,61 +113,119 @@
         }
         .questionCount b { color:#17233b; }
         .exampTime,
-        #clockdiv {
+        #clockdiv,
+        .testSheet #clockdiv,
+        .testSheetBody .exampTime {
             flex:0 0 auto;
             order:0;
             display:inline-flex !important;
             align-items:center;
-            gap:8px;
+            gap:10px;
             width:auto !important;
             margin:0 !important;
             padding:0 !important;
             font-size:14px;
             color:#7a8498;
             line-height:1;
+            text-align:left;
         }
+        /* Hide legacy pill progress bar styles */
         .blueTime,
-        #clockdiv .blueTime {
-            position:relative;
-            width:148px !important;
-            height:36px !important;
-            border-radius:10px;
-            background:#dfe8ff;
-            overflow:hidden;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            margin:0 !important;
+        #clockdiv .blueTime,
+        .testSheet .blueTime,
+        .testSheet #clockdiv .blueTime {
+            display:none !important;
         }
-        .blueTime > div {
-            position:absolute;
-            inset:0 auto 0 0;
-            background:#d3e0ff;
-            z-index:1;
-        }
-        .blueTime span {
+        #main_timer_div { display:none !important; }
+
+        .exam-stopwatch {
             position:relative;
-            z-index:2;
-            color:#3561ff;
-            font-size:16px;
-            letter-spacing:0.5px;
+            width:58px;
+            height:64px;
+            flex:0 0 auto;
+            display:block;
+        }
+        .exam-stopwatch__svg {
+            width:58px;
+            height:64px;
+            display:block;
+            overflow:visible;
+            filter:drop-shadow(0 1px 2px rgba(20,35,60,.18));
+            transition:filter .25s ease;
+        }
+        .exam-stopwatch__face {
+            fill:#fff;
+            transition:fill .25s ease;
+        }
+        .exam-stopwatch__bezel {
+            fill:url(#swBezel);
+            stroke:#9aa3b5;
+            stroke-width:1;
+        }
+        .exam-stopwatch__tick {
+            stroke:#1a1a1a;
+            stroke-linecap:round;
+        }
+        .exam-stopwatch__num {
+            fill:#111;
+            font-size:7px;
+            font-weight:700;
+            font-family:'Roboto Condensed',Arial,sans-serif;
+            text-anchor:middle;
+            dominant-baseline:middle;
+        }
+        .exam-stopwatch__num.is-accent { fill:#e10600; }
+        .exam-stopwatch__hand {
+            stroke:#e10600;
+            stroke-width:1.4;
+            stroke-linecap:round;
+        }
+        .exam-stopwatch__hand-min {
+            stroke:#222;
+            stroke-width:1.1;
+            stroke-linecap:round;
+        }
+        .exam-stopwatch__pivot {
+            fill:#e10600;
+        }
+        .exam-clock-meta {
+            display:inline-flex;
+            flex-direction:column;
+            gap:2px;
+            min-width:0;
+        }
+        .exam-clock,
+        #exam_clock_display {
+            color:#17233b !important;
+            font-size:18px;
+            font-weight:700;
+            font-family:Consolas,'Courier New',monospace;
             font-variant-numeric:tabular-nums;
-            font-weight:700;
+            letter-spacing:0.02em;
             line-height:1;
-            top:auto !important;
-            left:auto !important;
-            right:auto !important;
-            bottom:auto !important;
-        }
-        .blueTime .timer-sep {
-            margin:0 1px;
-            font-weight:700;
+            white-space:nowrap;
         }
         .exampTime .timer-label {
             color:#7a8498;
-            font-size:13px;
+            font-size:12px;
             white-space:nowrap;
             line-height:1;
+        }
+        /* Urgent: remaining time ≤ 30 seconds */
+        #clockdiv.is-urgent .exam-stopwatch__face { fill:#ffe8e8; }
+        #clockdiv.is-urgent .exam-stopwatch__svg {
+            filter:drop-shadow(0 0 4px rgba(255,16,16,.45));
+        }
+        #clockdiv.is-urgent .exam-clock,
+        #clockdiv.is-urgent #exam_clock_display {
+            color:#ff1010 !important;
+        }
+        #clockdiv.is-urgent .timer-label {
+            color:#ff1010;
+            font-weight:600;
+        }
+        #clockdiv.is-urgent .exam-stopwatch__bezel {
+            stroke:#ff6b6b;
         }
         .topExampButtons {
             order:0;
@@ -214,8 +272,9 @@
             .exampTime .timer-label { display:none; }
             .questionCount { font-size:12px; }
             .proctoring-badge { font-size:11px; padding:0 8px; }
-            .blueTime, #clockdiv .blueTime { width:132px !important; }
-            .blueTime span { font-size:14px; }
+            .exam-stopwatch { width:50px; height:56px; }
+            .exam-stopwatch__svg { width:50px; height:56px; }
+            #exam_clock_display { font-size:16px; }
         }
         @media (max-width:767px) {
             #header { height:auto; min-height:72px; }
@@ -813,7 +872,54 @@
       <div class="proctoring-badge">Proctored · warnings <span id="proctoringViolationCount">0</span>/{{ $exam_detail->proctoring_max_violations ?? 5 }}</div>
       @endif
       <div class="questionCount"><b id="current_question_view"></b> questions left of <b><?php echo count($question_list);?></b></div>
-      <div class="exampTime" id="clockdiv"><div class="blueTime"><div id="main_timer_div" style="width:0%;"></div><span><b class="main_hours">00</b><b class="timer-sep">:</b><b class="main_minutes">00</b><b class="timer-sep">:</b><b class="main_seconds">00</b></span></div><span class="timer-label">left of <?php echo $exam_detail->total_time_for_exam;?> min</span></div>
+      <div class="exampTime" id="clockdiv" role="timer" aria-live="polite" aria-label="Time remaining 00:00">
+        <div class="exam-stopwatch" aria-hidden="true">
+          <svg class="exam-stopwatch__svg" viewBox="0 0 58 64" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="swBezel" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f4f6f8"/>
+                <stop offset="45%" stop-color="#c5ccd6"/>
+                <stop offset="100%" stop-color="#8e97a6"/>
+              </linearGradient>
+            </defs>
+            <!-- crown + buttons -->
+            <rect x="25.5" y="1" width="7" height="6" rx="1.5" fill="#b8c0cc" stroke="#8e97a6" stroke-width="0.6"/>
+            <circle cx="29" cy="2.2" r="2.2" fill="none" stroke="#8e97a6" stroke-width="1"/>
+            <rect x="16" y="5" width="4" height="5" rx="1" transform="rotate(-28 18 7.5)" fill="#b8c0cc" stroke="#8e97a6" stroke-width="0.5"/>
+            <rect x="38" y="5" width="4" height="5" rx="1" transform="rotate(28 40 7.5)" fill="#b8c0cc" stroke="#8e97a6" stroke-width="0.5"/>
+            <!-- case + face -->
+            <circle class="exam-stopwatch__bezel" cx="29" cy="34" r="27"/>
+            <circle class="exam-stopwatch__face" cx="29" cy="34" r="22.5"/>
+            <!-- minute subdial -->
+            <circle cx="29" cy="23" r="5.5" fill="none" stroke="#cfd5de" stroke-width="0.7"/>
+            <!-- ticks (generated positions: every 5s major, 1s minor) -->
+            <g id="exam_stopwatch_ticks"></g>
+            <!-- numbers -->
+            <text class="exam-stopwatch__num is-accent" x="29" y="16.5">60</text>
+            <text class="exam-stopwatch__num" x="39.2" y="19.8">5</text>
+            <text class="exam-stopwatch__num" x="45.5" y="27">10</text>
+            <text class="exam-stopwatch__num is-accent" x="47.5" y="35.2">15</text>
+            <text class="exam-stopwatch__num" x="45.5" y="43.5">20</text>
+            <text class="exam-stopwatch__num" x="39.2" y="50.2">25</text>
+            <text class="exam-stopwatch__num is-accent" x="29" y="52.8">30</text>
+            <text class="exam-stopwatch__num" x="18.8" y="50.2">35</text>
+            <text class="exam-stopwatch__num" x="12.5" y="43.5">40</text>
+            <text class="exam-stopwatch__num is-accent" x="10.5" y="35.2">45</text>
+            <text class="exam-stopwatch__num" x="12.5" y="27">50</text>
+            <text class="exam-stopwatch__num" x="18.8" y="19.8">55</text>
+            <!-- hands -->
+            <line id="exam_min_hand" class="exam-stopwatch__hand-min" x1="29" y1="23" x2="29" y2="18.2"/>
+            <line id="exam_sec_hand" class="exam-stopwatch__hand" x1="29" y1="38.5" x2="29" y2="15.5"/>
+            <circle class="exam-stopwatch__pivot" cx="29" cy="34" r="1.6"/>
+            <circle cx="29" cy="23" r="1" fill="#222"/>
+          </svg>
+        </div>
+        <div class="exam-clock-meta">
+          <span class="exam-clock" id="exam_clock_display">00:00</span>
+          <span class="timer-label">left of <?php echo $exam_detail->total_time_for_exam;?> min</span>
+        </div>
+        <div class="blueTime" style="display:none"><div id="main_timer_div" style="width:0%;"></div></div>
+      </div>
       <div class="topExampButtons"><div class="topExampButtonsResponsive"><a href="javascript:void(0);" class="redButton button" onclick="examExamTimer(1);"><i class="fa fa-power-off"></i> End Test</a><a href="javascript:void(0);" class="whiteButton" onclick="clickReported();"><i class="fa fa-flag"></i><i class="fa fa-check" aria-hidden="true" id="reported_tick_icon_id" style="display:none;"></i> Report</a></div></div>
     </div>
   </div>
@@ -1082,7 +1188,7 @@
               condtion = false;
             }
           }else if(type == "skipped"){
-            if(item.answer == 0){
+            if(item.answer === 0 || item.answer === '0'){
               condtion = true;
             }else{
               condtion = false;
@@ -1115,12 +1221,10 @@
         var total_review_later_count = 0;
         globalData.question_list.forEach(function(val){
           total_question_count = total_question_count + 1;
-          if(val.answer !== ""){
-            if(val.answer === 0){
-              total_skipped_count = total_skipped_count + 1;
-            }else if(val.answer !== 0){
-              total_answered_count = total_answered_count + 1;
-            }
+          if(val.answer === 0 || val.answer === '0'){
+            total_skipped_count = total_skipped_count + 1;
+          }else if(val.answer !== "" && val.answer !== null && typeof val.answer !== "undefined"){
+            total_answered_count = total_answered_count + 1;
           }
 
           if(val.reported == 1){
@@ -1446,7 +1550,7 @@
         if (res.review_later == 1 || res.review_later === '1' || res.review_later === true) {
           return 'yellow';
         }
-        if (res.answer == 0 || res.answer === '0') {
+        if (res.answer === 0 || res.answer === '0') {
           return 'gray';
         }
         if (res.answer) {
@@ -1600,7 +1704,9 @@
 
       function clickSkipButton(){
         if(globalData.question_list.length > globalData.question_index){
+          globalData.is_current_option_selected = 0;
           globalData.question_list[globalData.question_index].answer = 0;
+          globalData.question_list[globalData.question_index].type = "skip";
           globalData.question_list[globalData.question_index].time = globalData.current_question_time.total/1000;
           var question_detail = globalData.question_list[globalData.question_index];
           var requestData = {
@@ -1613,6 +1719,8 @@
             "type":"skip"
           };
           saveQuestionAnswer(requestData);
+          renderOuestionCount();
+          renderQuestionList(globalData.question_list,0);
           if(globalData.question_list[globalData.question_index+1]){
             globalData.question_index = globalData.question_index + 1;
             renderQuestionAndOption(globalData.question_list[globalData.question_index],globalData.question_index+1);
@@ -1622,7 +1730,9 @@
             examExamTimer(1);
           }
         }else{
-          globalData.question_list[globalData.question_index].answer = globalData.is_current_option_selected;
+          globalData.is_current_option_selected = 0;
+          globalData.question_list[globalData.question_index].answer = 0;
+          globalData.question_list[globalData.question_index].type = "skip";
           globalData.question_list[globalData.question_index].time = globalData.current_question_time.total/1000;
           var question_detail = globalData.question_list[globalData.question_index];
           var requestData = {
@@ -1635,6 +1745,8 @@
             "type":"skip"
           };
           saveQuestionAnswer(requestData);
+          renderOuestionCount();
+          renderQuestionList(globalData.question_list,0);
           examExamTimer(1);
         }
       }
@@ -1699,7 +1811,7 @@
             question_paper_question_id: q.question_paper_question_id,
             answer: q.answer,
             time: q.time || 0,
-            type: q.type || 'answer',
+            type: (q.answer === 0 || q.answer === '0') ? 'skip' : (q.type || 'answer'),
             review_later: (q.review_later == 1 || q.review_later === '1') ? 1 : 0,
             reported: (q.reported == 1 || q.reported === '1') ? 1 : 0
           });
@@ -1725,11 +1837,13 @@
         }
         $('.js-end-test-btn').prop('disabled', true).text('Ending...');
 
-        // Persist current question selection before scoring.
-        if (globalData.is_current_option_selected) {
-          globalData.question_list[globalData.question_index].answer = globalData.is_current_option_selected;
-          globalData.question_list[globalData.question_index].type = 'answer';
-          globalData.question_list[globalData.question_index].time = globalData.current_question_time.total/1000;
+        // Persist a real selection. A skipped question stays skipped.
+        var currentQuestion = globalData.question_list[globalData.question_index];
+        var currentSkipped = currentQuestion && (currentQuestion.answer === 0 || currentQuestion.answer === '0' || currentQuestion.type === 'skip');
+        if (globalData.is_current_option_selected && !currentSkipped) {
+          currentQuestion.answer = globalData.is_current_option_selected;
+          currentQuestion.type = 'answer';
+          currentQuestion.time = globalData.current_question_time.total/1000;
         }
 
         var requestData = {
@@ -1848,27 +1962,80 @@
         };
       }
 
+      function formatStopwatch(ms) {
+        var totalSeconds = Math.max(0, Math.floor(ms / 1000));
+        var hours = Math.floor(totalSeconds / 3600);
+        var minutes = Math.floor((totalSeconds % 3600) / 60);
+        var seconds = totalSeconds % 60;
+        var mm = ('0' + minutes).slice(-2);
+        var ss = ('0' + seconds).slice(-2);
+        if (hours > 0) {
+          return ('0' + hours).slice(-2) + ':' + mm + ':' + ss;
+        }
+        return mm + ':' + ss;
+      }
+
+      function buildStopwatchTicks() {
+        var ticks = document.getElementById('exam_stopwatch_ticks');
+        if (!ticks || ticks.childNodes.length) return;
+        var cx = 29, cy = 34, outer = 21.2;
+        for (var i = 0; i < 60; i++) {
+          var angle = (i * 6 - 90) * Math.PI / 180;
+          var isMajor = i % 5 === 0;
+          var len = isMajor ? 3.2 : 1.6;
+          var x1 = cx + Math.cos(angle) * outer;
+          var y1 = cy + Math.sin(angle) * outer;
+          var x2 = cx + Math.cos(angle) * (outer - len);
+          var y2 = cy + Math.sin(angle) * (outer - len);
+          var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x1.toFixed(2));
+          line.setAttribute('y1', y1.toFixed(2));
+          line.setAttribute('x2', x2.toFixed(2));
+          line.setAttribute('y2', y2.toFixed(2));
+          line.setAttribute('class', 'exam-stopwatch__tick');
+          line.setAttribute('stroke-width', isMajor ? '1.1' : '0.6');
+          ticks.appendChild(line);
+        }
+      }
+
+      function setStopwatchHands(remainingMs) {
+        var totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+        var seconds = totalSeconds % 60;
+        var minutes = Math.floor(totalSeconds / 60) % 30;
+        var secDeg = seconds * 6;
+        var minDeg = minutes * 12;
+        var secHand = document.getElementById('exam_sec_hand');
+        var minHand = document.getElementById('exam_min_hand');
+        if (secHand) {
+          secHand.setAttribute('transform', 'rotate(' + secDeg + ' 29 34)');
+        }
+        if (minHand) {
+          minHand.setAttribute('transform', 'rotate(' + minDeg + ' 29 23)');
+        }
+      }
+
       function initializeTotalExamTime(startTime) {
-        var hoursSpan   = $('#clockdiv .main_hours');
-        var minutesSpan = $('#clockdiv .main_minutes');
-        var secondsSpan = $('#clockdiv .main_seconds');
+        var clockRoot  = $('#clockdiv');
+        var clockDisplay = $('#exam_clock_display');
         var progressBar = $('#main_timer_div');
+        var URGENT_MS = 30000;
 
         var examTimeInterval = null;
         var lastUpdateTime = 0;
         var lastUpdateCount =0;
 
+        buildStopwatchTicks();
+
         function updateExamClock() {
             var t = getTimeRemaining(startTime);
             var totalTime = globalData.exam_time;
             var remainingMs = Math.max(0, totalTime - t.total);
-            var hours = Math.floor(remainingMs / (1000 * 60 * 60));
-            var minutes = Math.floor((remainingMs / (1000 * 60)) % 60);
-            var seconds = Math.floor((remainingMs / 1000) % 60);
+            var stopwatchText = formatStopwatch(remainingMs);
 
-            hoursSpan.text(('0' + hours).slice(-2));
-            minutesSpan.text(('0' + minutes).slice(-2));
-            secondsSpan.text(('0' + seconds).slice(-2));
+            clockDisplay.text(stopwatchText);
+            setStopwatchHands(remainingMs);
+            clockRoot.toggleClass('is-urgent', remainingMs > 0 && remainingMs <= URGENT_MS);
+            clockRoot.attr('aria-label', 'Time remaining ' + stopwatchText);
 
             var percentage = 0;
 
@@ -1893,9 +2060,9 @@
                 clearInterval(examTimeInterval);
 
                 progressBar.css('width', '100%');
-                hoursSpan.text('00');
-                minutesSpan.text('00');
-                secondsSpan.text('00');
+                clockDisplay.text('00:00');
+                setStopwatchHands(0);
+                clockRoot.addClass('is-urgent');
 
                 examExamTimer(0);
 

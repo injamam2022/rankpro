@@ -245,6 +245,23 @@ class StudentsController extends Controller
             ->groupBy('exam_users.user_id', 'users.first_name', 'users.last_name', 'users.profile_img', 'users.rankpro_id')
             ->first();
 
+        // A student with no scored attempts is absent from the aggregate query.
+        // Still pin their row so the dashboard shows where they stand.
+        if (empty($data['my_leader_board'])) {
+            $authUser = $data['user'];
+            $data['my_leader_board'] = (object) [
+                'user_id' => $authUser->id,
+                'total_result' => 0,
+                'total_mark' => 0,
+                'total_number' => 0,
+                'first_name' => $authUser->first_name,
+                'last_name' => $authUser->last_name,
+                'profile_img' => $authUser->profile_img,
+                'rankpro_id' => $authUser->rankpro_id,
+                'total_exam' => 0,
+            ];
+        }
+
         // Rank for current user only (DB aggregate — does not hydrate all students in PHP).
         $rankTypeSql = '';
         $rankBindings = [];

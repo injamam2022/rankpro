@@ -72,6 +72,7 @@
         .ct-subject-score.low { color: #f04438; }
         .ct-subject-score.mid { color: #f79009; }
         .ct-subject-score.high { color: #12b76a; }
+        .ct-subject-score.none { color: #667085; }
         .ct-bar {
             height: 6px; border-radius: 999px; background: #eaecf0; overflow: hidden; margin-bottom: .55rem;
         }
@@ -89,6 +90,7 @@
         .ct-status { font-size: .8rem; font-weight: 600; }
         .ct-status.bad { color: #f04438; }
         .ct-status.ok { color: #12b76a; }
+        .ct-status.muted { color: #667085; }
         .ct-actions {
             display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1rem;
         }
@@ -150,7 +152,7 @@
                             </div>
                         </div>
 
-                        <div class="ct-meta">{{ $unattempted }} unattempted · Time: {{ $timeMinutes }}m</div>
+                        <div class="ct-meta">{{ $skipped }} skipped · {{ $unattempted }} unattempted · Time: {{ $timeMinutes }}m</div>
 
                         @if(config('rankpro.student_modules.air'))
                         <div class="ct-card">
@@ -164,7 +166,11 @@
 
                         @forelse($subjectStats as $subject)
                             @php
-                                $scoreClass = $subject['accuracy'] >= 60 ? 'high' : ($subject['accuracy'] >= 30 ? 'mid' : 'low');
+                                $attemptedSubject = (int) ($subject['attempted'] ?? ($subject['correct'] + $subject['incorrect']));
+                                $scoreClass = $attemptedSubject < 1
+                                    ? 'none'
+                                    : ($subject['accuracy'] >= 60 ? 'high' : ($subject['accuracy'] >= 30 ? 'mid' : 'low'));
+                                $statusTone = $subject['status_tone'] ?? ($subject['needs_improvement'] ? 'bad' : 'ok');
                             @endphp
                             <div class="ct-subject">
                                 <div class="ct-subject-head">
@@ -173,12 +179,27 @@
                                 </div>
                                 <div class="ct-bar"><span style="width: {{ $subject['bar_pct'] }}%;"></span></div>
                                 <div class="ct-subject-row">
-                                    <span>{{ $subject['accuracy'] }}% Accuracy</span>
-                                    <span>{{ $subject['correct'] }} Correct · {{ $subject['incorrect'] }} Incorrect</span>
+                                    <span>
+                                        @if($attemptedSubject > 0)
+                                            {{ $subject['accuracy'] }}% Accuracy
+                                        @elseif(($subject['skipped'] ?? 0) > 0)
+                                            Skipped
+                                        @else
+                                            Not attempted
+                                        @endif
+                                    </span>
+                                    <span>{{ $subject['correct'] }} Correct · {{ $subject['incorrect'] }} Incorrect · {{ $subject['skipped'] ?? 0 }} Skipped</span>
                                 </div>
                                 <div class="ct-subject-foot">
-                                    <span class="ct-status {{ $subject['needs_improvement'] ? 'bad' : 'ok' }}">
-                                        {{ $subject['needs_improvement'] ? '✕' : '✓' }} {{ $subject['status_label'] }}
+                                    <span class="ct-status {{ $statusTone }}">
+                                        @if($statusTone === 'bad')
+                                            ✕
+                                        @elseif($statusTone === 'ok')
+                                            ✓
+                                        @else
+                                            –
+                                        @endif
+                                        {{ $subject['status_label'] }}
                                     </span>
                                     <a class="ct-link" href="{{ $reviewUrl }}">Review →</a>
                                 </div>

@@ -45,6 +45,21 @@ class NeetAirPredictorTest extends TestCase
         $this->assertSame(266702, $part['high']);
     }
 
+    public function test_aggregated_multi_test_totals_are_scaled_not_treated_as_raw_neet(): void
+    {
+        // Answers Analytics sums marks across exams (e.g. 3678/8040). Without
+        // scaling, 3678 would look up as an impossible NEET score → AIR #1.
+        $aggregated = NeetAirPredictor::project(3678, 8040);
+        $equivalent = NeetAirPredictor::project(329.373134328, 720);
+
+        $this->assertTrue($aggregated['scaled']);
+        $this->assertEqualsWithDelta(329.373134328, $aggregated['equivalent'], 0.001);
+        $this->assertSame($equivalent['low'], $aggregated['low']);
+        $this->assertSame($equivalent['high'], $aggregated['high']);
+        $this->assertNotSame(1, $aggregated['low']);
+        $this->assertNotSame(1, $aggregated['high']);
+    }
+
     public function test_range_label(): void
     {
         $this->assertSame(

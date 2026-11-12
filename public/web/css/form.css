@@ -179,7 +179,8 @@
   color: #3561fe;
   margin: 60px auto 0px;
   text-align: center;
-  width: 300px;
+  width: 100%;
+  max-width: 300px;
   font-weight: 300;
 }
 .otpText a {
@@ -647,6 +648,22 @@ a.formTexts {
   margin-top: 4px;
 }
 
+@media (max-width: 767px) {
+  .btnRegister,
+  .authShell .btnRegister,
+  .authShell .loginLeft .btnRegister {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  .otpPopupModal .modal-content {
+    padding: 28px 16px 36px;
+  }
+  .otpBlock {
+    padding: 0 8px;
+  }
+}
 @media (max-width: 575px) {
   .authShell.formBlock {
     padding: 28px 18px 36px;

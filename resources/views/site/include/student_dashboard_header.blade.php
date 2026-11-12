@@ -123,6 +123,61 @@
     </div>
 </header>
 @php
+    $supportTel = \App\Support\WebsiteSettings::telHref('phone') ?: 'tel:+918100392229';
+    $supportPhone = \App\Support\WebsiteSettings::displayPhone('phone') ?: '+91 8100392229';
+    $supportCopy = preg_replace('/\D+/', '', $supportPhone) ?: '8100392229';
+    if (strlen($supportCopy) === 12 && str_starts_with($supportCopy, '91')) {
+        $supportCopy = substr($supportCopy, 2);
+    }
+@endphp
+<div class="rp-support-fab" id="rpSupportFab">
+    <a class="rp-support-fab__btn" id="rpSupportCall" href="{{ $supportTel }}" aria-label="Call for support {{ $supportPhone }}">
+        <span class="rp-support-fab__icon" aria-hidden="true">
+            <i class="fas fa-phone-alt"></i>
+        </span>
+        <span class="rp-support-fab__label">Call for Support</span>
+    </a>
+    <div class="rp-support-fab__pop" id="rpSupportPop" hidden>
+        <span class="rp-support-fab__pop-label">Call for support</span>
+        <a class="rp-support-fab__pop-num" href="{{ $supportTel }}">{{ $supportPhone }}</a>
+        <button type="button" class="rp-support-fab__pop-copy" data-number="{{ $supportCopy }}">Copy number</button>
+    </div>
+</div>
+<script>
+(function () {
+    var call = document.getElementById('rpSupportCall');
+    var pop = document.getElementById('rpSupportPop');
+    var fab = document.getElementById('rpSupportFab');
+    if (!call || !pop || !fab) return;
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        call.addEventListener('click', function (e) {
+            e.preventDefault();
+            pop.hidden = !pop.hidden;
+        });
+        document.addEventListener('click', function (e) {
+            if (!pop.hidden && !fab.contains(e.target)) pop.hidden = true;
+        });
+    }
+    var copyBtn = pop.querySelector('.rp-support-fab__pop-copy');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function () {
+            var btn = this;
+            var done = function () { btn.textContent = 'Copied!'; setTimeout(function () { btn.textContent = 'Copy number'; }, 1500); };
+            if (navigator.clipboard) navigator.clipboard.writeText(btn.dataset.number).then(done);
+            else {
+                var t = document.createElement('textarea');
+                t.value = btn.dataset.number;
+                document.body.appendChild(t);
+                t.select();
+                document.execCommand('copy');
+                t.remove();
+                done();
+            }
+        });
+    }
+})();
+</script>
+@php
     $hideScopeFilter = request()->is('online-exam*', 'start-online-exam*', 'start-offline-exam*', 'start-exam*', 'profile*', 'report-problem*')
         || request()->routeIs('start_online_exam', 'start_exam', 'online_exam', 'profile', 'report_problem');
     $hideScopeMode = request()->is('custom-test*') || request()->routeIs('custom_test*');

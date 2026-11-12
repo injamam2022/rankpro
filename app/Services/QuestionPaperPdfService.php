@@ -211,11 +211,14 @@ class QuestionPaperPdfService
             return $text !== '' ? htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : '';
         }, $html) ?? $html;
         $html = preg_replace('#</?(?:span|font|o:p|mjx-[a-z0-9-]+)[^>]*>#i', '', $html) ?? $html;
-        $html = preg_replace_callback('#<(p|div|td|th|li|h[1-6])(\b[^>]*)>#i', function ($m) {
+        // Unwrap CKEditor raw embeds so formula text stays in-flow with surrounding copy.
+        $html = preg_replace('#<div\b[^>]*\braw-html-embed\b[^>]*>(.*?)</div>#is', '$1', $html) ?? $html;
+        $html = preg_replace_callback('#<(p|div|td|th|li|h[1-6]|figure)(\b[^>]*)>#i', function ($m) {
             $attrs = preg_replace('/\s(?:style|class|id|align|border|cellpadding|cellspacing|width|height)=("[^"]*"|\'[^\']*\')/i', '', $m[2]);
 
             return '<'.$m[1].$attrs.'>';
         }, $html) ?? $html;
+        $html = preg_replace('#</?figure\b[^>]*>#i', '', $html) ?? $html;
         $html = preg_replace('/(?:&nbsp;|&\#160;|\x{00A0}){2,}/iu', ' ', $html) ?? $html;
         $html = preg_replace('~<(p|div)>(?:\s|&nbsp;|&\#160;)+~i', '<$1>', $html) ?? $html;
         $html = preg_replace('~(?:\s|&nbsp;|&\#160;)+</(p|div)>~i', '</$1>', $html) ?? $html;

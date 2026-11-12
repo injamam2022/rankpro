@@ -249,7 +249,7 @@
 }
 .aa-hbar__fill {
   height: 100%;
-  min-width: 108px;
+  min-width: 0;
   border-radius: 999px;
   color: #fff;
   font-size: 11px;
@@ -481,7 +481,7 @@
 
 @media (max-width: 1100px) {
   .aa-diff-grid, .aa-charts, .aa-strike, .aa-pace, .aa-hours { grid-template-columns: 1fr; }
-  .aa-scope { margin-left: 0; max-width: none; width: 100%; }
+  .aa-scope { margin-left: 0; max-width: none; width: 100%; min-width: 0; }
 }
 @media (max-width: 767px) {
   .aa-summaries { grid-template-columns: 1fr; }

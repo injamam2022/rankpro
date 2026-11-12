@@ -87,7 +87,17 @@
             position: relative; z-index: 1; font-size: .62rem; font-weight: 600; color: #344054;
             line-height: 1; text-align: center;
         }
-        .ct-attempt-name { font-weight: 600; color: #101828; font-size: .98rem; flex: 1; min-width: 0; }
+        .ct-attempt-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
+        .ct-attempt-name {
+            font-weight: 600; color: #101828; font-size: .98rem; min-width: 0;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ct-attempt-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+        .ct-attempt-status {
+            font-size: .72rem; font-weight: 600; color: #475467;
+            background: #f2f4f7; border-radius: 999px; padding: .15rem .55rem;
+        }
+        .ct-attempt-status.is-done { color: #067647; background: #ecfdf3; }
         .ct-attempt-date { font-size: .82rem; color: #98a2b3; white-space: nowrap; margin-left: auto; }
         .ct-btn {
             border: 0; border-radius: .65rem; padding: .55rem 1rem; font-weight: 500; font-size: .875rem;
@@ -140,8 +150,16 @@
         .nt-page-btn.is-on { background: #0f172a; border-color: #0f172a; color: #fff; }
         .nt-page-btn.is-disabled { opacity: .45; cursor: default; }
         .nt-pager__gap { padding: 6px 4px; color: #94a3b8; }
-        @media (min-width: 992px) {
-            .ct-footer { left: 280px; }
+        @media (min-width: 901px) {
+            .ct-footer { left: 256px; }
+        }
+        @media (max-width: 900px) {
+            .ct-footer { left: 0; }
+        }
+        @media (max-width: 575px) {
+            .ct-footer { padding-bottom: calc(.85rem + 64px); }
+            .ct-attempt { flex-wrap: wrap; }
+            .ct-attempt-date { margin-left: 54px; width: 100%; }
         }
     </style>
 </head>
@@ -209,12 +227,21 @@
                                     @php
                                         $pct = (float) ($item->progress_pct ?? 0);
                                         $ringColor = $pct >= 60 ? '#12b76a' : ($pct >= 30 ? '#f79009' : '#ef4444');
+                                        $statusLabel = (string) ($item->status_label ?? '');
+                                        $isDone = !empty($item->is_finished);
                                     @endphp
                                     <a class="ct-attempt" href="{{ $item->list_href }}">
                                         <span class="ct-ring" style="--pct: {{ $pct }}; background: conic-gradient({{ $ringColor }} calc(var(--pct) * 1%), #e4e7ec 0);">
                                             <span class="ct-ring-val">{{ number_format($pct, 1) }}%</span>
                                         </span>
-                                        <span class="ct-attempt-name">{{ $item->name }}</span>
+                                        <span class="ct-attempt-body">
+                                            <span class="ct-attempt-name">{{ $item->name }}</span>
+                                            <span class="ct-attempt-meta">
+                                                @if($statusLabel !== '')
+                                                    <span class="ct-attempt-status {{ $isDone ? 'is-done' : '' }}">{{ $statusLabel }}</span>
+                                                @endif
+                                            </span>
+                                        </span>
                                         <span class="ct-attempt-date">{{ $item->created_at->format('d M Y') }}</span>
                                     </a>
                                 @empty

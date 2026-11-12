@@ -23,18 +23,19 @@
             page-break-after: avoid;
         }
         .q-block { padding: 8px 0 10px; border-bottom: 1px solid #eceff3; margin: 0; page-break-inside: avoid; }
-        .q-head-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .q-num { width: 32px; vertical-align: top; font-weight: bold; font-size: 12px; padding: 0 8px 0 0; line-height: 1.45; }
-        .q-content { vertical-align: top; font-size: 12px; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
-        .q-content p, .q-content div, .opt-body p, .opt-body div { margin: 0; padding: 0; }
-        .q-content table, .opt-body table { width: auto; max-width: 100%; }
-        .q-content img, .opt-body img { max-width: 100% !important; height: auto !important; vertical-align: middle; }
+        /* Avoid table-layout:fixed — DomPDF evenly splits columns and ignores px widths. */
+        .q-head-table { width: 100%; border-collapse: collapse; }
+        .q-num { width: 6%; vertical-align: top; font-weight: bold; font-size: 12px; padding: 0 6px 0 0; line-height: 1.45; white-space: nowrap; }
+        .q-content { width: 94%; vertical-align: top; font-size: 12px; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; text-align: left; }
+        .q-content p, .q-content div, .opt-body p, .opt-body div { margin: 0 0 4px; padding: 0; }
+        .q-content table, .opt-body table { width: auto !important; max-width: 100%; }
+        .q-content img, .opt-body img { max-width: 100% !important; height: auto !important; vertical-align: middle; display: inline; margin: 0 1px; }
         .q-diagram { max-width: 100%; max-height: 180px; height: auto; display: block; margin: 8px 0 6px; }
-        .options-grid { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 8px 0 0 0; }
+        .options-grid { width: 100%; border-collapse: collapse; margin: 8px 0 0 0; }
         .opt-cell { width: 50%; vertical-align: top; padding: 3px 10px 3px 0; }
-        .opt-inner { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .opt-num { width: 28px; vertical-align: top; font-weight: bold; font-size: 11px; color: #334155; padding-right: 6px; line-height: 1.4; }
-        .opt-body { vertical-align: top; font-size: 11px; color: #1e293b; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; }
+        .opt-inner { width: 100%; border-collapse: collapse; }
+        .opt-num { width: 12%; vertical-align: top; font-weight: bold; font-size: 11px; color: #334155; padding: 0 4px 0 0; line-height: 1.4; white-space: nowrap; }
+        .opt-body { width: 88%; vertical-align: top; font-size: 11px; color: #1e293b; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; text-align: left; }
         .opt-diagram { max-width: 100%; max-height: 110px; height: auto; display: block; margin: 2px 0; }
         .ft { font-size: 8.5px; color: #737373; padding-top: 4px; }
     </style>

@@ -516,3 +516,16 @@
     .cpg-detail__feats { grid-template-columns: 1fr; }
     .cpg-detail__main { padding: 22px 18px; }
 }
+@media (max-width: 575px) {
+    .cpg-ch-row {
+        grid-template-columns: 18px minmax(0, 1fr) auto;
+        align-items: start;
+    }
+    .cpg-ch-row__meta {
+        grid-column: 2 / -1;
+        white-space: normal;
+    }
+    .cpg-ch-row__price {
+        white-space: nowrap;
+    }
+}

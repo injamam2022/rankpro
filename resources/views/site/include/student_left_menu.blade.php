@@ -233,19 +233,26 @@
 
     <script>
       (function () {
+        function setSideOpen(open) {
+          document.body.classList.toggle('rp-side-open', !!open);
+          document.querySelectorAll('.dashboardLeft').forEach(function (el) {
+            el.classList.toggle('dashboardLeftOff', !open);
+          });
+        }
         document.querySelectorAll('.menuBarBtn.menuBarBtnOpen').forEach(function (btn) {
           btn.addEventListener('click', function () {
-            document.querySelectorAll('.dashboardLeft').forEach(function (el) {
-              el.classList.remove('dashboardLeftOff');
-            });
+            setSideOpen(true);
           });
         });
         document.querySelectorAll('.menuBarBtn.menuBarBtnClose').forEach(function (btn) {
           btn.addEventListener('click', function () {
-            document.querySelectorAll('.dashboardLeft').forEach(function (el) {
-              el.classList.add('dashboardLeftOff');
-            });
+            setSideOpen(false);
           });
+        });
+        document.addEventListener('click', function (e) {
+          if (!document.body.classList.contains('rp-side-open')) return;
+          if (e.target.closest('.dashboardLeft') || e.target.closest('.menuBarBtn')) return;
+          setSideOpen(false);
         });
 
         function toggleMenuItem(li) {

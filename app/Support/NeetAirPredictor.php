@@ -13,8 +13,9 @@ namespace App\Support;
  *   predicted rank = max(1, round(median(r24, r25, r26)))
  * Min and max ranks are calculated separately, then the midpoint is their average.
  *
- * A full paper (600 marks or more) is looked up on its raw score.
- * A part-syllabus paper is scaled to a 720-mark equivalent first.
+ * A full paper (600–720 marks) is looked up on its raw score.
+ * A part-syllabus paper, or any aggregate whose max exceeds 720
+ * (multi-test totals), is scaled to a 720-mark equivalent first.
  */
 class NeetAirPredictor
 {
@@ -29,7 +30,10 @@ class NeetAirPredictor
     {
         $score = (float) $score;
         $max = (float) $max;
-        $scaled = $max > 0 && $max < self::FULL_PAPER_MARKS;
+        // Raw NEET-style papers land in [600, 720]. Below that is part syllabus;
+        // above 720 is almost always summed marks across exams — never treat that
+        // raw total as a single NEET score (it would incorrectly predict AIR #1).
+        $scaled = $max > 0 && ($max < self::FULL_PAPER_MARKS || $max > self::NEET_TOTAL);
         $equivalent = $scaled ? ($score * self::NEET_TOTAL / $max) : $score;
 
         $low = self::predict($equivalent, 1);

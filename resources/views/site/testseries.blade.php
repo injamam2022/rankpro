@@ -33,7 +33,9 @@
     <link href="{{ asset('') }}web/css/style.css" rel="stylesheet">
     <style>
         .testserblocks {
-            width: 562px;
+            width: min(562px, 100%);
+            max-width: 100%;
+            box-sizing: border-box;
             margin-top: 30px;
         }
     </style>

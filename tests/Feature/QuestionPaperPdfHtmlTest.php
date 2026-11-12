@@ -68,4 +68,13 @@ class QuestionPaperPdfHtmlTest extends TestCase
         $this->assertStringContainsString('K', $out);
         $this->assertStringNotContainsString('<math', $out);
     }
+
+    public function test_prepare_html_unwraps_raw_html_embed()
+    {
+        $out = $this->service()->run('<div class="raw-html-embed">Proton and alpha particles</div>');
+
+        $this->assertStringContainsString('Proton and alpha particles', $out);
+        $this->assertStringNotContainsString('raw-html-embed', $out);
+        $this->assertStringNotContainsString('<div', $out);
+    }
 }

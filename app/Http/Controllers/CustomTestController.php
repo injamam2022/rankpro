@@ -36,9 +36,11 @@ class CustomTestController extends Controller
         $attempted = collect();
 
         if ($tab === 'attempted') {
+            // Include finished statuses too — submit sets status to "completed",
+            // so filtering only ready/attempted hides every test the student has given.
             $query = CustomTest::with('examUser')
                 ->where('user_id', Auth::id())
-                ->whereIn('status', ['ready', 'attempted']);
+                ->whereNotIn('status', ['draft']);
 
             if ($subjectId) {
                 $query->where(function ($q) use ($subjectId) {
@@ -749,6 +751,7 @@ class CustomTestController extends Controller
         $attempted = (int) ($examUser->total_answer ?? 0);
         $incorrect = max(0, $attempted - $correct);
         $unattempted = max(0, $totalQuestions - $attempted);
+        $skipped = 0;
         $accuracy = $attempted > 0 ? round(($correct / $attempted) * 100) : 0;
         $timeMinutes = (int) floor(((int) ($examUser->total_time ?? 0)) / 60);
 
@@ -761,6 +764,7 @@ class CustomTestController extends Controller
                     'subjects.name as subject_name',
                     'questions.answer as correct_answer',
                     'exam_results.answer as user_answer',
+                    'exam_results.type as answer_type',
                     'exam_results.result as result_marks',
                 ])
                 ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
@@ -774,7 +778,27 @@ class CustomTestController extends Controller
                 ->get();
 
             $grouped = [];
+            $paperSkipped = 0;
+            $paperUnattempted = 0;
             foreach ($rows as $row) {
+                $pickedRaw = trim((string) ($row->user_answer ?? ''));
+                $answerType = (string) ($row->answer_type ?? '');
+                $isBlank = $row->user_answer === null || $pickedRaw === '';
+                // Skip is saved as answer 0. That is not a chosen option.
+                $isSkip = $answerType === 'skip' || $pickedRaw === '0';
+
+                if ($isSkip) {
+                    $paperSkipped++;
+                    $bucket = 'skipped';
+                } elseif ($isBlank) {
+                    $paperUnattempted++;
+                    $bucket = 'unattempted';
+                } elseif ($pickedRaw === trim((string) ($row->correct_answer ?? ''))) {
+                    $bucket = 'correct';
+                } else {
+                    $bucket = 'incorrect';
+                }
+
                 $sid = (int) ($row->subject_id ?? 0);
                 if ($sid < 1) {
                     continue;
@@ -786,15 +810,17 @@ class CustomTestController extends Controller
                         'total' => 0,
                         'correct' => 0,
                         'incorrect' => 0,
+                        'skipped' => 0,
                         'unattempted' => 0,
                         'score' => 0.0,
                     ];
                 }
                 $grouped[$sid]['total']++;
-                $userAnswer = $row->user_answer;
-                if ($userAnswer === null || $userAnswer === '') {
+                if ($bucket === 'unattempted') {
                     $grouped[$sid]['unattempted']++;
-                } elseif ((string) $userAnswer === (string) $row->correct_answer) {
+                } elseif ($bucket === 'skipped') {
+                    $grouped[$sid]['skipped']++;
+                } elseif ($bucket === 'correct') {
                     $grouped[$sid]['correct']++;
                     $grouped[$sid]['score'] += $marksPerQ;
                 } else {
@@ -805,6 +831,11 @@ class CustomTestController extends Controller
                 }
             }
 
+            if ($rows->isNotEmpty()) {
+                $skipped = $paperSkipped;
+                $unattempted = $paperUnattempted;
+            }
+
             foreach ($grouped as $item) {
                 $subjectTotalMarks = max(1, (int) round($item['total'] * $marksPerQ));
                 $attemptedSubject = $item['correct'] + $item['incorrect'];
@@ -812,7 +843,15 @@ class CustomTestController extends Controller
                     ? round(($item['correct'] / $attemptedSubject) * 100)
                     : 0;
                 $pctOfMax = round(max(0, $item['score']) / $subjectTotalMarks * 100);
-                $needsWork = $subjectAccuracy < 50;
+                if ($attemptedSubject < 1) {
+                    $needsWork = false;
+                    $statusLabel = $item['skipped'] > 0 ? 'Skipped' : 'Not attempted';
+                    $statusTone = 'muted';
+                } else {
+                    $needsWork = $subjectAccuracy < 50;
+                    $statusLabel = $needsWork ? 'Needs improvement' : 'Looking good';
+                    $statusTone = $needsWork ? 'bad' : 'ok';
+                }
 
                 $subjectStats[] = [
                     'id' => $item['id'],
@@ -820,12 +859,15 @@ class CustomTestController extends Controller
                     'score' => (int) round($item['score']),
                     'total_marks' => $subjectTotalMarks,
                     'accuracy' => $subjectAccuracy,
+                    'attempted' => $attemptedSubject,
                     'correct' => $item['correct'],
                     'incorrect' => $item['incorrect'],
+                    'skipped' => $item['skipped'],
                     'unattempted' => $item['unattempted'],
                     'bar_pct' => min(100, $pctOfMax),
                     'needs_improvement' => $needsWork,
-                    'status_label' => $needsWork ? 'Needs improvement' : 'Looking good',
+                    'status_label' => $statusLabel,
+                    'status_tone' => $statusTone,
                 ];
             }
         }
@@ -838,6 +880,7 @@ class CustomTestController extends Controller
             'accuracy' => $accuracy,
             'correct' => $correct,
             'incorrect' => $incorrect,
+            'skipped' => $skipped,
             'unattempted' => $unattempted,
             'timeMinutes' => $timeMinutes,
             'subjectStats' => $subjectStats,
@@ -848,10 +891,11 @@ class CustomTestController extends Controller
     private function decorateAttempted(CustomTest $item): CustomTest
     {
         $examUser = $item->examUser;
-        $finished = $examUser
-            && $examUser->percentage !== null
-            && $examUser->percentage !== '';
-        $progress = $finished ? round((float) $examUser->percentage, 1) : 0.0;
+        $finished = $item->isFinished();
+        $progress = 0.0;
+        if ($examUser && $examUser->percentage !== null && $examUser->percentage !== '') {
+            $progress = round((float) $examUser->percentage, 1);
+        }
         if ($progress < 0) {
             $progress = 0.0;
         }
@@ -861,6 +905,9 @@ class CustomTestController extends Controller
 
         $item->is_finished = $finished;
         $item->progress_pct = $progress;
+        $item->status_label = $finished
+            ? 'Completed'
+            : ((string) $item->status === 'ready' ? 'Ready' : 'In progress');
         $item->list_href = $finished
             ? route('custom_test.analysis', $item->id)
             : route('custom_test.resume', $item->id);

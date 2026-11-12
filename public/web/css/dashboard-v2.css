@@ -1941,6 +1941,139 @@ body.rp-dash-body .calltoaction {
   display: none !important;
 }
 
+/* Floating Call for Support (student dashboard) */
+.rp-support-fab {
+  position: fixed;
+  right: 18px;
+  top: 42%;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+.rp-support-fab__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 8px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+  text-decoration: none !important;
+  color: #0f172a;
+  transition: gap 0.3s ease, padding 0.3s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+.rp-support-fab__btn:hover,
+.rp-support-fab__btn:focus-visible {
+  gap: 10px;
+  padding-right: 16px;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+  color: #0f172a;
+}
+.rp-support-fab__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  font-size: 16px;
+}
+.rp-support-fab__label {
+  font-family: "Poppins", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.3s ease, opacity 0.2s ease;
+}
+.rp-support-fab__btn:hover .rp-support-fab__label,
+.rp-support-fab__btn:focus-visible .rp-support-fab__label {
+  max-width: 160px;
+  opacity: 1;
+}
+.rp-support-fab__pop {
+  pointer-events: auto;
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 0;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+  font-family: "Poppins", system-ui, sans-serif;
+}
+.rp-support-fab__pop[hidden] {
+  display: none;
+}
+.rp-support-fab__pop-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+.rp-support-fab__pop-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none !important;
+}
+.rp-support-fab__pop-num:hover {
+  text-decoration: underline !important;
+}
+.rp-support-fab__pop-copy {
+  margin-top: 4px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.rp-support-fab__pop-copy:hover {
+  background: #2563eb;
+  color: #fff;
+}
+@media (max-width: 575px) {
+  .rp-support-fab {
+    right: 12px;
+    top: auto;
+    bottom: 88px;
+  }
+  .rp-support-fab__pop {
+    right: 0;
+    top: auto;
+    bottom: calc(100% + 10px);
+  }
+  .rp-support-fab__btn {
+    gap: 8px;
+    padding-right: 14px;
+  }
+  .rp-support-fab__label {
+    max-width: 140px;
+    opacity: 1;
+    font-size: 13px;
+  }
+  .rp-support-fab__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .rp-exam-grid {
@@ -1953,6 +2086,12 @@ body.rp-dash-body .calltoaction {
 
   .rp-timer__date {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .rp-notice-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1996,6 +2135,18 @@ body.rp-dash-body .calltoaction {
     padding-top: 48px;
   }
 
+  body.rp-dash-body #dashboard .dashboardRight {
+    padding-left: 56px;
+  }
+
+  body.rp-dash-body.rp-side-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    z-index: 55;
+  }
+
   .rp-profile-pill__meta {
     display: none;
   }
@@ -2013,6 +2164,25 @@ body.rp-dash-body .calltoaction {
 
   .rp-topbar__name {
     display: none;
+  }
+
+  .rp-topbar__actions {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .rp-bell-mute {
+    display: none;
+  }
+
+  .rp-btn-pink {
+    padding: 7px 10px;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .rp-btn-pink i {
+    font-size: 12px;
   }
 
   .rp-timer {
@@ -2038,7 +2208,11 @@ body.rp-dash-body .calltoaction {
   }
 
   body.rp-dash-body #dashboard .dashboardRight {
-    padding: 12px 12px 28px;
+    padding: 12px 12px 28px 56px;
+  }
+
+  .dashboardRightBody > .rp-filter.rp-filter--global {
+    top: 96px;
   }
 }
 

@@ -38,12 +38,12 @@
     <link href="{{ asset('web/bootstrap-5.0.2/css/bootstrap.css') }}" rel="stylesheet">
 
     <!-- Template Stylesheet -->
-    <link href="{{ asset('web/css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('web/css/style.css') }}?v={{ @filemtime(public_path('web/css/style.css')) }}" rel="stylesheet">
     <!-- New design fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Redesign Stylesheet (loads after style.css so it overrides cleanly) -->
      <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-    <link href="{{ asset('web/css/redesign.css') }}" rel="stylesheet">
+    <link href="{{ asset('web/css/redesign.css') }}?v={{ @filemtime(public_path('web/css/redesign.css')) }}" rel="stylesheet">
     @include('site.include.head_meta')
 
    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -83,7 +83,7 @@
             <!-- LEFT -->
             <div class="rh__left">
                 <span class="rh__eyebrow"><i></i>NEET UG &middot; AI-Powered Prep</span>
-                <h1 class="rh__title">Timeless prep<br>for <span class="rh__accent">serious NEET aspirants</span></h1>
+                <h1 class="rh__title">Timeless prep <br class="rh__title-br">for <span class="rh__accent">serious NEET aspirants</span></h1>
                 <p class="rh__lead">Unlimited free mock tests, real exam patterns, and one-on-one mentorship from top NEET rankers - crafted for Class 12 &amp; repeaters.</p>
 
                 <div class="rh__cta">

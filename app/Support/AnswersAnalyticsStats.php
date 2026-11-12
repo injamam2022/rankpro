@@ -55,10 +55,17 @@ class AnswersAnalyticsStats
         $negatives = [];
         $totalNegative = 0;
         foreach ($bySubject as $row) {
-            $name = $row->subject_name ?: 'Subject';
-            $avg = (int) round((float) ($row->avg_time ?? 0));
             $neg = (float) ($row->negative_marks ?? 0);
             $totalNegative += $neg;
+
+            // Orphan / deleted subject_ids resolve to a null name; skip labeled
+            // cards so the UI does not repeat generic "Subject Solving Pace".
+            $name = trim((string) ($row->subject_name ?? ''));
+            if ($name === '' || empty($row->subject_id)) {
+                continue;
+            }
+
+            $avg = (int) round((float) ($row->avg_time ?? 0));
             $pace[] = [
                 'name' => $name,
                 'seconds' => $avg,

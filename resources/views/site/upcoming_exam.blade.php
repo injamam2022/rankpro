@@ -641,9 +641,11 @@
       $(document).ready(function () {
         $(".menuBarBtn.menuBarBtnOpen").click(function () {
             $(".dashboardLeft").removeClass("dashboardLeftOff");
+            $("body").addClass("rp-side-open");
         });
         $(".menuBarBtn.menuBarBtnClose").click(function () {
             $(".dashboardLeft").addClass("dashboardLeftOff");
+            $("body").removeClass("rp-side-open");
         });
       });
     </script>

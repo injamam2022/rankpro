@@ -46,3 +46,15 @@
         </div>
     </div>
 </nav>
+<script>
+    (function () {
+        var nav = document.getElementById('navbarCollapse');
+        if (!nav) return;
+        var sync = function () {
+            document.body.classList.toggle('rp-nav-open', nav.classList.contains('show'));
+        };
+        nav.addEventListener('shown.bs.collapse', sync);
+        nav.addEventListener('hidden.bs.collapse', sync);
+        sync();
+    })();
+</script>
