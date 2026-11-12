@@ -35,7 +35,8 @@ class CounsellorLoginController extends Controller
         $loginCheck = Counsellor::where(
             [
                 'email'=> $input['email'],
-                'password'=> md5($input['password'])
+                'password'=> md5($input['password']),
+                'status' => 1,
             ])->first();
         // dd($loginCheck);
         if ($loginCheck){
@@ -47,7 +48,7 @@ class CounsellorLoginController extends Controller
             toastr()->success('You have successfully logged in.');
             return redirect()->route('counsellor.dashboard');
         }else{
-            toastr()->success('Incorrect login credentials!');
+            toastr()->error('Incorrect login credentials!');
             return back()->withInput()->with('error-message','Incorrect login credentials!');
         }
 

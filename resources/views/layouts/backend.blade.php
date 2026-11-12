@@ -381,7 +381,7 @@
                                 </div>
                             @endif
 
-                            {{-- Course Packages: always visible top-level menu --}}
+                            @if(isUserPermitted('course-package', 'menu'))
                             <a class="nav-link collapsed
                                 {{ request()->is('admin/course-package*') || request()->is('admin/course-schedule*') ? ' active' : '' }}
                                 " href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseCoursePackages" aria-expanded="{{ request()->is('admin/course-package*') || request()->is('admin/course-schedule*') ? 'true' : 'false' }}" aria-controls="collapseCoursePackages">
@@ -391,14 +391,19 @@
                             </a>
                             <div class="collapse {{ request()->is('admin/course-package*') || request()->is('admin/course-schedule*') ? 'show' : '' }}" id="collapseCoursePackages" aria-labelledby="headingCoursePackages" data-bs-parent="#drawerAccordion">
                                 <nav class="drawer-menu-nested nav">
+                                    @if(isUserPermitted('course-package-list', 'list'))
                                     <a class="nav-link {{ request()->is('admin/course-package') && !request()->is('admin/course-package/orders*') && !request()->is('admin/course-package/order*') && !request()->is('admin/course-package/exam-assignments*') ? ' active' : '' }} {{ request()->is('admin/course-package/add') || request()->is('admin/course-package/edit') ? ' active' : '' }}" href="{{ route('admin.course_package') }}">Packages</a>
+                                    @endif
+                                    @if(isUserPermitted('course-package-orders-list', 'list'))
                                     <a class="nav-link {{ request()->is('admin/course-package/orders') || request()->is('admin/course-package/order-detail') ? ' active' : '' }}" href="{{ route('admin.course_package.orders') }}">Package Orders</a>
                                     <a class="nav-link {{ request()->is('admin/course-package/chapter-purchases') ? ' active' : '' }}" href="{{ route('admin.course_package.chapter_purchases') }}">Chapter Purchases</a>
                                     <a class="nav-link {{ request()->is('admin/course-schedule') || request()->is('admin/course-schedule/*') ? ' active' : '' }}" href="{{ route('admin.course_schedule') }}">Test Schedule</a>
                                     <a class="nav-link {{ request()->is('admin/course-package/exam-assignments*') ? ' active' : '' }}" href="{{ route('admin.course_package.exam_assignments') }}">Assign Series Papers</a>
                                     <a class="nav-link {{ request()->is('admin/premium-bank') ? ' active' : '' }}" href="{{ route('admin.premium_bank') }}">Premium Bank</a>
+                                    @endif
                                 </nav>
                             </div>
+                            @endif
 
                             @if(isUserPermitted('student', 'menu'))
                                 <a class="nav-link collapsed
@@ -595,14 +600,18 @@
                                 </div>
                             @endif
                             
+                            @if(isUserPermitted('batch-master', 'menu'))
                             <a class="nav-link {{ request()->is('admin/batches*') ? 'active' : '' }}" href="{{ route('admin.batches') }}">
                                 <div class="nav-link-icon"><i class="material-icons">groups</i></div>
                                 Batch Master
                             </a>
+                            @endif
+                            @if(isUserPermitted('test-assignment', 'menu'))
                             <a class="nav-link {{ request()->is('admin/exam-assignments*') ? 'active' : '' }}" href="{{ route('admin.exam_assignments') }}">
                                 <div class="nav-link-icon"><i class="material-icons">assignment_ind</i></div>
                                 Test Assignments
                             </a>
+                            @endif
                             @if(isUserPermitted('online-exam', 'menu'))
                             
                                 <a class="nav-link collapsed

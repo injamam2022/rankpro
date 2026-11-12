@@ -64,7 +64,7 @@
                             <input class="form-control" id="address" type="text" name="address" placeholder=""  value="{{$details->address}}" />
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="qualification_details">Qualification Details <span class="text-danger">*</span></label>
+                            <label class="form-label" for="qualification_details">Qualification Details</label>
                             <input class="form-control" id="qualification_details" type="text" name="qualification_details" placeholder=""  value="{{$details->qualification_details}}" />
                         </div>
                         <div class="col-sm-6">
@@ -80,7 +80,7 @@
                             <input class="form-control" id="section_name" type="text" name="section_name" placeholder=""  value="{{$details->section_name}}" />
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="father_full_name">Father's Full Name <span class="text-danger">*</span></label>
+                            <label class="form-label" for="father_full_name">Father's Full Name</label>
                             <input class="form-control" id="father_full_name" type="text" name="father_full_name" placeholder=""  value="{{$details->father_full_name}}" />
                         </div>
                         <!-- <div class="col-sm-6">
@@ -88,7 +88,7 @@
                             <input class="form-control" id="father_occupation" type="text" name="father_occupation" placeholder=""  value="{{$details->father_occupation}}" />
                         </div> -->
                         <div class="col-sm-6">
-                            <label class="form-label" for="father_mobile_number">Father's Contact No <span class="text-danger">*</span></label>
+                            <label class="form-label" for="father_mobile_number">Father's Contact No</label>
                             <input class="form-control" id="father_mobile_number" type="text" name="father_mobile_number" placeholder=""  value="{{$details->father_mobile_number}}" />
                         </div>
                         <div class="col-sm-6">
@@ -234,35 +234,11 @@
                 successFlag = false;
             }
 
-            data.qualification_details = document.getElementById('qualification_details').value;
-            if(data.qualification_details){
-                document.getElementById('qualification_details').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('qualification_details').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
             data.address = document.getElementById('address').value;
             if(data.address){
                 document.getElementById('address').classList.remove('dangerBoader');
             }else{
                 document.getElementById('address').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.father_full_name = document.getElementById('father_full_name').value;
-            if(data.father_full_name){
-                document.getElementById('father_full_name').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('father_full_name').classList.add('dangerBoader');
-                successFlag = false;
-            }
-
-            data.father_mobile_number = document.getElementById('father_mobile_number').value;
-            if(data.father_mobile_number){
-                document.getElementById('father_mobile_number').classList.remove('dangerBoader');
-            }else{
-                document.getElementById('father_mobile_number').classList.add('dangerBoader');
                 successFlag = false;
             }
 
