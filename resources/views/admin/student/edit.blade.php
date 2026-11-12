@@ -67,7 +67,7 @@
                             <input class="form-control" id="father_full_name" type="text" name="father_full_name" placeholder=""  value="{{$details->father_full_name}}" />
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="father_occupation">Father's Occupation <span class="text-danger">*</span></label>
+                            <label class="form-label" for="father_occupation">Father's Occupation</label>
                             <input class="form-control" id="father_occupation" type="text" name="father_occupation" placeholder=""  value="{{$details->father_occupation}}" />
                         </div>
                         <div class="col-sm-6">
