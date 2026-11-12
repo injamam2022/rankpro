@@ -94,9 +94,15 @@ function num2word($num) {
 if(!function_exists('isUserPermitted')){
     function isUserPermitted($type, $action){
 
-        if (session()->has('adminAuth')) {
-            $user = ModelsAdminAuth::find(session()->get('adminAuth'));
-            // dd($user);
+        if (session()->has('adminAuth') && session()->get('adminAuth')) {
+            $adminId = session()->get('adminAuth');
+            if (is_array($adminId)) {
+                $adminId = $adminId['id'] ?? null;
+            }
+            $user = $adminId ? ModelsAdminAuth::find($adminId) : null;
+            if (!$user) {
+                return false;
+            }
             if ($user->type == "SA") {
                 return true;
             }
@@ -108,10 +114,6 @@ if(!function_exists('isUserPermitted')){
                     ->where('admin_user_role_accesses.admin_user_role_id', $user->admin_role_role_id)
                     ->where('admin_user_accesses.type', $type)
                     ->first();
-            if($type == 'ranker'){
-                // dd($permission);
-            }
-            // dd($permission);
             if (!$permission) {
                 return false;
             }

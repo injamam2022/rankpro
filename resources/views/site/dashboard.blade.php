@@ -48,10 +48,19 @@
             'exam_user_type' => $exam_user_type,
         ];
 
-        $giveExams = collect($upcoming_list ?? [])
+        // One card per exam. Prefer schedule list; collapse same id and same name+date+mode.
+        $giveExams = collect($exam_schedule_list ?? [])
+            ->concat($upcoming_list ?? [])
             ->concat($trending_test ?? [])
-            ->concat($exam_schedule_list ?? [])
-            ->unique('id')
+            ->filter(fn ($exam) => (int) data_get($exam, 'id') > 0)
+            ->unique(fn ($exam) => (int) data_get($exam, 'id'))
+            ->unique(function ($exam) {
+                $name = mb_strtolower(trim((string) data_get($exam, 'name', '')));
+                $date = (string) data_get($exam, 'exam_date', '');
+                $type = (int) data_get($exam, 'type', 0);
+
+                return $name.'|'.$date.'|'.$type;
+            })
             ->sortBy(function ($exam) {
                 // Live exams first, then soonest schedule, keep PROCTO EX near top.
                 $live = (method_exists($exam, 'canBeStarted') && $exam->canBeStarted()) ? 0 : 1;
@@ -499,7 +508,12 @@
             </div>
 
             <div class="rp-cal-modal__list">
-                @php $scheduleExams = collect($exam_schedule_list ?? []); @endphp
+                @php
+                    $scheduleExams = collect($exam_schedule_list ?? [])
+                        ->filter(fn ($exam) => (int) data_get($exam, 'id') > 0)
+                        ->unique(fn ($exam) => (int) data_get($exam, 'id'))
+                        ->values();
+                @endphp
                 @forelse($scheduleExams as $value)
                     @php
                         $isLive = method_exists($value, 'canBeStarted') && $value->canBeStarted();

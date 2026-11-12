@@ -50,7 +50,13 @@ class AuthController extends Controller
     }
 
     public function logout(){
-        session()->put('adminAuth',null);
+        session()->forget([
+            'adminAuth',
+            'adminName',
+            'admmin_is_super',
+            'admin_role_role_id',
+            'admmin_subject_id',
+        ]);
         return redirect()->route('admin.webadmin')->with('success-message','You have successfully logged out.');
     }
     

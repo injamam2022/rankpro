@@ -48,6 +48,44 @@ class StudentsController extends Controller
         return 1;
     }
 
+    /**
+     * Dashboard give/schedule exams — no question-row joins (those inflate duplicate cards).
+     * Mirrors Give Exam portal filters so CT/PS/CM attempt copies are excluded.
+     */
+    private function dashboardPortalExamQuery($subjectId = null, $examType = null)
+    {
+        return Exam::assignedTo(Auth::id())
+            ->where('exams.is_deleted', 0)
+            ->where('exams.status', 1)
+            ->where(function ($q) {
+                $q->whereNull('exams.exam_code')->orWhere(function ($code) {
+                    $code->where('exams.exam_code', 'not like', 'CT-%')
+                        ->where('exams.exam_code', 'not like', 'PS-%')
+                        ->where('exams.exam_code', 'not like', 'CM-%');
+                });
+            })
+            ->when(filled($examType), function ($query) use ($examType) {
+                $query->where('exams.type', $examType);
+            })
+            ->when(filled($subjectId), function ($query) use ($subjectId) {
+                $query->where(function ($outer) use ($subjectId) {
+                    $outer->whereExists(function ($sub) use ($subjectId) {
+                        $sub->select(DB::raw(1))
+                            ->from('question_paper_questions')
+                            ->join('questions', 'questions.id', '=', 'question_paper_questions.question_id')
+                            ->whereColumn('question_paper_questions.question_paper_id', 'exams.question_paper_id')
+                            ->where('questions.subject_id', $subjectId);
+                    })->orWhereExists(function ($sub) use ($subjectId) {
+                        $sub->select(DB::raw(1))
+                            ->from('offline_exam_questions')
+                            ->whereColumn('offline_exam_questions.exam_id', 'exams.id')
+                            ->where('offline_exam_questions.subject_id', $subjectId);
+                    });
+                });
+            })
+            ->listedForStudentPortal();
+    }
+
     public function getLeaderBoardData($type){
         $return = Exam_user::select(['exam_users.*',DB::raw('AVG(exam_users.percentage) as total_result'),DB::raw('SUM(exam_users.total_mark) as total_mark'),DB::raw('SUM(exam_users.total_number) as total_number'),'users.first_name','users.last_name','users.profile_img',DB::raw('count(*) as total_exam')])
                     ->leftJoin('exams', 'exams.id', '=', 'exam_users.user_id')
@@ -163,48 +201,26 @@ class StudentsController extends Controller
             $examRow->subject_scores = $subjects;
         }
 
-        $data['upcoming_list'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
-                                    ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
-                                    ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.exam_id', '=', 'exams.id')
-                                    ->leftJoin('exam_statuses', function ($join) {
-                                        $join->on('exams.id', '=', 'exam_statuses.exam_id')
-                                             ->where('exam_statuses.user_id', Auth::user()->id);
-                                    })
-                                    ->where('exams.is_deleted',0)->where('exams.status',1)
-                                    ->where(function ($q) {
-                                        $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
-                                    })
-                                    ->when(filled($subject_id), function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when(filled($exam_type), function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->listedForStudentPortal()
-                                    ->distinct()->orderBy('exams.exam_date','ASC')->take(5)->get();
+        $data['upcoming_list'] = $this->dashboardPortalExamQuery($subject_id, $exam_type)
+            ->select(['exams.*', 'locations.location_name'])
+            ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
+            ->orderBy('exams.exam_date', 'ASC')
+            ->orderBy('exams.id', 'ASC')
+            ->take(5)
+            ->get()
+            ->unique('id')
+            ->values();
 
-        // Full schedule list for dashboard "Exam Schedule" modal.
-        $data['exam_schedule_list'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
-                                    ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
-                                    ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.exam_id', '=', 'exams.id')
-                                    ->where('exams.is_deleted',0)->where('exams.status',1)
-                                    ->where(function ($q) {
-                                        $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
-                                    })
-                                    ->when(filled($subject_id), function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]);
-                                    })
-                                    ->when(filled($exam_type), function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type);
-                                    })
-                                    ->listedForStudentPortal()
-                                    ->distinct()->orderBy('exams.exam_date','ASC')->take(50)->get();
+        // Full schedule list for dashboard "Exam Schedule" modal + Give Exam cards.
+        $data['exam_schedule_list'] = $this->dashboardPortalExamQuery($subject_id, $exam_type)
+            ->select(['exams.*', 'locations.location_name'])
+            ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
+            ->orderBy('exams.exam_date', 'ASC')
+            ->orderBy('exams.id', 'ASC')
+            ->take(50)
+            ->get()
+            ->unique('id')
+            ->values();
 
         // Dashboard leaderboard: TOP 5 only (never hydrate the full student list).
         $leaderBoardQuery = Exam_user::query()
@@ -318,13 +334,7 @@ class StudentsController extends Controller
             ->where('exams.is_deleted', 0)
             ->count();
 
-        $data['mocks_available_count'] = Exam::assignedTo(Auth::id())
-            ->where('exams.is_deleted', 0)
-            ->where('exams.status', 1)
-            ->where(function ($q) {
-                $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
-            })
-            ->listedForStudentPortal()
+        $data['mocks_available_count'] = $this->dashboardPortalExamQuery()
             ->count();
 
         Notice::attachBroadcastForUser((int) Auth::id());
@@ -344,28 +354,16 @@ class StudentsController extends Controller
             ->take(3)
             ->get();
 
-        $data['trending_test'] = Exam::assignedTo(Auth::id())->select(['exams.*','locations.location_name'])
-                                    ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
-                                    ->leftJoin('question_papers', 'exams.question_paper_id', '=', 'question_papers.id')
-                                    ->leftJoin('question_paper_questions', 'question_paper_questions.question_paper_id', '=', 'question_papers.id')
-                                    ->leftJoin('questions', 'questions.id', '=', 'question_paper_questions.question_id')
-                                    ->leftJoin('offline_exam_questions', 'offline_exam_questions.exam_id', '=', 'exams.id')
-                                    ->leftJoin('exam_statuses', function ($join) {
-                                        $join->on('exams.id', '=', 'exam_statuses.exam_id')
-                                             ->where('exam_statuses.user_id', Auth::user()->id);
-                                    })
-                                    ->where('exams.is_deleted',0)->where('exams.status',1)
-                                    ->where(function ($q) {
-                                        $q->whereNull('exams.exam_code')->orWhere('exams.exam_code', 'not like', 'CT-%');
-                                    })
-                                    ->when(filled($subject_id), function ($query) use ($subject_id) {
-                                        $query->whereRaw('COALESCE(questions.subject_id, offline_exam_questions.subject_id) = ?', [$subject_id]); 
-                                    })
-                                    ->when(filled($exam_type), function ($query) use ($exam_type) {
-                                        $query->where('exams.type',$exam_type); 
-                                    })
-                                    ->listedForStudentPortal()
-                                    ->where('exams.is_trending',1)->distinct()->orderBy('exams.exam_date','ASC')->take(5)->get();
+        $data['trending_test'] = $this->dashboardPortalExamQuery($subject_id, $exam_type)
+            ->select(['exams.*', 'locations.location_name'])
+            ->leftJoin('locations', 'exams.location_id', '=', 'locations.id')
+            ->where('exams.is_trending', 1)
+            ->orderBy('exams.exam_date', 'ASC')
+            ->orderBy('exams.id', 'ASC')
+            ->take(5)
+            ->get()
+            ->unique('id')
+            ->values();
 
         // Live "Trending" = many students currently giving the exam (active unfinished attempts).
         $trendingMinGivers = 3;
