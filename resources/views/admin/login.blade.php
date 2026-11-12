@@ -8,7 +8,7 @@
                 <!-- Auth header with logo image-->
                 <div class="text-center">
                     <img class="mb-3" src="{{asset('admin/img/icons/background.svg')}}" alt="..." style="height: 48px" />
-                    <h1 class="display-5 mb-0">Login</h1>
+                    <h1 class="display-5 mb-0">Admin Login</h1>
                     <div class="subheading-1 mb-5">to continue to app</div>
                 </div>
                 <!-- Login submission form-->
@@ -31,6 +31,9 @@
                     <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
                         <a class="small fw-500 text-decoration-none" href="{{ route('admin.forgot_password')}}">Forgot Password?</a>
                         <button class="btn btn-primary" type="submit">Login</button>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a class="small fw-500 text-decoration-none" href="{{ route('counsellor.index') }}">Counsellor Login</a>
                     </div>
                 </form>
             </div>
