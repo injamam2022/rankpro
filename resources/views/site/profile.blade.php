@@ -930,7 +930,14 @@
         var data = {};
         stripAutofilledParentNames();
 
-        if (committedProfileFile) {
+        // Cropped base64 is the reliable upload path. Clear the file input when
+        // base64 is present so multipart validation cannot block the save.
+        if ($('#cropped_profile_image').val()) {
+          var profileInput = document.getElementById('profileImage');
+          if (profileInput) {
+            try { profileInput.value = ''; } catch (err) {}
+          }
+        } else if (committedProfileFile) {
           setProfileInputFile(committedProfileFile);
         }
 

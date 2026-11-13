@@ -706,10 +706,17 @@ class StudentsController extends Controller
             $classAllowed[] = $currentClass;
         }
 
+        // When cropper sends base64, skip strict file-image rules so a flaky
+        // DataTransfer file cannot block saving the cropped photo.
+        $profileImageRule = $request->filled('cropped_profile_image')
+            ? 'nullable|file|max:5120'
+            : 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120';
+
         $request->validate([
             'first_name' => 'required',
             'class_name' => ['required', Rule::in($classAllowed)],
-            'profileImage' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+            'profileImage' => $profileImageRule,
+            'cropped_profile_image' => 'nullable|string',
             'father_full_name' => 'nullable|string|max:255',
             'father_mobile_number' => 'nullable|digits:10',
             'mother_full_name' => 'nullable|string|max:255',
@@ -876,17 +883,9 @@ class StudentsController extends Controller
 
         $filename = null;
 
-        if ($request->hasFile('profileImage') && $request->file('profileImage')->isValid()) {
-            $image = $request->file('profileImage');
-            $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
-            if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
-                $extension = 'jpg';
-            }
-            $filename = 'profile_' . $userId . '_' . time() . '.' . $extension;
-            if (!$image->move($destinationPath, $filename)) {
-                return null;
-            }
-        } elseif ($request->filled('cropped_profile_image')) {
+        // Prefer cropped base64 from the profile cropper — more reliable than
+        // multipart File rebuilt via DataTransfer in some browsers.
+        if ($request->filled('cropped_profile_image')) {
             $dataUrl = (string) $request->input('cropped_profile_image');
             if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $m)) {
                 $raw = base64_decode(substr($dataUrl, strpos($dataUrl, ',') + 1), true);
@@ -900,6 +899,21 @@ class StudentsController extends Controller
                         return null;
                     }
                 }
+            }
+        }
+
+        if (!$filename && $request->hasFile('profileImage') && $request->file('profileImage')->isValid()) {
+            $image = $request->file('profileImage');
+            $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
+            if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                $extension = 'jpg';
+            }
+            $filename = 'profile_' . $userId . '_' . time() . '.' . $extension;
+            try {
+                $image->move($destinationPath, $filename);
+            } catch (\Throwable $e) {
+                \Log::warning('Profile image move failed: '.$e->getMessage());
+                return null;
             }
         }
 
