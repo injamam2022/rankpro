@@ -291,7 +291,7 @@ class CoursePackageController extends Controller
 
     public function myOrders()
     {
-        $orders = CoursePackageOrder::with(['package', 'location', 'orderChapters.chapter.subject'])
+        $orders = CoursePackageOrder::with(['package', 'mode', 'location', 'orderChapters.chapter.subject'])
             ->where('user_id', Auth::id())
             ->orderByDesc('id')
             ->get();

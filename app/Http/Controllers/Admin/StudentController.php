@@ -31,7 +31,7 @@ class StudentController extends Controller
         $data['list'] = User::orderByDesc('id')->get();
         $data['fees_by_user'] = CoursePackageOrder::query()
             ->select('user_id', DB::raw('SUM(final_amount) as fees_paid'))
-            ->whereIn('payment_status', ['SUCCESS', 'FREE'])
+            ->where('payment_status', 'SUCCESS')
             ->groupBy('user_id')
             ->pluck('fees_paid', 'user_id');
         $codes = CoursePackageAccess::assignableOnlineCodes();
@@ -61,26 +61,92 @@ class StudentController extends Controller
             $assigned[$package->code] = $this->subscriptionState($user->id, $package);
         }
 
-        return view('admin.student.subscriptions', compact('user', 'packages', 'assigned'));
+        $ownedChapterIds = CoursePackageAccess::ownedChapterIds($user->id);
+        $chapterGroups = CoursePackageAccess::chapterCatalog($ownedChapterIds);
+        $chapterPickLimit = CoursePackageAccess::CHAPTER_PICK_LIMIT;
+
+        return view('admin.student.subscriptions', compact(
+            'user',
+            'packages',
+            'assigned',
+            'chapterGroups',
+            'ownedChapterIds',
+            'chapterPickLimit'
+        ));
     }
 
     public function saveSubscriptions(Request $request)
     {
         $user = User::findOrFail($request->id);
         $selected = array_values(array_filter(array_map('strval', (array) $request->input('packages', []))));
+        // Mission 720 includes Chapter Master + Rank Builder + Rank Champion.
+        if (in_array('mission_720', $selected, true)) {
+            $selected = array_values(array_unique(array_merge($selected, [
+                'chapter_master',
+                'rank_builder',
+                'rank_champion',
+            ])));
+        }
         $packages = CoursePackageAccess::assignableOnlinePackages();
         $granted = [];
         $revoked = [];
+        $missionSelected = in_array('mission_720', $selected, true);
+        $missionIncludes = ['chapter_master', 'rank_builder', 'rank_champion'];
+        $chapterMasterWanted = in_array('chapter_master', $selected, true);
+        $chapterIds = array_values(array_unique(array_filter(array_map(
+            'intval',
+            (array) $request->input('chapter_ids', [])
+        ))));
+
+        $cmPackage = $packages->firstWhere('code', 'chapter_master');
+
+        // Chapter Master alone = pick up to 6 chapters (not full unlock).
+        // Mission 720 = full Chapter Master, so skip chapter picking.
+        if ($cmPackage && $chapterMasterWanted && !$missionSelected) {
+            $cmState = $this->subscriptionState($user->id, $cmPackage);
+            if (!empty($cmState['full'])) {
+                // Already full — nothing to pick.
+            } elseif ($chapterIds === [] && empty($cmState['has'])) {
+                toastr()->error('Select up to '.CoursePackageAccess::CHAPTER_PICK_LIMIT.' chapters for Rank Chapter Master.');
+
+                return redirect()->back()->withInput();
+            } elseif ($chapterIds !== []) {
+                $result = CoursePackageAccess::grantChapterMasterChapters((int) $user->id, $chapterIds);
+                if (!empty($result['error'])) {
+                    toastr()->error($result['error']);
+
+                    return redirect()->back()->withInput();
+                }
+                $granted[] = 'Rank Chapter Master ('.count($result['granted']).' chapter'
+                    .(count($result['granted']) === 1 ? '' : 's').')';
+            }
+        }
 
         foreach ($packages as $package) {
+            if ($package->code === 'chapter_master') {
+                $cmState = $this->subscriptionState($user->id, $package);
+                if ($missionSelected) {
+                    // Full access comes with Mission 720; also keep an explicit full grant.
+                    if (empty($cmState['full'])) {
+                        CoursePackageAccess::grantOnlineAccess((int) $user->id, $package);
+                        $granted[] = $package->name.' (full)';
+                    }
+                    continue;
+                }
+                if (!$chapterMasterWanted && !empty($cmState['has'])) {
+                    CoursePackageAccess::revokeOnlineAccess((int) $user->id, $package);
+                    $revoked[] = $package->name;
+                }
+                continue;
+            }
+
             $want = in_array($package->code, $selected, true);
             $has = $this->subscriptionState($user->id, $package)['has'];
-            $keepChapterMaster = $package->code === 'chapter_master'
-                && in_array('mission_720', $selected, true);
+            $keepWithMission = $missionSelected && in_array($package->code, $missionIncludes, true);
             if ($want && !$has) {
                 CoursePackageAccess::grantOnlineAccess((int) $user->id, $package);
                 $granted[] = $package->name;
-            } elseif (!$want && $has && !$keepChapterMaster) {
+            } elseif (!$want && $has && !$keepWithMission) {
                 CoursePackageAccess::revokeOnlineAccess((int) $user->id, $package);
                 $revoked[] = $package->name;
             }
@@ -111,6 +177,7 @@ class StudentController extends Controller
             $adminFull = CoursePackageAccess::adminGrantedFullChapterMaster($userId);
             $chapterRows = CoursePackageAccess::ownedChapterRows($userId);
             $chapterCount = $chapterRows->count();
+            $full = $fromMission || $adminFull;
 
             $label = 'Not assigned';
             if ($fromMission) {
@@ -118,14 +185,15 @@ class StudentController extends Controller
             } elseif ($adminFull) {
                 $label = $orders->contains('transaction_id', 'ADMIN-GRANT') ? 'Full access (admin)' : 'Full access';
             } elseif ($chapterCount > 0) {
-                $label = $chapterCount.' chapter'.($chapterCount === 1 ? '' : 's').' purchased';
+                $label = $chapterCount.' chapter'.($chapterCount === 1 ? '' : 's').' assigned';
             }
 
             return [
-                'has' => $adminFull,
+                'has' => $full || $chapterCount > 0,
+                'full' => $full,
                 'included' => $fromMission,
                 'label' => $label,
-                'chapters' => $fromMission || $adminFull ? collect() : $chapterRows,
+                'chapters' => $full ? collect() : $chapterRows,
             ];
         }
 

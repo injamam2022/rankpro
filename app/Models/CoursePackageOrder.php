@@ -83,6 +83,59 @@ class CoursePackageOrder extends Model
         return in_array($this->payment_status, ['SUCCESS', 'FREE'], true);
     }
 
+    public function isAdminAssigned(): bool
+    {
+        if ($this->transaction_id === 'ADMIN-GRANT') {
+            return true;
+        }
+
+        $meta = $this->gateway_meta;
+        if (is_array($meta) && ($meta['source'] ?? null) === 'admin_assigned') {
+            return true;
+        }
+
+        return str_contains((string) ($this->mode_label ?? ''), 'Admin grant');
+    }
+
+    /** Human label: Assigned by Admin / Purchased by Customer / FREE / PENDING / FAILED */
+    public function sourceLabel(): string
+    {
+        if ($this->isAdminAssigned()) {
+            return 'Assigned by Admin';
+        }
+
+        return match ($this->payment_status) {
+            'SUCCESS' => 'Purchased by Customer',
+            'FREE' => 'FREE',
+            'PENDING' => 'PENDING',
+            'FAILED' => 'FAILED',
+            default => (string) ($this->payment_status ?: '—'),
+        };
+    }
+
+    /** Listed package price for display (falls back for older admin grants stored as ₹0). */
+    public function displayAmount(): float
+    {
+        $stored = (float) ($this->final_amount ?? 0);
+        if ($stored > 0 || !$this->isAdminAssigned()) {
+            return $stored;
+        }
+
+        if ($this->relationLoaded('mode') && $this->mode) {
+            $price = (float) ($this->mode->price ?? 0);
+            $tax = (float) ($this->package->tax ?? 0);
+            if ($price > 0) {
+                return $price + $tax;
+            }
+        }
+
+        if ($this->relationLoaded('package') && $this->package && $this->package->display_price) {
+            return (float) $this->package->display_price + (float) ($this->package->tax ?? 0);
+        }
+
+        return $stored;
+    }
+
     public function modeBadge(): string
     {
         return match ($this->mode_code) {

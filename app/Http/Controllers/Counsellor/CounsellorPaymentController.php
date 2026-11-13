@@ -54,7 +54,7 @@ class CounsellorPaymentController extends Controller
 
     public function coursePackageOrders()
     {
-        $data['list'] = CoursePackageOrder::with(['user', 'package', 'location', 'orderChapters.chapter.subject'])
+        $data['list'] = CoursePackageOrder::with(['user', 'package', 'mode', 'location', 'orderChapters.chapter.subject'])
             ->orderByDesc('id')
             ->get();
 

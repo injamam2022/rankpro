@@ -2222,15 +2222,7 @@
     </script>
     @if(!empty($exam_detail->is_proctored))
     @php
-      $proctorProfileName = !empty(Auth::user()->profile_img)
-        ? basename(str_replace('\\', '/', Auth::user()->profile_img))
-        : '';
-      $proctorProfileUrl = '';
-      if ($proctorProfileName !== '') {
-          $proctorProfilePath = public_path('uploads/profileImage/'.$proctorProfileName);
-          $proctorProfileVer = file_exists($proctorProfilePath) ? filemtime($proctorProfilePath) : time();
-          $proctorProfileUrl = asset('uploads/profileImage/'.$proctorProfileName).'?v='.$proctorProfileVer;
-      }
+      $proctorProfileUrl = student_profile_image_url(Auth::user()->profile_img ?? null) ?: '';
     @endphp
     <script src="{{ asset('exam/vendor/face-api/face-api.min.js') }}?v=10"></script>
     <script src="{{ asset('exam/js/proctoring.js') }}?v=20"></script>

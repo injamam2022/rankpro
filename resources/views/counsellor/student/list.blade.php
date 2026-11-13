@@ -7,11 +7,15 @@
 
 @section('content')
     <div class="container-xl px-5">
-        <div class="d-flex mt-10 mb-4" style="display:flex;">
-            <div class="" style="width: calc(100% - 50px);">
+        <div class="d-flex mt-10 mb-4 align-items-center" style="display:flex;">
+            <div class="" style="width: calc(100% - 220px);">
                 <h1 class="page-header mb-0">Student</h1>
             </div>
-            <div>
+            <div style="display: flex; gap: 20px;">
+                <a href="{{route('counsellor.student.download')}}" style="display: flex;font-size: 20px;text-decoration: none !important;">
+                    <i class="material-icons">download</i>
+                    Excel
+                </a>
                 <a href="{{route('counsellor.student.add')}}" style="display: flex;font-size: 20px;text-decoration: none !important;">
                     <i class="material-icons">add</i>
                     Add

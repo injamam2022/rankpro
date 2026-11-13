@@ -20,7 +20,8 @@
                     <p><strong>Student:</strong> {{ trim(($details->user->first_name ?? '').' '.($details->user->last_name ?? '')) }} ({{ $details->user->email_id ?? '' }})</p>
                     <p><strong>Package:</strong> {{ $details->package->name ?? '—' }}</p>
                     <p><strong>Mode:</strong> {{ $details->modeBadge() }}</p>
-                    <p><strong>Amount:</strong> ₹{{ number_format($details->final_amount, 2) }} ({{ $details->payment_status }})</p>
+                    <p><strong>Amount:</strong> ₹{{ number_format($details->displayAmount(), 2) }}</p>
+                    <p><strong>Source:</strong> {{ $details->sourceLabel() }}</p>
                     <p class="mb-0"><strong>Txn:</strong> {{ $details->transaction_id ?: '—' }}</p>
                 </div>
                 <div class="col-md-6">

@@ -426,10 +426,31 @@ if (!function_exists('student_profile_image_url')) {
     function student_profile_image_url($profileImg): ?string
     {
         $name = $profileImg ? basename(str_replace('\\', '/', (string) $profileImg)) : '';
-        if ($name === '') {
+        if ($name === '' || $name === '.' || $name === '..') {
             return null;
         }
-        return asset('uploads/profileImage/'.rawurlencode($name));
+
+        $relative = 'uploads/profileImage/'.$name;
+        $absolute = public_path($relative);
+        if (!is_file($absolute)) {
+            // Avoid broken <img> when DB has a name but the file is missing on this server.
+            return null;
+        }
+
+        $encoded = 'uploads/profileImage/'.rawurlencode($name);
+        $version = (string) (@filemtime($absolute) ?: time());
+
+        // Prefer the current request root so images work with both
+        // `php artisan serve` and `/rankpro/public` (ASSET_URL mismatches won't break them).
+        try {
+            if (app()->bound('request') && ($request = request()) && $request->getHost()) {
+                return rtrim($request->root(), '/').'/'.$encoded.'?v='.$version;
+            }
+        } catch (\Throwable $e) {
+            // fall through to asset()
+        }
+
+        return asset($encoded).'?v='.$version;
     }
 }
 

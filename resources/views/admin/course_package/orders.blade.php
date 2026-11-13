@@ -13,7 +13,7 @@
                 <th>Package</th>
                 <th>Mode</th>
                 <th>Amount</th>
-                <th>Payment</th>
+                <th>Source</th>
                 <th>Fulfilment</th>
                 <th>Created</th>
                 <th>Action</th>
@@ -40,8 +40,8 @@
                         @endif
                     </td>
                     <td>{{ $row->modeBadge() }}</td>
-                    <td>₹{{ number_format($row->final_amount, 2) }}</td>
-                    <td>{{ $row->payment_status }}</td>
+                    <td>₹{{ number_format($row->displayAmount(), 2) }}</td>
+                    <td>{{ $row->sourceLabel() }}</td>
                     <td>{{ $row->fulfillment_status }}</td>
                     <td>{{ $row->created_at }}</td>
                     <td><a href="{{ route('admin.course_package.order_detail', ['id' => $row->id]) }}" class="btn btn-success btn-sm">View</a></td>

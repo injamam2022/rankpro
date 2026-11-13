@@ -134,16 +134,14 @@
                                                         $pct = ($value->total_mark > 0)
                                                             ? number_format(($value->total_number / $value->total_mark) * 100, 2)
                                                             : '—';
-                                                        $img = !empty($value->profile_img)
-                                                            ? basename(str_replace('\\', '/', $value->profile_img))
-                                                            : '';
+                                                        $imgUrl = student_profile_image_url($value->profile_img ?? null);
                                                     @endphp
                                                     <tr class="{{ $isMe ? 'is-you' : '' }}">
                                                         <td class="is-center"><span class="rp-rank">#{{ $key + 1 }}</span></td>
                                                         <td>
                                                             <div class="rp-name-cell">
-                                                                @if($img !== '')
-                                                                    <img src="{{ asset('uploads/profileImage/'.$img) }}" alt="">
+                                                                @if($imgUrl)
+                                                                    <img src="{{ $imgUrl }}" alt="">
                                                                 @else
                                                                     <span class="rp-avatar-fallback">{{ strtoupper(substr($value->first_name ?? 'S', 0, 1)) }}</span>
                                                                 @endif
@@ -167,16 +165,14 @@
                                                         $myPct = ($my_leader_board->total_mark > 0)
                                                             ? number_format(($my_leader_board->total_number / $my_leader_board->total_mark) * 100, 2)
                                                             : '—';
-                                                        $myImg = !empty($my_leader_board->profile_img)
-                                                            ? basename(str_replace('\\', '/', $my_leader_board->profile_img))
-                                                            : '';
+                                                        $myImgUrl = student_profile_image_url($my_leader_board->profile_img ?? null);
                                                     @endphp
                                                     <tr class="is-you">
                                                         <td class="is-center"><span class="rp-rank">#{{ $your_score }}</span></td>
                                                         <td>
                                                             <div class="rp-name-cell">
-                                                                @if($myImg !== '')
-                                                                    <img src="{{ asset('uploads/profileImage/'.$myImg) }}" alt="">
+                                                                @if($myImgUrl)
+                                                                    <img src="{{ $myImgUrl }}" alt="">
                                                             @else
                                                                     <span class="rp-avatar-fallback">{{ strtoupper(substr($user->first_name ?? 'Y', 0, 1)) }}</span>
                                                             @endif
@@ -213,15 +209,13 @@
                                                         $myPct2 = ($my_leader_board->total_mark > 0)
                                                             ? number_format(($my_leader_board->total_number / $my_leader_board->total_mark) * 100, 2)
                                                             : '—';
-                                                        $myImg2 = !empty($my_leader_board->profile_img)
-                                                            ? basename(str_replace('\\', '/', $my_leader_board->profile_img))
-                                                            : '';
+                                                        $myImg2Url = student_profile_image_url($my_leader_board->profile_img ?? null);
                                                     @endphp
                                                     <tr class="is-you">
                                                         <td>
                                                             <div class="rp-name-cell">
-                                                                @if($myImg2 !== '')
-                                                                    <img src="{{ asset('uploads/profileImage/'.$myImg2) }}" alt="">
+                                                                @if($myImg2Url)
+                                                                    <img src="{{ $myImg2Url }}" alt="">
                                                                 @else
                                                                     <span class="rp-avatar-fallback">{{ strtoupper(substr($user->first_name ?? 'Y', 0, 1)) }}</span>
                                                                 @endif

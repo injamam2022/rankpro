@@ -40,8 +40,8 @@
                                     <div class="small text-muted">{{ $order->order_number }} · {{ $order->created_at->format('d M Y, h:i A') }}</div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold">₹{{ number_format($order->final_amount, 2) }}</div>
-                                    <span class="badge bg-{{ $order->isPaid() ? 'success' : ($order->payment_status === 'FAILED' ? 'danger' : 'warning') }}">{{ $order->payment_status }}</span>
+                                    <div class="fw-bold">₹{{ number_format($order->displayAmount(), 2) }}</div>
+                                    <span class="badge bg-{{ $order->isPaid() ? 'success' : ($order->payment_status === 'FAILED' ? 'danger' : 'warning') }}">{{ $order->sourceLabel() }}</span>
                                 </div>
                             </div>
                             <div class="mt-2 small">

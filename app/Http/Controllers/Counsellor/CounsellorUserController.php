@@ -13,6 +13,7 @@ use Illuminate\Support\Arr;
 use ZipArchive;
 
 use App\Imports\ExcelToDbImportStudent;
+use App\Exports\StudentsExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\User;
@@ -25,6 +26,11 @@ class CounsellorUserController extends Controller
         // Show all students (same as admin). New/uploaded students are still tagged with counsellor_id for tracking.
         $data['list'] = User::orderByDesc('id')->get();
         return view('counsellor.student.list',$data);
+    }
+
+    public function download(){
+        $fileName = 'students_'.date('Y-m-d_His').'.xlsx';
+        return Excel::download(new StudentsExport(), $fileName);
     }
 
 

@@ -344,25 +344,22 @@ class CoursePackageAccess
             return null;
         }
 
-        if ($package->code === 'chapter_master' && self::chapterMasterFullAccess($userId)) {
-            $existing = CoursePackageOrder::query()
+        // Prefer an existing full Chapter Master grant; do not treat Mission 720 as a
+        // substitute order — admin may still assign Chapter Master explicitly (e.g. when
+        // Mission 720 auto-enables the included packages).
+        if ($package->code === 'chapter_master' && self::adminGrantedFullChapterMaster($userId)) {
+            return CoursePackageOrder::query()
                 ->where('user_id', $userId)
                 ->whereIn('payment_status', ['SUCCESS', 'FREE'])
                 ->where('course_package_id', $package->id)
                 ->whereDoesntHave('orderChapters')
+                ->where(function ($q) {
+                    $q->where('payment_status', 'FREE')
+                        ->orWhere('transaction_id', 'ADMIN-GRANT')
+                        ->orWhere('final_amount', '<=', 0);
+                })
                 ->latest('id')
                 ->first();
-            if ($existing) {
-                return $existing;
-            }
-            if (self::hasPackage('mission_720', $userId)) {
-                return CoursePackageOrder::query()
-                    ->where('user_id', $userId)
-                    ->whereIn('payment_status', ['SUCCESS', 'FREE'])
-                    ->whereHas('package', fn ($q) => $q->where('code', 'mission_720'))
-                    ->latest('id')
-                    ->first();
-            }
         }
 
         if ($package->code !== 'chapter_master' && self::hasPackage($package->code, $userId)) {
@@ -375,6 +372,9 @@ class CoursePackageAccess
         }
 
         $mode = self::onlineModeForPackage($package);
+        $amount = (float) ($mode?->price ?? $package->display_price ?? 0);
+        $tax = (float) ($package->tax ?? 0);
+        $final = max(0, $amount + $tax);
 
         return CoursePackageOrder::create([
             'user_id' => $userId,
@@ -382,13 +382,108 @@ class CoursePackageAccess
             'course_package_mode_id' => $mode?->id,
             'mode_code' => $mode?->mode_code ?? 'online',
             'mode_label' => ($mode?->label ?? 'Online').' · Admin grant',
-            'amount' => 0,
-            'final_amount' => 0,
+            'amount' => $amount,
+            'tax' => $tax,
+            'final_amount' => $final,
+            'fulfillment_status' => 'access_granted',
+            // FREE = no gateway charge; amount still stores catalogue price for reporting.
+            'payment_status' => 'FREE',
+            'transaction_id' => 'ADMIN-GRANT',
+            'admin_notes' => $note,
+            'gateway_meta' => [
+                'source' => 'admin_assigned',
+                'listed_price' => $final,
+            ],
+        ]);
+    }
+
+    /**
+     * Admin assigns specific Chapter Master chapters (max CHAPTER_PICK_LIMIT per call).
+     * Skips chapters the student already owns. Does not grant full Chapter Master.
+     *
+     * @param  array<int>  $chapterIds
+     * @return array{order?: CoursePackageOrder, granted: array<int>, error?: string}
+     */
+    public static function grantChapterMasterChapters(int $userId, array $chapterIds, string $note = 'Admin granted Chapter Master chapters'): array
+    {
+        $package = self::chapterMasterPackage();
+        if (!$package) {
+            return ['granted' => [], 'error' => 'Rank Chapter Master package not found.'];
+        }
+
+        if (self::chapterMasterFullAccess($userId)) {
+            return ['granted' => [], 'error' => 'Student already has full Chapter Master access.'];
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $chapterIds))));
+        $limit = self::CHAPTER_PICK_LIMIT;
+
+        if (count($ids) < 1) {
+            return ['granted' => [], 'error' => 'Select at least one chapter (up to '.$limit.').'];
+        }
+        if (count($ids) > $limit) {
+            return ['granted' => [], 'error' => 'You can assign up to '.$limit.' chapters at a time.'];
+        }
+
+        $owned = array_flip(self::ownedChapterIds($userId));
+        $ids = array_values(array_filter($ids, fn ($id) => !isset($owned[$id])));
+        if ($ids === []) {
+            return ['granted' => [], 'error' => 'All selected chapters are already assigned.'];
+        }
+
+        $chapters = Chapter::query()
+            ->whereIn('id', $ids)
+            ->where('status', 1)
+            ->whereHas('subject', function ($q) {
+                $q->where('status', 1)->where(function ($inner) {
+                    $inner->where('is_deleted', 0)->orWhereNull('is_deleted');
+                });
+            })
+            ->get();
+
+        if ($chapters->count() !== count($ids)) {
+            return ['granted' => [], 'error' => 'One of the selected chapters is not available.'];
+        }
+
+        $mode = self::onlineModeForPackage($package);
+        $unit = (float) ($mode?->price ?? $package->display_price ?? 0);
+        $count = $chapters->count();
+        $amount = $unit * $count;
+        $tax = (float) ($package->tax ?? 0);
+        $final = max(0, $amount + $tax);
+
+        $order = CoursePackageOrder::create([
+            'user_id' => $userId,
+            'course_package_id' => $package->id,
+            'course_package_mode_id' => $mode?->id,
+            'mode_code' => $mode?->mode_code ?? 'online',
+            'mode_label' => ($mode?->label ?? 'Online').' · Admin grant',
+            'amount' => $amount,
+            'tax' => $tax,
+            'final_amount' => $final,
             'fulfillment_status' => 'access_granted',
             'payment_status' => 'FREE',
             'transaction_id' => 'ADMIN-GRANT',
             'admin_notes' => $note,
+            'gateway_meta' => [
+                'source' => 'admin_assigned_chapters',
+                'chapter_ids' => $chapters->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+                'unit_price' => $unit,
+            ],
         ]);
+
+        $granted = [];
+        foreach ($chapters as $chapter) {
+            CoursePackageOrderChapter::create([
+                'course_package_order_id' => $order->id,
+                'user_id' => $userId,
+                'chapter_id' => $chapter->id,
+                'price' => $unit,
+            ]);
+            $granted[] = (int) $chapter->id;
+        }
+
+        return ['order' => $order, 'granted' => $granted];
     }
 
     public static function revokeOnlineAccess(int $userId, CoursePackage $package, string $note = 'Admin revoked online access'): int

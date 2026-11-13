@@ -848,6 +848,7 @@
         Route::get('/profile/logout', [CounsellorProfileController::class, 'logout'])->name('logout');
         
         Route::get('/student', [CounsellorUserController::class, 'list'])->name('student');
+        Route::get('/student/download', [CounsellorUserController::class, 'download'])->name('student.download');
         Route::get('/student/add', [CounsellorUserController::class, 'add'])->name('student.add');
         Route::post('/student/save', [CounsellorUserController::class, 'save'])->name('student.save');
         Route::get('/student/edit', [CounsellorUserController::class, 'edit'])->name('student.edit');

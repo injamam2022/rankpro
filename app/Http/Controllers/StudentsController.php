@@ -729,6 +729,9 @@ class StudentsController extends Controller
             $savedPhoto = $this->storeProfilePhoto($request, $user_id, $loginCheck);
             if ($savedPhoto) {
                 $insertData['profile_img'] = $savedPhoto;
+            } elseif ($request->hasFile('profileImage') || $request->filled('cropped_profile_image')) {
+                toastr()->error('Profile photo could not be saved. Check that public/uploads/profileImage is writable on the server.');
+                return redirect()->route('profile')->withInput();
             }
             if ($image = $request->file('certificate')){
                 $insertData['certificate'] = time().'.'.$image->getClientOriginalExtension();
@@ -853,21 +856,36 @@ class StudentsController extends Controller
 
     private function storeProfilePhoto(Request $request, $userId, $user): ?string
     {
+        $wantsPhoto = $request->hasFile('profileImage') || $request->filled('cropped_profile_image');
+        if (!$wantsPhoto) {
+            return null;
+        }
+
         $destinationPath = public_path('uploads/profileImage');
         if (!is_dir($destinationPath)) {
-            mkdir($destinationPath, 0755, true);
+            if (!@mkdir($destinationPath, 0755, true) && !is_dir($destinationPath)) {
+                return null;
+            }
+        }
+        if (!is_writable($destinationPath)) {
+            @chmod($destinationPath, 0755);
+            if (!is_writable($destinationPath)) {
+                return null;
+            }
         }
 
         $filename = null;
 
-        if ($request->hasFile('profileImage')) {
+        if ($request->hasFile('profileImage') && $request->file('profileImage')->isValid()) {
             $image = $request->file('profileImage');
             $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
             if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
                 $extension = 'jpg';
             }
             $filename = 'profile_' . $userId . '_' . time() . '.' . $extension;
-            $image->move($destinationPath, $filename);
+            if (!$image->move($destinationPath, $filename)) {
+                return null;
+            }
         } elseif ($request->filled('cropped_profile_image')) {
             $dataUrl = (string) $request->input('cropped_profile_image');
             if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $m)) {
@@ -878,7 +896,9 @@ class StudentsController extends Controller
                         $extension = 'jpg';
                     }
                     $filename = 'profile_' . $userId . '_' . time() . '.' . $extension;
-                    file_put_contents($destinationPath . DIRECTORY_SEPARATOR . $filename, $raw);
+                    if (@file_put_contents($destinationPath . DIRECTORY_SEPARATOR . $filename, $raw) === false) {
+                        return null;
+                    }
                 }
             }
         }
@@ -887,11 +907,16 @@ class StudentsController extends Controller
             return null;
         }
 
+        $savedPath = $destinationPath . DIRECTORY_SEPARATOR . $filename;
+        if (!is_file($savedPath)) {
+            return null;
+        }
+
         $oldImg = (string) ($user->profile_img ?? '');
         if ($oldImg !== '') {
             $oldBasename = basename(str_replace('\\', '/', $oldImg));
             $oldPath = $destinationPath . DIRECTORY_SEPARATOR . $oldBasename;
-            if ($oldBasename !== $filename && is_file($oldPath)) {
+            if ($oldBasename !== '' && $oldBasename !== $filename && is_file($oldPath)) {
                 @unlink($oldPath);
             }
         }
