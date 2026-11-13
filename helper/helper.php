@@ -440,8 +440,13 @@ if (!function_exists('student_profile_image_url')) {
         $encoded = 'uploads/profileImage/'.rawurlencode($name);
         $version = (string) (@filemtime($absolute) ?: time());
 
-        // Prefer the current request root so images work with both
-        // `php artisan serve` and `/rankpro/public` (ASSET_URL mismatches won't break them).
+        // Prefer ASSET_URL when set (production uses https://rankpro.co.in/public).
+        // Fall back to the current request root for local artisan serve.
+        $assetUrl = trim((string) config('app.asset_url'));
+        if ($assetUrl !== '') {
+            return rtrim($assetUrl, '/').'/'.$encoded.'?v='.$version;
+        }
+
         try {
             if (app()->bound('request') && ($request = request()) && $request->getHost()) {
                 return rtrim($request->root(), '/').'/'.$encoded.'?v='.$version;
