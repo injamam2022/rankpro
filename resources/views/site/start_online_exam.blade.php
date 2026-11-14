@@ -326,13 +326,22 @@
             display:flex;
             align-items:center;
             justify-content:space-between;
-            margin-bottom:25px;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-bottom:18px;
         }
         .exam-heading h5 {
             margin:0;
             font-size:22px;
             font-weight:700;
             color:#12233d;
+        }
+        .exam-heading-meta {
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-left:auto;
         }
         .exam-heading .subject {
             background:#f4f6fa;
@@ -350,6 +359,58 @@
             border-radius:24px;
             font-size:13px;
             font-weight:600;
+        }
+        /* Per-question elapsed time (how long spent on current question) */
+        #sclockdiv.question-elapsed,
+        .question-elapsed {
+            display:inline-flex !important;
+            align-items:center;
+            gap:8px;
+            margin:0 !important;
+            padding:8px 14px;
+            width:auto !important;
+            min-width:0;
+            height:auto;
+            background:#fff;
+            border:1px solid #d7e0f2;
+            border-radius:10px;
+            box-shadow:0 1px 2px rgba(20,35,60,.04);
+            color:#17233b;
+            font-size:13px;
+            line-height:1;
+            white-space:nowrap;
+            order:0;
+            flex:0 0 auto;
+        }
+        .question-elapsed__icon {
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:22px;
+            height:22px;
+            border-radius:50%;
+            background:#eef3ff;
+            color:#3561ff;
+            font-size:12px;
+            flex:0 0 auto;
+        }
+        .question-elapsed__value {
+            color:#12233d !important;
+            font-size:16px;
+            font-weight:700;
+            font-family:Consolas,'Courier New',monospace;
+            font-variant-numeric:tabular-nums;
+            letter-spacing:0.02em;
+            line-height:1;
+        }
+        .question-elapsed__label {
+            color:#7a8498;
+            font-size:12px;
+            font-weight:500;
+        }
+        .question-elapsed .blueTime,
+        #sclockdiv .blueTime {
+            display:none !important;
         }
         /* Question box follows File 2's question-text/q-no/q-only structure */
         .questionDiv {
@@ -754,6 +815,9 @@
             .exam-layout { padding:0 10px; }
             .exam-content { padding:18px 14px; }
             .exam-heading h5 { font-size:19px; }
+            .question-elapsed__label { display:none; }
+            .question-elapsed { padding:7px 11px; }
+            .question-elapsed__value { font-size:15px; }
             .questionDiv { padding:18px; }
             .questionDiv .q-no, #question_div { font-size:15px; }
             .option-card { min-height:72px; padding:12px 14px !important; }
@@ -1043,8 +1107,19 @@
         <div class="questionBankList" id="question_list"></div>
       </aside>
       <main class="exam-content">
-        <div class="exam-heading"><h5>Online Examination</h5><span><span class="subject" id="current_subject_label">Question &amp; Answer</span><span class="q-marks" id="current_question_marks"></span></span></div>
-        <div class="exampTime" id="sclockdiv" style="display:none"><div class="blueTime"><div style="width:50%;"></div><span><b class="minutes"></b><b class="seconds"></b></span></div></div>
+        <div class="exam-heading">
+          <h5>Online Examination</h5>
+          <div class="exam-heading-meta">
+            <div class="question-elapsed" id="sclockdiv" role="timer" aria-live="polite" aria-label="Time on this question 00:00">
+              <span class="question-elapsed__icon" aria-hidden="true"><i class="fa fa-clock-o"></i></span>
+              <span class="question-elapsed__value" id="question_elapsed_display">00:00</span>
+              <span class="question-elapsed__label">on this question</span>
+              <!-- Legacy hooks kept for any external scripts -->
+              <span class="blueTime" aria-hidden="true" style="display:none"><b class="minutes"></b><b class="seconds"></b></span>
+            </div>
+            <span><span class="subject" id="current_subject_label">Question &amp; Answer</span><span class="q-marks" id="current_question_marks"></span></span>
+          </div>
+        </div>
         <div class="questionDiv">
           <div class="question-text">
             <div class="q-no"></div>
@@ -2189,25 +2264,41 @@
         examTimeInterval = setInterval(updateExamClock, 1000);
       }
 
-      function initializeTotalQuestionTime(id, endtime,total_time) {
-        var hoursSpan = $('#'+id+' .hours');
-        var minutesSpan = $('#'+id+' .minutes');
-        var secondsSpan = $('#'+id+' .seconds');
+      function formatQuestionElapsed(t) {
+        var totalSeconds = Math.max(0, Math.floor((t && t.total ? t.total : 0) / 1000));
+        var hours = Math.floor(totalSeconds / 3600);
+        var minutes = Math.floor((totalSeconds % 3600) / 60);
+        var seconds = totalSeconds % 60;
+        var mm = ('0' + minutes).slice(-2);
+        var ss = ('0' + seconds).slice(-2);
+        if (hours > 0) {
+          return ('0' + hours).slice(-2) + ':' + mm + ':' + ss;
+        }
+        return mm + ':' + ss;
+      }
+
+      function initializeTotalQuestionTime(id, endtime, total_time) {
+        var clockRoot = $('#' + id);
+        var display = $('#question_elapsed_display');
+        var minutesSpan = clockRoot.find('.minutes');
+        var secondsSpan = clockRoot.find('.seconds');
 
         function updateQuestionClock() {
           var t = getTimeRemaining(endtime);
           globalData.current_question_time = t;
-          hoursSpan.html(('0' + t.hours).slice(-2));
+          var text = formatQuestionElapsed(t);
+          if (display.length) {
+            display.text(text);
+          }
           minutesSpan.html(('0' + t.minutes).slice(-2));
           secondsSpan.html(('0' + t.seconds).slice(-2));
+          clockRoot.attr('aria-label', 'Time on this question ' + text);
         }
         updateQuestionClock();
-        if(globalData.questionTimeInterval){
+        if (globalData.questionTimeInterval) {
           clearInterval(globalData.questionTimeInterval);
-          globalData.questionTimeInterval = setInterval(updateQuestionClock, 1000);
-        }else{
-          globalData.questionTimeInterval = setInterval(updateQuestionClock, 1000);
         }
+        globalData.questionTimeInterval = setInterval(updateQuestionClock, 1000);
       }
       function beginExamTimer() {
         var examStartTime = new Date();
